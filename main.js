@@ -8,8 +8,6 @@ class RichFootSettings {
 
 class RichFootPlugin extends Plugin {
     async onload() {
-        console.log('Loading Rich Foot plugin');
-
         await this.loadSettings();
 
         this.updateRichFoot = debounce(this.updateRichFoot.bind(this), 100, true);
@@ -30,7 +28,8 @@ class RichFootPlugin extends Plugin {
 
         this.contentObserver = new MutationObserver(this.updateRichFoot);
 
-        console.log('Rich Foot plugin loaded');
+        // Load CSS
+        this.loadStyles();
     }
 
     async loadSettings() {
@@ -55,7 +54,6 @@ class RichFootPlugin extends Plugin {
 
         const file = view.file;
         if (!file || !file.path) {
-            console.log('No valid file provided, skipping');
             return;
         }
 
@@ -63,7 +61,6 @@ class RichFootPlugin extends Plugin {
         const markdownPreviewSection = content.querySelector('.markdown-preview-section');
 
         if (!markdownPreviewSection) {
-            console.log('Markdown preview section not found, skipping');
             return;
         }
 
@@ -86,21 +83,16 @@ class RichFootPlugin extends Plugin {
     }
 
     createRichFoot(file, container) {
-        console.log('Creating Rich Foot for', file.path);
-
         const richFoot = createDiv({ cls: 'rich-foot' });
 
         // Backlinks
         const backlinkList = this.app.metadataCache.getBacklinksForFile(file);
-        console.log('Backlink list:', backlinkList);
 
         if (backlinkList && backlinkList.data && Object.keys(backlinkList.data).length > 0) {
-            console.log('Backlinks found, creating list');
             const backlinksDiv = richFoot.createDiv({ cls: 'rich-foot--backlinks' });
             const backlinksUl = backlinksDiv.createEl('ul');
 
             for (const [linkPath, backlinks] of Object.entries(backlinkList.data)) {
-                console.log('Processing backlink:', linkPath);
                 if (this.shouldIncludeBacklink(linkPath)) {
                     const parts = linkPath.split('/');
                     const displayName = parts[parts.length - 1].slice(0, -3); // Remove '.md'
@@ -114,11 +106,8 @@ class RichFootPlugin extends Plugin {
                         event.preventDefault();
                         this.app.workspace.openLinkText(linkPath, file.path);
                     });
-                    console.log('Added backlink:', displayName);
                 }
             }
-        } else {
-            console.log('No backlinks found');
         }
 
         // Modified date
@@ -138,7 +127,6 @@ class RichFootPlugin extends Plugin {
         });
 
         container.appendChild(richFoot);
-        console.log('Rich Foot added successfully');
     }
 
     shouldIncludeBacklink(linkPath) {
@@ -147,6 +135,13 @@ class RichFootPlugin extends Plugin {
 
     onunload() {
         this.contentObserver.disconnect();
+    }
+
+    loadStyles() {
+        const styleEl = document.createElement('style');
+        styleEl.id = 'rich-foot-styles';
+        styleEl.textContent = require('./styles.css');
+        document.head.appendChild(styleEl);
     }
 }
 
@@ -159,7 +154,21 @@ class RichFootSettingTab extends PluginSettingTab {
     display() {
         let { containerEl } = this;
         containerEl.empty();
-        containerEl.createEl('h2', { text: 'Rich Foot Settings' });
+        containerEl.createEl('h1', { text: 'Rich Foot Settings' });
+
+        // Add informative text
+        const infoDiv = containerEl.createEl('div', { cls: 'rich-foot-info' });
+        infoDiv.createEl('p', { text: 'Rich Foot adds a footer to your notes with useful information such as backlinks, creation date, and last modified date.' });
+        
+        // Add example image
+        const imgDiv = containerEl.createEl('div', { cls: 'rich-foot-example' });
+        const img = imgDiv.createEl('img', {
+            attr: {
+                src: 'https://raw.githubusercontent.com/jparkerweb/rich-foot/main/example.jpg',
+                alt: 'Rich Foot Example',
+                style: 'max-width: 100%; border-radius: 10px; margin-bottom: 20px;'
+            }
+        });
 
         new Setting(containerEl)
             .setName('Excluded Folders')
@@ -172,6 +181,13 @@ class RichFootSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 })
             );
+
+        // Update the textarea size
+        const textArea = containerEl.querySelector('textarea');
+        if (textArea) {
+            textArea.style.width = '400px';
+            textArea.style.height = '250px';
+        }
     }
 }
 

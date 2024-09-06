@@ -105,3 +105,52 @@ body.theme-light .rich-foot--backlinks ul li a {
 	text-transform: uppercase;
 	padding: 2px 8px 0 0;
 }
+
+/* Settings styles */
+.rich-foot-info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--background-secondary);
+    border-radius: 10px;
+}
+
+.rich-foot-example {
+    margin-bottom: 20px;
+}
+
+.rich-foot-example img {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.rich-foot-example img:hover {
+    transform: scale(1.02);
+}
+
+.setting-item {
+    border: none;
+    background-color: var(--background-secondary);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.setting-item-name {
+    font-weight: bold;
+}
+
+.setting-item-description {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+textarea {
+    background-color: var(--background-primary-alt);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 5px;
+    padding: 10px;
+    font-family: var(--font-monospace);
+    width: 400px !important;
+    height: 250px !important;
+    resize: vertical;
+}
