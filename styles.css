@@ -91,7 +91,7 @@ body.theme-light .rich-foot--backlinks ul li a {
 	content: "created date";
 	font-size: .7em;
 	text-transform: uppercase;
-	padding: 2px 0 0 0;
+	padding: 2px 8px 0 0;
 }
 
 .rich-foot--modified-date {
@@ -103,5 +103,5 @@ body.theme-light .rich-foot--backlinks ul li a {
 	content: "modified date";
 	font-size: .7em;
 	text-transform: uppercase;
-	padding: 2px 0 0 0;
+	padding: 2px 8px 0 0;
 }
