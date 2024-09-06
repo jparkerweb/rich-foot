@@ -2,8 +2,6 @@
 
 Rich Foot is an Obsidian plugin that enhances the footer of your notes by adding backlink tags and created/modified dates.
 
-![example](example.jpg)
-
 ## Features
 
 - Adds backlinks to the footer of your notes
@@ -27,8 +25,6 @@ Once installed and enabled, Rich Foot will automatically add the following to th
 
 ## Customization
 
-## Customization
-
 Rich Foot allows you to customize its behavior by excluding certain folders from generating backlinks. This feature is particularly useful for maintaining a clean and relevant set of backlinks in your notes.
 
 ### Excluding Folders
@@ -49,6 +45,9 @@ Templates
 
 This will ensure that backlinks are not generated for notes within these folders, keeping your backlink list clean and focused on relevant content.
 
+## Example Note Screenshot
+
+![example](example.jpg)
 
 ## License
 
