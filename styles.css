@@ -1,0 +1,107 @@
+/* ========================= */
+/* == Obsidian: Rich Foot == */
+/* ========================= */
+
+/* -----------------------*/
+/* -- footer backlinks -- */
+/* -----------------------*/
+.rich-foot--backlinks {
+	margin-top: 100px;
+	border-top: 1px dashed var(--text-accent);
+}
+
+.rich-foot--backlinks::before {
+	content: 'Backlinks';
+	text-transform: uppercase;
+	filter: brightness(150%);
+	position: relative;
+	bottom: 0;
+	font-size: 0.7em;
+	color: var(--text-accent);
+}
+body.theme-light .rich-foot--backlinks::before {
+	filter: brightness(80%);
+}
+
+.rich-foot--backlinks ul {
+	list-style: none;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+    margin: 0 !important;
+}
+
+.rich-foot--backlinks ul li {
+	margin-inline-start: 0 !important;
+}
+
+.rich-foot--backlinks ul li a::before {
+	content: "← ";
+	opacity: .5;
+}
+
+.rich-foot--backlinks ul li a {
+	filter: brightness(120%);
+	text-decoration: none !important;
+	font-size: 12px;
+	padding: 0px 8px;
+	text-transform: lowercase;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	margin: 0px 4px;
+	cursor: pointer;
+	border-radius: 14px;
+	border: 1px solid rgba(255, 255, 255, 0.204);
+	background-color: var(--tag-background);
+	transition: 150ms ease-in-out all;
+}
+body.theme-light .rich-foot--backlinks ul li a {
+	filter: brightness(80%);
+}
+
+.rich-foot--backlinks ul li a:hover {
+	filter: brightness(170%);
+	border: 1px solid transparent !important;
+	text-decoration: none;
+}
+
+/* ----------------------------------- */
+/* -- created / modified note dates -- */
+/* ----------------------------------- */
+.rich-foot--created-date,
+.rich-foot--modified-date {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	list-style: none;
+	margin-top: 10px;
+	padding-left: 0;
+	font-size: .8em;
+}
+
+.rich-foot--created-date {
+	float: right;
+	margin-right: 20px;
+	margin-left: 20px;
+	filter: brightness(85%);
+	color: var(--text-accent);
+}
+.rich-foot--created-date::before {
+	content: "created date";
+	font-size: .7em;
+	text-transform: uppercase;
+	padding: 2px 0 0 0;
+}
+
+.rich-foot--modified-date {
+	float: right;
+	filter: brightness(85%);
+	color: var(--text-accent);
+}
+.rich-foot--modified-date::before {
+	content: "modified date";
+	font-size: .7em;
+	text-transform: uppercase;
+	padding: 2px 0 0 0;
+}
