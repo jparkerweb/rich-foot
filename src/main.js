@@ -27,9 +27,6 @@ class RichFootPlugin extends Plugin {
         );
 
         this.contentObserver = new MutationObserver(this.updateRichFoot);
-
-        // Load CSS
-        this.loadStyles();
     }
 
     async loadSettings() {
@@ -135,13 +132,6 @@ class RichFootPlugin extends Plugin {
 
     onunload() {
         this.contentObserver.disconnect();
-    }
-
-    loadStyles() {
-        const styleEl = document.createElement('style');
-        styleEl.id = 'rich-foot-styles';
-        styleEl.textContent = require('./styles.css');
-        document.head.appendChild(styleEl);
     }
 }
 

@@ -6,6 +6,7 @@
     "description": "Obsidian plugin that adds backlink tags and created/modified dates to the footer of your notes.",
     "author": "Justin Parker",
     "authorUrl": "https://www.jparkerweb.com",
-    "fundingUrl": "https://ko-fi.com/jparkerweb", 
-    "isDesktopOnly": false
-  }
+    "fundingUrl": "https://ko-fi.com/jparkerweb",
+    "isDesktopOnly": false,
+    "stylesheets": ["styles.css"]
+}
