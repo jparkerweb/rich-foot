@@ -144,24 +144,17 @@ class RichFootSettingTab extends PluginSettingTab {
     display() {
         let { containerEl } = this;
         containerEl.empty();
-        containerEl.createEl('h1', { text: 'Rich Foot Settings' });
+        containerEl.addClass('rich-foot-settings');
+
+        // Add the title
+        containerEl.createEl('h3', { text: '🦶 Rich Foot Settings' });
 
         // Add informative text
         const infoDiv = containerEl.createEl('div', { cls: 'rich-foot-info' });
         infoDiv.createEl('p', { text: 'Rich Foot adds a footer to your notes with useful information such as backlinks, creation date, and last modified date.' });
-        
-        // Add example image
-        const imgDiv = containerEl.createEl('div', { cls: 'rich-foot-example' });
-        const img = imgDiv.createEl('img', {
-            attr: {
-                src: 'https://raw.githubusercontent.com/jparkerweb/rich-foot/main/example.jpg',
-                alt: 'Rich Foot Example',
-                style: 'max-width: 100%; border-radius: 10px; margin-bottom: 20px;'
-            }
-        });
 
         new Setting(containerEl)
-            .setName('Excluded Folders')
+            .setName('Excluded folders')
             .setDesc('Enter folder paths to exclude from backlinks (one per line)')
             .addTextArea(text => text
                 .setPlaceholder('folder1\nfolder2/subfolder')

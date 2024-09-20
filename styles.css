@@ -107,27 +107,27 @@ body.theme-light .rich-foot--backlinks ul li a {
 }
 
 /* Settings styles */
-.rich-foot-info {
+.rich-foot-settings .rich-foot-info {
     margin-bottom: 20px;
     padding: 15px;
     background-color: var(--background-secondary);
     border-radius: 10px;
 }
 
-.rich-foot-example {
+.rich-foot-settings .rich-foot-example {
     margin-bottom: 20px;
 }
 
-.rich-foot-example img {
+.rich-foot-settings .rich-foot-example img {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
 }
 
-.rich-foot-example img:hover {
+.rich-foot-settings .rich-foot-example img:hover {
     transform: scale(1.02);
 }
 
-.setting-item {
+.rich-foot-settings .setting-item {
     border: none;
     background-color: var(--background-secondary);
     border-radius: 10px;
@@ -135,16 +135,16 @@ body.theme-light .rich-foot--backlinks ul li a {
     margin-bottom: 15px;
 }
 
-.setting-item-name {
+.rich-foot-settings .setting-item-name {
     font-weight: bold;
 }
 
-.setting-item-description {
+.rich-foot-settings .setting-item-description {
     font-size: 0.9em;
     opacity: 0.8;
 }
 
-textarea {
+.rich-foot-settings textarea {
     background-color: var(--background-primary-alt);
     border: 1px solid var(--background-modifier-border);
     border-radius: 5px;
