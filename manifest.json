@@ -3,7 +3,7 @@
     "name": "Rich Foot",
     "version": "1.0.0",
     "minAppVersion": "0.12.0",
-    "description": "Obsidian plugin that adds backlink tags and created/modified dates to the footer of your notes.",
+    "description": "Adds backlink tags and created/modified dates to the footer of your notes.",
     "author": "Justin Parker",
     "authorUrl": "https://www.jparkerweb.com",
     "fundingUrl": "https://ko-fi.com/jparkerweb",
