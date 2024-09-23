@@ -146,9 +146,6 @@ class RichFootSettingTab extends PluginSettingTab {
         containerEl.empty();
         containerEl.addClass('rich-foot-settings');
 
-        // Add the title
-        containerEl.createEl('h3', { text: '🦶 Rich Foot Settings' });
-
         // Add informative text
         const infoDiv = containerEl.createEl('div', { cls: 'rich-foot-info' });
         infoDiv.createEl('p', { text: 'Rich Foot adds a footer to your notes with useful information such as backlinks, creation date, and last modified date.' });
