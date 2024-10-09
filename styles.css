@@ -2,111 +2,174 @@
 /* == Obsidian: Rich Foot == */
 /* ========================= */
 
-/* -----------------------*/
-/* -- footer backlinks -- */
-/* -----------------------*/
+/* ------------------------------ */
+/* -- General Rich Foot Styles -- */
+/* ------------------------------ */
+.rich-foot {
+    border-top: 1px solid var(--background-modifier-border);
+    margin-top: 30px;
+    padding-top: 10px;
+}
+
+.rich-foot > div:not(:last-child) {
+    margin-bottom: 10px;
+}
+
+/* ---------------------- */
+/* -- Backlinks Styles -- */
+/* ---------------------- */
 .rich-foot--backlinks {
-	margin-top: 100px;
-	border-top: 1px dashed var(--text-accent);
+    margin-top: 100px;
+    border-top: 1px dashed var(--text-accent);
 }
 
 .rich-foot--backlinks::before {
-	content: 'Backlinks';
-	text-transform: uppercase;
-	filter: brightness(150%);
-	position: relative;
-	bottom: 0;
-	font-size: 0.7em;
-	color: var(--text-accent);
-}
-body.theme-light .rich-foot--backlinks::before {
-	filter: brightness(80%);
+    content: 'Backlinks';
+    text-transform: uppercase;
+    filter: brightness(150%);
+    position: relative;
+    bottom: 0;
+    font-size: 0.7em;
+    color: var(--text-accent);
 }
 
 .rich-foot--backlinks ul {
-	list-style: none;
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     margin: 0 !important;
 }
 
 .rich-foot--backlinks ul li {
-	margin-inline-start: 0 !important;
-}
-
-.rich-foot--backlinks ul li a::before {
-	content: "← ";
-	opacity: .5;
+    margin-inline-start: 0 !important;
 }
 
 .rich-foot--backlinks ul li a {
-	filter: brightness(120%);
-	text-decoration: none !important;
-	font-size: 12px;
-	padding: 0px 8px;
-	text-transform: lowercase;
-	text-align: center;
-	text-decoration: none;
-	display: inline-block;
-	margin: 0px 4px;
-	cursor: pointer;
-	border-radius: 14px;
-	border: 1px solid rgba(255, 255, 255, 0.204);
-	background-color: var(--tag-background);
-	transition: 150ms ease-in-out all;
+    filter: brightness(120%);
+    text-decoration: none !important;
+    font-size: 12px;
+    padding: 0px 8px;
+    text-transform: lowercase;
+    text-align: center;
+    display: inline-block;
+    margin: 0px 4px;
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.204);
+    background-color: var(--tag-background);
+    transition: 150ms ease-in-out all;
 }
-body.theme-light .rich-foot--backlinks ul li a {
-	filter: brightness(80%);
+
+.rich-foot--backlinks ul li a::before {
+    content: "← ";
+    opacity: .5;
 }
 
 .rich-foot--backlinks ul li a:hover {
-	filter: brightness(170%);
-	border: 1px solid transparent !important;
-	text-decoration: none;
+    filter: brightness(170%);
+    border: 1px solid transparent !important;
+    text-decoration: none;
 }
 
-/* ----------------------------------- */
-/* -- created / modified note dates -- */
-/* ----------------------------------- */
+/* ----------------- */
+/* -- Date Styles -- */
+/* ----------------- */
 .rich-foot--created-date,
 .rich-foot--modified-date {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	list-style: none;
-	margin-top: 10px;
-	padding-left: 0;
-	font-size: .8em;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    list-style: none;
+    margin-top: 10px;
+    padding-left: 0;
+    font-size: .8em;
 }
 
 .rich-foot--created-date {
-	float: right;
-	margin-right: 20px;
-	margin-left: 20px;
-	filter: brightness(85%);
-	color: var(--text-accent);
+    float: right;
+    margin-right: 20px;
+    margin-left: 20px;
+    filter: brightness(85%);
+    color: var(--text-accent);
 }
+
 .rich-foot--created-date::before {
-	content: "created date";
-	font-size: .7em;
-	text-transform: uppercase;
-	padding: 2px 8px 0 0;
+    content: "created date";
+    font-size: .7em;
+    text-transform: uppercase;
+    padding: 2px 8px 0 0;
 }
 
 .rich-foot--modified-date {
-	float: right;
-	filter: brightness(85%);
-	color: var(--text-accent);
-}
-.rich-foot--modified-date::before {
-	content: "modified date";
-	font-size: .7em;
-	text-transform: uppercase;
-	padding: 2px 8px 0 0;
+    float: right;
+    filter: brightness(85%);
+    color: var(--text-accent);
 }
 
-/* Settings styles */
+.rich-foot--modified-date::before {
+    content: "modified date";
+    font-size: .7em;
+    text-transform: uppercase;
+    padding: 2px 8px 0 0;
+}
+
+/* --------------------------- */
+/* -- Theme-specific Styles -- */
+/* --------------------------- */
+body.theme-light .rich-foot--backlinks::before {
+    filter: brightness(80%);
+}
+
+body.theme-light .rich-foot--backlinks ul li a {
+    filter: brightness(80%);
+}
+
+/* ---------------------------- */
+/* -- Editor-specific Styles -- */
+/* ---------------------------- */
+.cm-scroller .rich-foot,
+.markdown-source-view .rich-foot {
+    margin-bottom: 30px;
+}
+
+.cm-scroller .cm-contentContainer > .cm-content,
+.markdown-source-view .cm-contentContainer > .cm-content {
+    padding-bottom: 30px !important;
+}
+
+.cm-scroller .rich-foot--backlinks,
+.markdown-source-view .rich-foot--backlinks {
+    margin-top: 20px;
+}
+
+.cm-scroller .rich-foot--created-date,
+.cm-scroller .rich-foot--modified-date,
+.markdown-source-view .rich-foot--created-date,
+.markdown-source-view .rich-foot--modified-date {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.cm-sizer .rich-foot {
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.cm-sizer .rich-foot--backlinks {
+    margin-top: 20px;
+}
+
+.cm-sizer .rich-foot--created-date,
+.cm-sizer .rich-foot--modified-date {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+/* --------------------- */
+/* -- Settings Styles -- */
+/* --------------------- */
 .rich-foot-settings .rich-foot-info {
     margin-bottom: 20px;
     padding: 15px;

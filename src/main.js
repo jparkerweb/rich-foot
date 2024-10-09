@@ -1,4 +1,4 @@
-const { Plugin, MarkdownView, debounce, Setting, PluginSettingTab } = require('obsidian');
+const { Plugin, MarkdownView, debounce, Setting, PluginSettingTab, EditorView } = require('obsidian');
 
 class RichFootSettings {
     constructor() {
@@ -26,6 +26,10 @@ class RichFootPlugin extends Plugin {
             this.app.workspace.on('file-open', this.updateRichFoot)
         );
 
+        this.registerEvent(
+            this.app.workspace.on('editor-change', this.updateRichFoot)
+        );
+
         this.contentObserver = new MutationObserver(this.updateRichFoot);
     }
 
@@ -45,31 +49,50 @@ class RichFootPlugin extends Plugin {
     }
 
     addRichFoot(view) {
-        if (view.getMode() !== 'preview') {
-            return;
-        }
-
         const file = view.file;
         if (!file || !file.path) {
             return;
         }
 
         const content = view.contentEl;
-        const markdownPreviewSection = content.querySelector('.markdown-preview-section');
+        let container;
 
-        if (!markdownPreviewSection) {
+        if (view.getMode() === 'preview') {
+            container = content.querySelector('.markdown-preview-section');
+        } else if (view.getMode() === 'source' || view.getMode() === 'live') {
+            const cmSizer = content.querySelector('.cm-sizer');
+            if (cmSizer) {
+                // Remove any existing Rich Foot
+                this.removeExistingRichFoot(cmSizer);
+                
+                // Create the Rich Foot
+                const richFoot = this.createRichFoot(file);
+                
+                // Append the Rich Foot as the last child of cm-sizer
+                cmSizer.appendChild(richFoot);
+                
+                // Observe the cm-sizer for changes
+                this.contentObserver.disconnect();
+                this.contentObserver.observe(cmSizer, { childList: true, subtree: true });
+                
+                return; // Exit the method early as we've already added the Rich Foot
+            }
+        }
+
+        if (!container) {
             return;
         }
 
         // Remove any existing Rich Foot
-        this.removeExistingRichFoot(markdownPreviewSection);
+        this.removeExistingRichFoot(container);
 
         // Create and add the Rich Foot
-        this.createRichFoot(file, markdownPreviewSection);
+        const richFoot = this.createRichFoot(file);
+        container.appendChild(richFoot);
 
-        // Observe the markdown preview section for changes
+        // Observe the container for changes
         this.contentObserver.disconnect();
-        this.contentObserver.observe(markdownPreviewSection, { childList: true, subtree: true });
+        this.contentObserver.observe(container, { childList: true, subtree: true });
     }
 
     removeExistingRichFoot(container) {
@@ -79,7 +102,7 @@ class RichFootPlugin extends Plugin {
         }
     }
 
-    createRichFoot(file, container) {
+    createRichFoot(file) {
         const richFoot = createDiv({ cls: 'rich-foot' });
 
         // Backlinks
@@ -123,7 +146,7 @@ class RichFootPlugin extends Plugin {
             text: `${created}`
         });
 
-        container.appendChild(richFoot);
+        return richFoot;
     }
 
     shouldIncludeBacklink(linkPath) {
