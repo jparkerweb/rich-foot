@@ -113,6 +113,9 @@ class RichFootPlugin extends Plugin {
             const backlinksUl = backlinksDiv.createEl('ul');
 
             for (const [linkPath, backlinks] of Object.entries(backlinkList.data)) {
+                // Skip if the linkPath is the same as the current file's path
+                if (linkPath === file.path) continue;
+
                 if (this.shouldIncludeBacklink(linkPath)) {
                     const parts = linkPath.split('/');
                     const displayName = parts[parts.length - 1].slice(0, -3); // Remove '.md'
@@ -127,6 +130,11 @@ class RichFootPlugin extends Plugin {
                         this.app.workspace.openLinkText(linkPath, file.path);
                     });
                 }
+            }
+
+            // Only add the backlinks div if there are actually backlinks
+            if (backlinksUl.childElementCount === 0) {
+                backlinksDiv.remove();
             }
         }
 
