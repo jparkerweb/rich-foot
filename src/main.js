@@ -14,21 +14,27 @@ class RichFootPlugin extends Plugin {
 
         this.addSettingTab(new RichFootSettingTab(this.app, this));
 
-        this.registerEvent(
-            this.app.workspace.on('layout-change', this.updateRichFoot)
-        );
+        // Wait for the layout to be ready before registering events
+        this.app.workspace.onLayoutReady(() => {
+            this.registerEvent(
+                this.app.workspace.on('layout-change', this.updateRichFoot)
+            );
 
-        this.registerEvent(
-            this.app.workspace.on('active-leaf-change', this.updateRichFoot)
-        );
+            this.registerEvent(
+                this.app.workspace.on('active-leaf-change', this.updateRichFoot)
+            );
 
-        this.registerEvent(
-            this.app.workspace.on('file-open', this.updateRichFoot)
-        );
+            this.registerEvent(
+                this.app.workspace.on('file-open', this.updateRichFoot)
+            );
 
-        this.registerEvent(
-            this.app.workspace.on('editor-change', this.updateRichFoot)
-        );
+            this.registerEvent(
+                this.app.workspace.on('editor-change', this.updateRichFoot)
+            );
+
+            // Initial update
+            this.updateRichFoot();
+        });
 
         this.contentObserver = new MutationObserver(this.updateRichFoot);
     }
@@ -44,7 +50,12 @@ class RichFootPlugin extends Plugin {
     updateRichFoot() {
         const activeLeaf = this.app.workspace.activeLeaf;
         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
-            this.addRichFoot(activeLeaf.view);
+            // Ensure the view is ready before adding the Rich Foot
+            if (activeLeaf.view.previewMode && activeLeaf.view.previewMode.rendered) {
+                this.addRichFoot(activeLeaf.view);
+            } else if (activeLeaf.view.editor) {
+                this.addRichFoot(activeLeaf.view);
+            }
         }
     }
 
@@ -104,15 +115,17 @@ class RichFootPlugin extends Plugin {
 
     createRichFoot(file) {
         const richFoot = createDiv({ cls: 'rich-foot' });
+        const richFootDashedLine = richFoot.createDiv({ cls: 'rich-foot--dashed-line' });
 
         // Backlinks
-        const backlinkList = this.app.metadataCache.getBacklinksForFile(file);
+        const resolvedLinks = this.app.metadataCache.resolvedLinks;
+        const backlinkList = resolvedLinks[file.path] || {};
 
-        if (backlinkList && backlinkList.data && Object.keys(backlinkList.data).length > 0) {
+        if (Object.keys(backlinkList).length > 0) {
             const backlinksDiv = richFoot.createDiv({ cls: 'rich-foot--backlinks' });
             const backlinksUl = backlinksDiv.createEl('ul');
 
-            for (const [linkPath, backlinks] of Object.entries(backlinkList.data)) {
+            for (const [linkPath, count] of Object.entries(backlinkList)) {
                 // Skip if the linkPath is the same as the current file's path
                 if (linkPath === file.path) continue;
 
@@ -138,10 +151,13 @@ class RichFootPlugin extends Plugin {
             }
         }
 
+        // Dates Wrapper
+        const datesWrapper = richFoot.createDiv({ cls: 'rich-foot--dates-wrapper' });
+
         // Modified date
         const fileUpdate = new Date(file.stat.mtime);
         const modified = `${fileUpdate.toLocaleString('default', { month: 'long' })} ${fileUpdate.getDate()}, ${fileUpdate.getFullYear()}`;
-        richFoot.createDiv({
+        datesWrapper.createDiv({
             cls: 'rich-foot--modified-date',
             text: `${modified}`
         });
@@ -149,7 +165,7 @@ class RichFootPlugin extends Plugin {
         // Created date
         const fileCreated = new Date(file.stat.ctime);
         const created = `${fileCreated.toLocaleString('default', { month: 'long' })} ${fileCreated.getDate()}, ${fileCreated.getFullYear()}`;
-        richFoot.createDiv({
+        datesWrapper.createDiv({
             cls: 'rich-foot--created-date',
             text: `${created}`
         });

@@ -6,9 +6,8 @@
 /* -- General Rich Foot Styles -- */
 /* ------------------------------ */
 .rich-foot {
-    border-top: 1px solid var(--background-modifier-border);
-    margin-top: 30px;
-    padding-top: 10px;
+    margin-top: 30px !important;
+    padding-top: 10px !important;
 }
 
 .rich-foot > div:not(:last-child) {
@@ -18,11 +17,6 @@
 /* ---------------------- */
 /* -- Backlinks Styles -- */
 /* ---------------------- */
-.rich-foot--backlinks {
-    margin-top: 100px;
-    border-top: 1px dashed var(--text-accent);
-}
-
 .rich-foot--backlinks::before {
     content: 'Backlinks';
     text-transform: uppercase;
@@ -39,6 +33,7 @@
     flex-direction: row;
     flex-wrap: wrap;
     margin: 0 !important;
+    padding-left: 20px !important;
 }
 
 .rich-foot--backlinks ul li {
@@ -49,11 +44,11 @@
     filter: brightness(120%);
     text-decoration: none !important;
     font-size: 12px;
-    padding: 0px 8px;
+    padding: 0 8px;
     text-transform: lowercase;
     text-align: center;
     display: inline-block;
-    margin: 0px 4px;
+    margin: 0 4px;
     cursor: pointer;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.204);
@@ -84,43 +79,34 @@
     margin-top: 10px;
     padding-left: 0;
     font-size: .8em;
+    filter: brightness(85%);
+    color: var(--text-accent);
 }
 
 .rich-foot--created-date {
-    float: right;
     margin-right: 20px;
     margin-left: 20px;
-    filter: brightness(85%);
-    color: var(--text-accent);
+}
+
+.rich-foot--created-date::before,
+.rich-foot--modified-date::before {
+    font-size: .7em;
+    text-transform: uppercase;
+    padding: 2px 8px 0 0;
 }
 
 .rich-foot--created-date::before {
     content: "created date";
-    font-size: .7em;
-    text-transform: uppercase;
-    padding: 2px 8px 0 0;
-}
-
-.rich-foot--modified-date {
-    float: right;
-    filter: brightness(85%);
-    color: var(--text-accent);
 }
 
 .rich-foot--modified-date::before {
     content: "modified date";
-    font-size: .7em;
-    text-transform: uppercase;
-    padding: 2px 8px 0 0;
 }
 
 /* --------------------------- */
 /* -- Theme-specific Styles -- */
 /* --------------------------- */
-body.theme-light .rich-foot--backlinks::before {
-    filter: brightness(80%);
-}
-
+body.theme-light .rich-foot--backlinks::before,
 body.theme-light .rich-foot--backlinks ul li a {
     filter: brightness(80%);
 }
@@ -128,11 +114,6 @@ body.theme-light .rich-foot--backlinks ul li a {
 /* ---------------------------- */
 /* -- Editor-specific Styles -- */
 /* ---------------------------- */
-.cm-scroller .rich-foot,
-.markdown-source-view .rich-foot {
-    margin-bottom: 30px;
-}
-
 .cm-scroller .cm-contentContainer > .cm-content,
 .markdown-source-view .cm-contentContainer > .cm-content {
     padding-bottom: 30px !important;
@@ -140,32 +121,55 @@ body.theme-light .rich-foot--backlinks ul li a {
 
 .cm-scroller .rich-foot--backlinks,
 .markdown-source-view .rich-foot--backlinks {
-    margin-top: 20px;
+    margin-top: 0;
 }
 
 .cm-scroller .rich-foot--created-date,
 .cm-scroller .rich-foot--modified-date,
 .markdown-source-view .rich-foot--created-date,
-.markdown-source-view .rich-foot--modified-date {
-    display: inline-block;
-    margin-right: 20px;
-}
-
-.cm-sizer .rich-foot {
-    margin-top: 30px;
-    padding-top: 10px;
-    border-top: 1px solid var(--background-modifier-border);
-}
-
-.cm-sizer .rich-foot--backlinks {
-    margin-top: 20px;
-}
-
+.markdown-source-view .rich-foot--modified-date,
 .cm-sizer .rich-foot--created-date,
 .cm-sizer .rich-foot--modified-date {
     display: inline-block;
     margin-right: 20px;
 }
+
+.cm-sizer,
+.markdown-preview-sizer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    min-height: 100% !important;
+    padding-bottom: 0 !important;
+}
+
+.cm-sizer .rich-foot--backlinks {
+    margin-top: 0;
+}
+
+.markdown-preview-sizer > div {
+    flex: 0;
+}
+
+.markdown-preview-sizer > .rich-foot {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.rich-foot > .rich-foot--dashed-line {
+    border-top: 1px dashed var(--text-accent);
+}
+
+.rich-foot > .rich-foot--dates-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
 
 /* --------------------- */
 /* -- Settings Styles -- */
