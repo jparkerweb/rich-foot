@@ -15,6 +15,9 @@ Rich Foot is an Obsidian plugin that enhances the footer of your notes by adding
 3. Click on Browse and search for "Rich Foot"
 4. Install the plugin and enable it
 
+### Manual Installation
+- Unzip the [latest release](https://github.com/jparkerweb/rich-foot/releases/latest) into your `<vault>/.obsidian/plugins/` folder.
+
 ## Usage
 
 Once installed and enabled, Rich Foot will automatically add the following to the footer of your notes:
