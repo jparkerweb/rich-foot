@@ -66,7 +66,7 @@ class RichFootPlugin extends Plugin {
         if (view.getMode() === 'preview') {
             container = content.querySelector('.markdown-preview-section');
         } else if (view.getMode() === 'source' || view.getMode() === 'live') {
-            container = content.querySelector('.cm-scroller');
+            container = content.querySelector('.cm-sizer');
         }
 
         if (!container) {
@@ -80,7 +80,11 @@ class RichFootPlugin extends Plugin {
         const richFoot = this.createRichFoot(file);
 
         // Append the Rich Foot to the container
-        container.appendChild(richFoot);
+        if (view.getMode() === 'source' || view.getMode() === 'live') {
+            container.appendChild(richFoot);
+        } else {
+            container.appendChild(richFoot);
+        }
 
         // Set up a mutation observer for this specific container
         this.observeContainer(container);
@@ -90,6 +94,14 @@ class RichFootPlugin extends Plugin {
         const existingRichFoot = container.querySelector('.rich-foot');
         if (existingRichFoot) {
             existingRichFoot.remove();
+        }
+        // Also check in .cm-sizer for editing mode
+        const cmSizer = container.closest('.cm-editor')?.querySelector('.cm-sizer');
+        if (cmSizer) {
+            const richFootInSizer = cmSizer.querySelector('.rich-foot');
+            if (richFootInSizer) {
+                richFootInSizer.remove();
+            }
         }
     }
 

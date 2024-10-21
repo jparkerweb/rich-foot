@@ -53,20 +53,32 @@ var RichFootPlugin = class extends Plugin {
     if (view.getMode() === "preview") {
       container = content.querySelector(".markdown-preview-section");
     } else if (view.getMode() === "source" || view.getMode() === "live") {
-      container = content.querySelector(".cm-scroller");
+      container = content.querySelector(".cm-sizer");
     }
     if (!container) {
       return;
     }
     this.removeExistingRichFoot(container);
     const richFoot = this.createRichFoot(file);
-    container.appendChild(richFoot);
+    if (view.getMode() === "source" || view.getMode() === "live") {
+      container.appendChild(richFoot);
+    } else {
+      container.appendChild(richFoot);
+    }
     this.observeContainer(container);
   }
   removeExistingRichFoot(container) {
+    var _a;
     const existingRichFoot = container.querySelector(".rich-foot");
     if (existingRichFoot) {
       existingRichFoot.remove();
+    }
+    const cmSizer = (_a = container.closest(".cm-editor")) == null ? void 0 : _a.querySelector(".cm-sizer");
+    if (cmSizer) {
+      const richFootInSizer = cmSizer.querySelector(".rich-foot");
+      if (richFootInSizer) {
+        richFootInSizer.remove();
+      }
     }
   }
   observeContainer(container) {
