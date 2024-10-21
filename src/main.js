@@ -124,6 +124,9 @@ class RichFootPlugin extends Plugin {
                 // Skip if the linkPath is the same as the current file's path
                 if (linkPath === file.path) continue;
 
+                // Skip if the file is not a markdown file
+                if (!linkPath.endsWith('.md')) continue;
+
                 if (this.shouldIncludeBacklink(linkPath)) {
                     const parts = linkPath.split('/');
                     const displayName = parts[parts.length - 1].slice(0, -3); // Remove '.md'

@@ -91,6 +91,7 @@ var RichFootPlugin = class extends Plugin {
       const backlinksUl = backlinksDiv.createEl("ul");
       for (const [linkPath, count] of Object.entries(backlinkList)) {
         if (linkPath === file.path) continue;
+        if (!linkPath.endsWith(".md")) continue;
         if (this.shouldIncludeBacklink(linkPath)) {
           const parts = linkPath.split("/");
           const displayName = parts[parts.length - 1].slice(0, -3);
