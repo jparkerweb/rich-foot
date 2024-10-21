@@ -71,39 +71,29 @@ class RichFootPlugin extends Plugin {
         if (view.getMode() === 'preview') {
             container = content.querySelector('.markdown-preview-section');
         } else if (view.getMode() === 'source' || view.getMode() === 'live') {
-            const cmSizer = content.querySelector('.cm-sizer');
-            if (cmSizer) {
-                // Remove any existing Rich Foot
-                this.removeExistingRichFoot(cmSizer);
-                
-                // Create the Rich Foot
-                const richFoot = this.createRichFoot(file);
-                
-                // Append the Rich Foot as the last child of cm-sizer
-                cmSizer.appendChild(richFoot);
-                
-                // Observe the cm-sizer for changes
-                this.contentObserver.disconnect();
-                this.contentObserver.observe(cmSizer, { childList: true, subtree: true });
-                
-                return; // Exit the method early as we've already added the Rich Foot
-            }
+            container = content.querySelector('.cm-scroller');
         }
 
         if (!container) {
             return;
         }
 
-        // Remove any existing Rich Foot
+        // Remove any existing Rich Foot wrapper
         this.removeExistingRichFoot(container);
 
-        // Create and add the Rich Foot
+        // Create the Rich Foot
         const richFoot = this.createRichFoot(file);
-        container.appendChild(richFoot);
 
-        // Observe the container for changes
-        this.contentObserver.disconnect();
-        this.contentObserver.observe(container, { childList: true, subtree: true });
+        // Create a wrapper that includes both the original content and the Rich Foot
+        const wrapper = createDiv({ cls: 'rich-foot-wrapper' });
+        wrapper.appendChild(container.cloneNode(true));
+        wrapper.appendChild(richFoot);
+
+        // Replace the original container with our wrapper
+        container.replaceWith(wrapper);
+
+        // Observe the parent of the wrapper for changes
+        this.observeContentChanges(wrapper);
     }
 
     removeExistingRichFoot(container) {
@@ -177,8 +167,34 @@ class RichFootPlugin extends Plugin {
         return !this.settings.excludedFolders.some(folder => linkPath.startsWith(folder));
     }
 
+    observeContentChanges(wrapper) {
+        const parent = wrapper.parentElement;
+        if (!parent) return;
+
+        this.contentObserver.disconnect();
+        this.contentObserver.observe(parent, { childList: true, subtree: true });
+
+        const checkAndReinsert = () => {
+            if (!document.body.contains(wrapper)) {
+                const container = parent.querySelector('.markdown-preview-section, .cm-scroller');
+                if (container) {
+                    container.replaceWith(wrapper);
+                }
+            }
+        };
+
+        // Check periodically if our wrapper is still in the DOM
+        const intervalId = setInterval(checkAndReinsert, 1000);
+
+        // Store the interval ID so we can clear it later
+        this.richFootIntervalId = intervalId;
+    }
+
     onunload() {
         this.contentObserver.disconnect();
+        if (this.richFootIntervalId) {
+            clearInterval(this.richFootIntervalId);
+        }
     }
 }
 

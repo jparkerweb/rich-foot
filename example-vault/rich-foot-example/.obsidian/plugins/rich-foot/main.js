@@ -57,24 +57,18 @@ var RichFootPlugin = class extends Plugin {
     if (view.getMode() === "preview") {
       container = content.querySelector(".markdown-preview-section");
     } else if (view.getMode() === "source" || view.getMode() === "live") {
-      const cmSizer = content.querySelector(".cm-sizer");
-      if (cmSizer) {
-        this.removeExistingRichFoot(cmSizer);
-        const richFoot2 = this.createRichFoot(file);
-        cmSizer.appendChild(richFoot2);
-        this.contentObserver.disconnect();
-        this.contentObserver.observe(cmSizer, { childList: true, subtree: true });
-        return;
-      }
+      container = content.querySelector(".cm-scroller");
     }
     if (!container) {
       return;
     }
     this.removeExistingRichFoot(container);
     const richFoot = this.createRichFoot(file);
-    container.appendChild(richFoot);
-    this.contentObserver.disconnect();
-    this.contentObserver.observe(container, { childList: true, subtree: true });
+    const wrapper = createDiv({ cls: "rich-foot-wrapper" });
+    wrapper.appendChild(container.cloneNode(true));
+    wrapper.appendChild(richFoot);
+    container.replaceWith(wrapper);
+    this.observeContentChanges(wrapper);
   }
   removeExistingRichFoot(container) {
     const existingRichFoot = container.querySelector(".rich-foot");
@@ -128,8 +122,27 @@ var RichFootPlugin = class extends Plugin {
   shouldIncludeBacklink(linkPath) {
     return !this.settings.excludedFolders.some((folder) => linkPath.startsWith(folder));
   }
+  observeContentChanges(wrapper) {
+    const parent = wrapper.parentElement;
+    if (!parent) return;
+    this.contentObserver.disconnect();
+    this.contentObserver.observe(parent, { childList: true, subtree: true });
+    const checkAndReinsert = () => {
+      if (!document.body.contains(wrapper)) {
+        const container = parent.querySelector(".markdown-preview-section, .cm-scroller");
+        if (container) {
+          container.replaceWith(wrapper);
+        }
+      }
+    };
+    const intervalId = setInterval(checkAndReinsert, 1e3);
+    this.richFootIntervalId = intervalId;
+  }
   onunload() {
     this.contentObserver.disconnect();
+    if (this.richFootIntervalId) {
+      clearInterval(this.richFootIntervalId);
+    }
   }
 };
 var RichFootSettingTab = class extends PluginSettingTab {
