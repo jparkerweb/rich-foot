@@ -50,12 +50,7 @@ class RichFootPlugin extends Plugin {
     updateRichFoot() {
         const activeLeaf = this.app.workspace.activeLeaf;
         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
-            // Ensure the view is ready before adding the Rich Foot
-            if (activeLeaf.view.previewMode && activeLeaf.view.previewMode.rendered) {
-                this.addRichFoot(activeLeaf.view);
-            } else if (activeLeaf.view.editor) {
-                this.addRichFoot(activeLeaf.view);
-            }
+            this.addRichFoot(activeLeaf.view);
         }
     }
 
@@ -78,22 +73,17 @@ class RichFootPlugin extends Plugin {
             return;
         }
 
-        // Remove any existing Rich Foot wrapper
+        // Remove any existing Rich Foot
         this.removeExistingRichFoot(container);
 
         // Create the Rich Foot
         const richFoot = this.createRichFoot(file);
 
-        // Create a wrapper that includes both the original content and the Rich Foot
-        const wrapper = createDiv({ cls: 'rich-foot-wrapper' });
-        wrapper.appendChild(container.cloneNode(true));
-        wrapper.appendChild(richFoot);
+        // Append the Rich Foot to the container
+        container.appendChild(richFoot);
 
-        // Replace the original container with our wrapper
-        container.replaceWith(wrapper);
-
-        // Observe the parent of the wrapper for changes
-        this.observeContentChanges(wrapper);
+        // Set up a mutation observer for this specific container
+        this.observeContainer(container);
     }
 
     removeExistingRichFoot(container) {
@@ -101,6 +91,21 @@ class RichFootPlugin extends Plugin {
         if (existingRichFoot) {
             existingRichFoot.remove();
         }
+    }
+
+    observeContainer(container) {
+        if (this.containerObserver) {
+            this.containerObserver.disconnect();
+        }
+
+        this.containerObserver = new MutationObserver((mutations) => {
+            const richFoot = container.querySelector('.rich-foot');
+            if (!richFoot) {
+                this.addRichFoot(this.app.workspace.activeLeaf.view);
+            }
+        });
+
+        this.containerObserver.observe(container, { childList: true, subtree: true });
     }
 
     createRichFoot(file) {
@@ -167,33 +172,13 @@ class RichFootPlugin extends Plugin {
         return !this.settings.excludedFolders.some(folder => linkPath.startsWith(folder));
     }
 
-    observeContentChanges(wrapper) {
-        const parent = wrapper.parentElement;
-        if (!parent) return;
-
-        this.contentObserver.disconnect();
-        this.contentObserver.observe(parent, { childList: true, subtree: true });
-
-        const checkAndReinsert = () => {
-            if (!document.body.contains(wrapper)) {
-                const container = parent.querySelector('.markdown-preview-section, .cm-scroller');
-                if (container) {
-                    container.replaceWith(wrapper);
-                }
-            }
-        };
-
-        // Check periodically if our wrapper is still in the DOM
-        const intervalId = setInterval(checkAndReinsert, 1000);
-
-        // Store the interval ID so we can clear it later
-        this.richFootIntervalId = intervalId;
-    }
-
     onunload() {
         this.contentObserver.disconnect();
         if (this.richFootIntervalId) {
             clearInterval(this.richFootIntervalId);
+        }
+        if (this.containerObserver) {
+            this.containerObserver.disconnect();
         }
     }
 }

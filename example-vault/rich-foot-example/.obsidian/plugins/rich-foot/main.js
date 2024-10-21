@@ -40,11 +40,7 @@ var RichFootPlugin = class extends Plugin {
   updateRichFoot() {
     const activeLeaf = this.app.workspace.activeLeaf;
     if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
-      if (activeLeaf.view.previewMode && activeLeaf.view.previewMode.rendered) {
-        this.addRichFoot(activeLeaf.view);
-      } else if (activeLeaf.view.editor) {
-        this.addRichFoot(activeLeaf.view);
-      }
+      this.addRichFoot(activeLeaf.view);
     }
   }
   addRichFoot(view) {
@@ -64,17 +60,26 @@ var RichFootPlugin = class extends Plugin {
     }
     this.removeExistingRichFoot(container);
     const richFoot = this.createRichFoot(file);
-    const wrapper = createDiv({ cls: "rich-foot-wrapper" });
-    wrapper.appendChild(container.cloneNode(true));
-    wrapper.appendChild(richFoot);
-    container.replaceWith(wrapper);
-    this.observeContentChanges(wrapper);
+    container.appendChild(richFoot);
+    this.observeContainer(container);
   }
   removeExistingRichFoot(container) {
     const existingRichFoot = container.querySelector(".rich-foot");
     if (existingRichFoot) {
       existingRichFoot.remove();
     }
+  }
+  observeContainer(container) {
+    if (this.containerObserver) {
+      this.containerObserver.disconnect();
+    }
+    this.containerObserver = new MutationObserver((mutations) => {
+      const richFoot = container.querySelector(".rich-foot");
+      if (!richFoot) {
+        this.addRichFoot(this.app.workspace.activeLeaf.view);
+      }
+    });
+    this.containerObserver.observe(container, { childList: true, subtree: true });
   }
   createRichFoot(file) {
     const richFoot = createDiv({ cls: "rich-foot" });
@@ -122,26 +127,13 @@ var RichFootPlugin = class extends Plugin {
   shouldIncludeBacklink(linkPath) {
     return !this.settings.excludedFolders.some((folder) => linkPath.startsWith(folder));
   }
-  observeContentChanges(wrapper) {
-    const parent = wrapper.parentElement;
-    if (!parent) return;
-    this.contentObserver.disconnect();
-    this.contentObserver.observe(parent, { childList: true, subtree: true });
-    const checkAndReinsert = () => {
-      if (!document.body.contains(wrapper)) {
-        const container = parent.querySelector(".markdown-preview-section, .cm-scroller");
-        if (container) {
-          container.replaceWith(wrapper);
-        }
-      }
-    };
-    const intervalId = setInterval(checkAndReinsert, 1e3);
-    this.richFootIntervalId = intervalId;
-  }
   onunload() {
     this.contentObserver.disconnect();
     if (this.richFootIntervalId) {
       clearInterval(this.richFootIntervalId);
+    }
+    if (this.containerObserver) {
+      this.containerObserver.disconnect();
     }
   }
 };
