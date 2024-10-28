@@ -96,13 +96,11 @@ var RichFootPlugin = class extends Plugin {
   createRichFoot(file) {
     const richFoot = createDiv({ cls: "rich-foot" });
     const richFootDashedLine = richFoot.createDiv({ cls: "rich-foot--dashed-line" });
-    const resolvedLinks = this.app.metadataCache.resolvedLinks;
-    const backlinkList = resolvedLinks[file.path] || {};
-    if (Object.keys(backlinkList).length > 0) {
+    const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
+    if ((backlinksData == null ? void 0 : backlinksData.data) && backlinksData.data.size > 0) {
       const backlinksDiv = richFoot.createDiv({ cls: "rich-foot--backlinks" });
       const backlinksUl = backlinksDiv.createEl("ul");
-      for (const [linkPath, count] of Object.entries(backlinkList)) {
-        if (linkPath === file.path) continue;
+      for (const [linkPath, linkData] of backlinksData.data) {
         if (!linkPath.endsWith(".md")) continue;
         if (this.shouldIncludeBacklink(linkPath)) {
           const parts = linkPath.split("/");
