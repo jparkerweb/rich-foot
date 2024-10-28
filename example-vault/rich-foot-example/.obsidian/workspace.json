@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "77912c2b8cc04a23",
+        "id": "2b8f3a00979cd2bb",
         "type": "tabs",
         "children": [
           {
-            "id": "a7f618d9e6fd9c3d",
+            "id": "e2b1b7584f7a474c",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "backlink test.md",
+                "file": "🦶 Rich Foot.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "backlink test"
+              "title": "🦶 Rich Foot"
             }
           }
         ]
@@ -163,9 +163,21 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "a7f618d9e6fd9c3d",
+  "active": "e2b1b7584f7a474c",
   "lastOpenFiles": [
+    "backlink test.md",
     "🦶 Rich Foot.md",
-    "backlink test.md"
+    "images/rich-feet-3.jpg",
+    "images/rich-feet.jpg",
+    "images/rich-feet-2.jpg",
+    "exclude/me too/no rich-feet here either.md",
+    "exclude/no rich-feet here.md",
+    "images",
+    "exclude/me too",
+    "exclude",
+    "exclude/excluded note.md",
+    "exclude/test/testnote.md",
+    "exclude/test",
+    "exclude"
   ]
 }

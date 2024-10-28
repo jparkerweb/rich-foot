@@ -1,0 +1,56 @@
+{
+  "apiProvider": "pexels",
+  "pexelsApiKey": "",
+  "pixabayApiKey": "",
+  "imageSize": "medium",
+  "imageOrientation": "landscape",
+  "numberOfImages": 10,
+  "defaultKeywords": "nature, abstract, landscape, technology, art, cityscape, wildlife, ocean, mountains, forest, space, architecture, food, travel, science, music, sports, fashion, business, education, health, culture, history, weather, transportation, industry, people, animals, plants, patterns",
+  "yPosition": 50,
+  "customBannerField": [
+    "banner"
+  ],
+  "customYPositionField": [
+    "banner-y"
+  ],
+  "customContentStartField": [
+    "content-start"
+  ],
+  "customImageDisplayField": [
+    "banner-display"
+  ],
+  "customImageRepeatField": [
+    "banner-repeat"
+  ],
+  "folderImages": [
+    {
+      "folder": "exclude",
+      "image": "images/rich-feet-2.jpg",
+      "yPosition": 50,
+      "contentStartPosition": 300,
+      "directChildrenOnly": true
+    },
+    {
+      "folder": "exclude/me too",
+      "image": "images/rich-feet.jpg",
+      "yPosition": 50,
+      "contentStartPosition": 300,
+      "directChildrenOnly": true
+    }
+  ],
+  "contentStartPosition": 300,
+  "imageDisplay": "auto",
+  "imageRepeat": false,
+  "bannerHeight": 350,
+  "customBannerHeightField": [
+    "banner-height"
+  ],
+  "fade": -75,
+  "customFadeField": [
+    "banner-fade"
+  ],
+  "borderRadius": 17,
+  "customBorderRadiusField": [
+    "banner-radius"
+  ]
+}

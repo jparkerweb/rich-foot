@@ -1,0 +1,8 @@
+{
+  "excludedFolders": [
+    "exclude"
+  ],
+  "showBacklinks": true,
+  "showOutlinks": false,
+  "showDates": true
+}
