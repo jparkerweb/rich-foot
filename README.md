@@ -1,12 +1,15 @@
 # 🦶 Rich Foot
 
-Rich Foot is an Obsidian plugin that enhances the footer of your notes by adding backlink tags and created/modified dates.
+Rich Foot is an Obsidian plugin that enhances the footer of your notes by adding backlinks, outlinks, and created/modified dates.
 
 ## Features
 
-- Adds backlinks to the footer of your notes
-- Displays created and modified dates for each note
-- Stylish appearance
+- Adds `backlinks` to the footer of your notes (links FROM other notes TO this note)
+- Adds `outlinks` to the footer of your notes (links FROM this note TO other notes)
+- Displays `created` and `modified` dates for each note
+- Supports links in frontmatter
+- Stylish appearance with tag-like links
+- Option to exclude folder(s) from displaying 🦶 Rich Foot
 
 ## Installation
 
@@ -22,35 +25,54 @@ Rich Foot is an Obsidian plugin that enhances the footer of your notes by adding
 
 Once installed and enabled, Rich Foot will automatically add the following to the footer of your notes:
 
-- Backlinks: Displayed as tags with links to the referencing notes
+- Backlinks: Displayed as tags showing which notes link TO this note
+- Outlinks: Displayed as tags showing which notes this note links TO (disabled by default)
 - Created Date: Shows when the note was first created
 - Modified Date: Shows when the note was last modified
 
+### Frontmatter Support
+
+Rich Foot also detects links in your note's frontmatter. For example:
+
+```yaml
+---
+links:
+  - "[[Some Note]]"
+  - "[[Another Note]]"
+---
+```
+
 ## Customization
 
-Rich Foot allows you to customize its behavior by excluding certain folders from generating backlinks. This feature is particularly useful for maintaining a clean and relevant set of backlinks in your notes.
+Rich Foot provides several customization options through its settings panel:
+
+### Visibility Settings
+
+You can toggle the visibility of each section:
+- Show/Hide Backlinks
+- Show/Hide Outlinks (disabled by default)
+- Show/Hide Dates
 
 ### Excluding Folders
 
-To exclude folders from backlink generation:
+You can prevent Rich Foot from appearing in specific folders:
 
 1. Go to Obsidian Settings
 2. Navigate to the Rich Foot plugin settings
-3. In the "Excluded Folders" section, add the paths of the folders you want to exclude
-4. Separate multiple folder paths by new lines
+3. Use the "Add excluded folder" section to:
+   - Manually enter a folder path
+   - Use the "Browse" button to select a folder
+   - Click "Add" to add it to the exclusion list
+4. Use the "Delete" button next to any folder to remove it from the exclusion list
 
-For example, if you want to exclude backlinks from your "Archive" and "Templates" folders, you would add:
+Notes:
+- Excluding a folder will hide Rich Foot completely from notes in that folder
+- Excluded folders also affect all subfolders
+- Links from notes in excluded folders will still appear in the backlinks of other notes
 
-```
-Archive
-Templates
-```
+## Example Screenshot
 
-This will ensure that backlinks are not generated for notes within these folders, keeping your backlink list clean and focused on relevant content.
-
-## Example Note Screenshot
-
-![example](example.jpg)
+![example](rich-foot.jpg)
 
 ## License
 

@@ -14,8 +14,10 @@
 /* ---------------------- */
 /* -- Backlinks Styles -- */
 /* ---------------------- */
-.rich-foot--backlinks::before {
-    content: 'Backlinks';
+.rich-foot--backlinks::before { content: 'Backlinks';}
+.rich-foot--outlinks::before { content: 'Outlinks';}
+.rich-foot--backlinks::before,
+.rich-foot--outlinks::before {
     text-transform: uppercase;
     filter: brightness(150%);
     position: relative;
@@ -24,7 +26,8 @@
     color: var(--text-accent);
 }
 
-.rich-foot--backlinks ul {
+.rich-foot--backlinks ul,
+.rich-foot--outlinks ul {
     list-style: none;
     display: flex;
     flex-direction: row;
@@ -33,11 +36,13 @@
     padding-left: 20px !important;
 }
 
-.rich-foot--backlinks ul li {
+.rich-foot--backlinks ul li,
+.rich-foot--outlinks ul li {
     margin-inline-start: 0 !important;
 }
 
-.rich-foot--backlinks ul li a {
+.rich-foot--backlinks ul li a,
+.rich-foot--outlinks ul li a {
     filter: brightness(120%);
     text-decoration: none !important;
     font-size: 12px;
@@ -53,12 +58,14 @@
     transition: 150ms ease-in-out all;
 }
 
-.rich-foot--backlinks ul li a::before {
+.rich-foot--backlinks ul li a::before,
+.rich-foot--outlinks ul li a::before {
     content: "← ";
     opacity: .5;
 }
 
-.rich-foot--backlinks ul li a:hover {
+.rich-foot--backlinks ul li a:hover,
+.rich-foot--outlinks ul li a:hover {
     filter: brightness(170%);
     border: 1px solid transparent !important;
     text-decoration: none;
@@ -178,17 +185,19 @@ body.theme-light .rich-foot--backlinks ul li a {
     border-radius: 10px;
 }
 
+.rich-foot-settings .rich-foot-example-title {
+    margin-top: 60px;
+    margin-bottom: 10px;
+}
+
 .rich-foot-settings .rich-foot-example {
+    margin-top: 20px;
     margin-bottom: 20px;
 }
 
 .rich-foot-settings .rich-foot-example img {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.rich-foot-settings .rich-foot-example img:hover {
-    transform: scale(1.02);
+    max-width: 100%;
+    height: auto;
 }
 
 .rich-foot-settings .setting-item {
@@ -217,4 +226,33 @@ body.theme-light .rich-foot--backlinks ul li a {
     width: 400px !important;
     height: 250px !important;
     resize: vertical;
+}
+
+.excluded-folders-container {
+    margin-bottom: 24px;
+}
+
+.excluded-folder-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    margin: 4px 0;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+}
+
+.excluded-folder-delete {
+    padding: 4px 8px;
+    color: var(--text-error);
+    background-color: transparent;
+    border: 1px solid var(--text-error);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.excluded-folder-delete:hover {
+    background-color: var(--text-error);
+    color: var(--text-on-accent);
 }

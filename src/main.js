@@ -1,8 +1,11 @@
-const { Plugin, MarkdownView, debounce, Setting, PluginSettingTab, EditorView } = require('obsidian');
+const { Plugin, MarkdownView, debounce, Setting, PluginSettingTab, EditorView, FuzzySuggestModal } = require('obsidian');
 
 class RichFootSettings {
     constructor() {
         this.excludedFolders = [];
+        this.showBacklinks = true;
+        this.showOutlinks = false;
+        this.showDates = true;
     }
 }
 
@@ -57,6 +60,22 @@ class RichFootPlugin extends Plugin {
     addRichFoot(view) {
         const file = view.file;
         if (!file || !file.path) {
+            return;
+        }
+
+        // Check if the current file is in an excluded folder
+        if (this.shouldExcludeFile(file.path)) {
+            // Remove any existing Rich Foot if the file is now excluded
+            const content = view.contentEl;
+            let container;
+            if (view.getMode() === 'preview') {
+                container = content.querySelector('.markdown-preview-section');
+            } else if (view.getMode() === 'source' || view.getMode() === 'live') {
+                container = content.querySelector('.cm-sizer');
+            }
+            if (container) {
+                this.removeExistingRichFoot(container);
+            }
             return;
         }
 
@@ -125,20 +144,46 @@ class RichFootPlugin extends Plugin {
         const richFootDashedLine = richFoot.createDiv({ cls: 'rich-foot--dashed-line' });
 
         // Backlinks
-        const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
+        if (this.settings.showBacklinks) {
+            const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
 
-        if (backlinksData?.data && backlinksData.data.size > 0) {
-            const backlinksDiv = richFoot.createDiv({ cls: 'rich-foot--backlinks' });
-            const backlinksUl = backlinksDiv.createEl('ul');
+            if (backlinksData?.data && backlinksData.data.size > 0) {
+                const backlinksDiv = richFoot.createDiv({ cls: 'rich-foot--backlinks' });
+                const backlinksUl = backlinksDiv.createEl('ul');
 
-            for (const [linkPath, linkData] of backlinksData.data) {
-                if (!linkPath.endsWith('.md')) continue;
+                for (const [linkPath, linkData] of backlinksData.data) {
+                    if (!linkPath.endsWith('.md')) continue;
 
-                if (this.shouldIncludeBacklink(linkPath)) {
-                    const parts = linkPath.split('/');
-                    const displayName = parts[parts.length - 1].slice(0, -3); // Remove '.md'
-                    
                     const li = backlinksUl.createEl('li');
+                    const link = li.createEl('a', {
+                        href: linkPath,
+                        text: linkPath.split('/').pop().slice(0, -3)
+                    });
+                    link.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        this.app.workspace.openLinkText(linkPath, file.path);
+                    });
+                }
+
+                if (backlinksUl.childElementCount === 0) {
+                    backlinksDiv.remove();
+                }
+            }
+        }
+
+        // Outlinks
+        if (this.settings.showOutlinks) {
+            const outlinks = this.getOutlinks(file);
+            
+            if (outlinks.size > 0) {
+                const outlinksDiv = richFoot.createDiv({ cls: 'rich-foot--outlinks' });
+                const outlinksUl = outlinksDiv.createEl('ul');
+
+                for (const linkPath of outlinks) {
+                    const parts = linkPath.split('/');
+                    const displayName = parts[parts.length - 1].slice(0, -3);
+                    
+                    const li = outlinksUl.createEl('li');
                     const link = li.createEl('a', {
                         href: linkPath,
                         text: displayName
@@ -149,37 +194,61 @@ class RichFootPlugin extends Plugin {
                     });
                 }
             }
-
-            // Only add the backlinks div if there are actually backlinks
-            if (backlinksUl.childElementCount === 0) {
-                backlinksDiv.remove();
-            }
         }
 
-        // Dates Wrapper
-        const datesWrapper = richFoot.createDiv({ cls: 'rich-foot--dates-wrapper' });
+        // Dates
+        if (this.settings.showDates) {
+            const datesWrapper = richFoot.createDiv({ cls: 'rich-foot--dates-wrapper' });
 
-        // Modified date
-        const fileUpdate = new Date(file.stat.mtime);
-        const modified = `${fileUpdate.toLocaleString('default', { month: 'long' })} ${fileUpdate.getDate()}, ${fileUpdate.getFullYear()}`;
-        datesWrapper.createDiv({
-            cls: 'rich-foot--modified-date',
-            text: `${modified}`
-        });
+            const fileUpdate = new Date(file.stat.mtime);
+            const modified = `${fileUpdate.toLocaleString('default', { month: 'long' })} ${fileUpdate.getDate()}, ${fileUpdate.getFullYear()}`;
+            datesWrapper.createDiv({
+                cls: 'rich-foot--modified-date',
+                text: `${modified}`
+            });
 
-        // Created date
-        const fileCreated = new Date(file.stat.ctime);
-        const created = `${fileCreated.toLocaleString('default', { month: 'long' })} ${fileCreated.getDate()}, ${fileCreated.getFullYear()}`;
-        datesWrapper.createDiv({
-            cls: 'rich-foot--created-date',
-            text: `${created}`
-        });
+            const fileCreated = new Date(file.stat.ctime);
+            const created = `${fileCreated.toLocaleString('default', { month: 'long' })} ${fileCreated.getDate()}, ${fileCreated.getFullYear()}`;
+            datesWrapper.createDiv({
+                cls: 'rich-foot--created-date',
+                text: `${created}`
+            });
+        }
 
         return richFoot;
     }
 
-    shouldIncludeBacklink(linkPath) {
-        return !this.settings.excludedFolders.some(folder => linkPath.startsWith(folder));
+    getOutlinks(file) {
+        const cache = this.app.metadataCache.getFileCache(file);
+        const links = new Set();
+        
+        // Check regular links in content
+        if (cache?.links) {
+            for (const link of cache.links) {
+                const targetFile = this.app.metadataCache.getFirstLinkpathDest(link.link, file.path);
+                if (targetFile && targetFile.extension === 'md') {
+                    links.add(targetFile.path);
+                }
+            }
+        }
+        
+        // Check frontmatter links
+        if (cache?.frontmatter?.links) {
+            const frontmatterLinks = cache.frontmatter.links;
+            if (Array.isArray(frontmatterLinks)) {
+                for (const link of frontmatterLinks) {
+                    const linkText = link.match(/\[\[(.*?)\]\]/)?.[1];
+                    if (linkText) {
+                        const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkText, file.path);
+                        if (targetFile && targetFile.extension === 'md') {
+                            links.add(targetFile.path);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return links;
     }
 
     onunload() {
@@ -190,6 +259,11 @@ class RichFootPlugin extends Plugin {
         if (this.containerObserver) {
             this.containerObserver.disconnect();
         }
+    }
+
+    // Add this method to check if a file should be excluded
+    shouldExcludeFile(filePath) {
+        return this.settings.excludedFolders.some(folder => filePath.startsWith(folder));
     }
 }
 
@@ -204,28 +278,149 @@ class RichFootSettingTab extends PluginSettingTab {
         containerEl.empty();
         containerEl.addClass('rich-foot-settings');
 
-        // Add informative text
         const infoDiv = containerEl.createEl('div', { cls: 'rich-foot-info' });
         infoDiv.createEl('p', { text: 'Rich Foot adds a footer to your notes with useful information such as backlinks, creation date, and last modified date.' });
 
-        new Setting(containerEl)
-            .setName('Excluded folders')
-            .setDesc('Enter folder paths to exclude from backlinks (one per line)')
-            .addTextArea(text => text
-                .setPlaceholder('folder1\nfolder2/subfolder')
-                .setValue(this.plugin.settings.excludedFolders.join('\n'))
-                .onChange(async (value) => {
-                    this.plugin.settings.excludedFolders = value.split('\n').filter(folder => folder.trim() !== '');
-                    await this.plugin.saveSettings();
-                })
-            );
+        // Excluded Folders Section with description
+        containerEl.createEl('h3', { text: 'Excluded Folders' });
+        containerEl.createEl('p', { 
+            text: 'Notes in excluded folders (and their subfolders) will not display the Rich Foot footer. This is useful for system folders or areas where you don\'t want footer information to appear.',
+            cls: 'setting-item-description'
+        });
+        
+        // Create container for excluded folders list
+        const excludedFoldersContainer = containerEl.createDiv('excluded-folders-container');
+        
+        // Display current excluded folders
+        this.plugin.settings.excludedFolders.forEach((folder, index) => {
+            const folderDiv = excludedFoldersContainer.createDiv('excluded-folder-item');
+            folderDiv.createSpan({ text: folder });
+            
+            const deleteButton = folderDiv.createEl('button', {
+                text: 'Delete',
+                cls: 'excluded-folder-delete'
+            });
+            
+            deleteButton.addEventListener('click', async () => {
+                this.plugin.settings.excludedFolders.splice(index, 1);
+                await this.plugin.saveSettings();
+                this.display(); // Refresh the display
+            });
+        });
 
-        // Update the textarea size
-        const textArea = containerEl.querySelector('textarea');
-        if (textArea) {
-            textArea.style.width = '400px';
-            textArea.style.height = '250px';
-        }
+        // Add new folder section
+        const newFolderSetting = new Setting(containerEl)
+            .setName('Add excluded folder')
+            .setDesc('Enter a folder path or browse to select')
+            .addText(text => text
+                .setPlaceholder('folder/subfolder')
+                .onChange(() => {
+                    // We'll handle the change in the add button
+                }))
+            .addButton(button => button
+                .setButtonText('Browse')
+                .onClick(async () => {
+                    const folder = await this.browseForFolder();
+                    if (folder) {
+                        const textComponent = newFolderSetting.components[0];
+                        textComponent.setValue(folder);
+                    }
+                }))
+            .addButton(button => button
+                .setButtonText('Add')
+                .onClick(async () => {
+                    const textComponent = newFolderSetting.components[0];
+                    const newFolder = textComponent.getValue().trim();
+                    
+                    if (newFolder && !this.plugin.settings.excludedFolders.includes(newFolder)) {
+                        this.plugin.settings.excludedFolders.push(newFolder);
+                        await this.plugin.saveSettings();
+                        textComponent.setValue('');
+                        this.display(); // Refresh the display
+                    }
+                }));
+
+        // Add visibility toggles
+        containerEl.createEl('h3', { text: 'Visibility Settings' });
+
+        new Setting(containerEl)
+            .setName('Show Backlinks')
+            .setDesc('Show backlinks in the footer')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showBacklinks)
+                .onChange(async (value) => {
+                    this.plugin.settings.showBacklinks = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }));
+
+        new Setting(containerEl)
+            .setName('Show Outlinks')
+            .setDesc('Show outgoing links in the footer')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showOutlinks)
+                .onChange(async (value) => {
+                    this.plugin.settings.showOutlinks = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }));
+
+        new Setting(containerEl)
+            .setName('Show Dates')
+            .setDesc('Show creation and modification dates in the footer')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showDates)
+                .onChange(async (value) => {
+                    this.plugin.settings.showDates = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }));
+
+        // Add Example Screenshot section
+        containerEl.createEl('h3', { text: 'Example Screenshot', cls: 'rich-foot-example-title' });
+        const exampleDiv = containerEl.createDiv({ cls: 'rich-foot-example' });
+        const img = exampleDiv.createEl('img', {
+            attr: {
+                src: 'https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/rich-foot.jpg',
+                alt: 'Rich Foot Example'
+            }
+        });
+    }
+
+    async browseForFolder() {
+        // Get all folders in the vault
+        const folders = this.app.vault.getAllLoadedFiles()
+            .filter(file => file.children) // Only get folders
+            .map(folder => folder.path);
+        
+        // Create and show a suggestion modal
+        return new Promise(resolve => {
+            const modal = new FolderSuggestModal(this.app, folders, (result) => {
+                resolve(result);
+            });
+            modal.open();
+        });
+    }
+}
+
+// Add this new class for the folder picker modal
+class FolderSuggestModal extends FuzzySuggestModal {
+    constructor(app, folders, onChoose) {
+        super(app);
+        this.folders = folders;
+        this.onChoose = onChoose;
+    }
+
+    getItems() {
+        return this.folders;
+    }
+
+    getItemText(item) {
+        return item;
+    }
+
+    onChooseItem(item, evt) {
+        this.onChoose(item);
     }
 }
 
