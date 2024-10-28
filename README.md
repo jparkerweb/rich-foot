@@ -74,6 +74,8 @@ Notes:
 
 ![example](rich-foot.jpg)
 
+![settings](rich-foot-settings.jpg)
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
