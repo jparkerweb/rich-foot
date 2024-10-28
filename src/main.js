@@ -125,18 +125,13 @@ class RichFootPlugin extends Plugin {
         const richFootDashedLine = richFoot.createDiv({ cls: 'rich-foot--dashed-line' });
 
         // Backlinks
-        const resolvedLinks = this.app.metadataCache.resolvedLinks;
-        const backlinkList = resolvedLinks[file.path] || {};
+        const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
 
-        if (Object.keys(backlinkList).length > 0) {
+        if (backlinksData?.data && backlinksData.data.size > 0) {
             const backlinksDiv = richFoot.createDiv({ cls: 'rich-foot--backlinks' });
             const backlinksUl = backlinksDiv.createEl('ul');
 
-            for (const [linkPath, count] of Object.entries(backlinkList)) {
-                // Skip if the linkPath is the same as the current file's path
-                if (linkPath === file.path) continue;
-
-                // Skip if the file is not a markdown file
+            for (const [linkPath, linkData] of backlinksData.data) {
                 if (!linkPath.endsWith('.md')) continue;
 
                 if (this.shouldIncludeBacklink(linkPath)) {
