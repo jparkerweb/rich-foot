@@ -78,7 +78,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v1.5.0</h3>\n<h4>New Customization Options</h4>\n<p>Rich Foot now offers extensive customization options for fine-tuning the appearance of your note footers:</p>\n<h5>Border Controls</h5>\n<ul>\n<li>Adjustable border width (1-10px)</li>\n<li>Multiple border styles (solid, dashed, dotted, double, groove, ridge, inset, outset)</li>\n<li>Border opacity control (0-1)</li>\n</ul>\n<h5>Link Appearance</h5>\n<ul>\n<li>Customizable border radius for links (0-15px)</li>\n<li>Opacity control for backlinks and outlinks (0-1)</li>\n</ul>\n<h5>Date Display</h5>\n<ul>\n<li>Adjustable opacity for created/modified dates (0-1)</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v1.5.1</h3>\n<ul>\n<li>Fixed bug where excluded folders were not being saved correctly</li>\n</ul>\n<h3>v1.5.0</h3>\n<h4>New Customization Options</h4>\n<p>Rich Foot now offers extensive customization options for fine-tuning the appearance of your note footers:</p>\n<h5>Border Controls</h5>\n<ul>\n<li>Adjustable border width (1-10px)</li>\n<li>Multiple border styles (solid, dashed, dotted, double, groove, ridge, inset, outset)</li>\n<li>Border opacity control (0-1)</li>\n</ul>\n<h5>Link Appearance</h5>\n<ul>\n<li>Customizable border radius for links (0-15px)</li>\n<li>Opacity control for backlinks and outlinks (0-1)</li>\n</ul>\n<h5>Date Display</h5>\n<ul>\n<li>Adjustable opacity for created/modified dates (0-1)</li>\n</ul>\n";
 
 // src/main.js
 var DEFAULT_SETTINGS = {
@@ -88,7 +88,8 @@ var DEFAULT_SETTINGS = {
   borderRadius: 15,
   datesOpacity: 1,
   linksOpacity: 1,
-  showReleaseNotes: true
+  showReleaseNotes: true,
+  excludedFolders: []
 };
 var RichFootPlugin = class extends import_obsidian2.Plugin {
   async onload() {
@@ -120,7 +121,11 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
     this.contentObserver = new MutationObserver(this.updateRichFoot);
   }
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const loadedData = await this.loadData();
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
+    if (!Array.isArray(this.settings.excludedFolders)) {
+      this.settings.excludedFolders = [];
+    }
   }
   async saveSettings() {
     await this.saveData(this.settings);
@@ -315,6 +320,10 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
   }
   // Add this method to check if a file should be excluded
   shouldExcludeFile(filePath) {
+    var _a;
+    if (!((_a = this.settings) == null ? void 0 : _a.excludedFolders)) {
+      return false;
+    }
     return this.settings.excludedFolders.some((folder) => filePath.startsWith(folder));
   }
 };
@@ -324,6 +333,7 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
     this.plugin = plugin;
   }
   display() {
+    var _a;
     let { containerEl } = this;
     containerEl.empty();
     containerEl.addClass("rich-foot-settings");
@@ -334,19 +344,21 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
       cls: "setting-item-description"
     });
     const excludedFoldersContainer = containerEl.createDiv("excluded-folders-container");
-    this.plugin.settings.excludedFolders.forEach((folder, index) => {
-      const folderDiv = excludedFoldersContainer.createDiv("excluded-folder-item");
-      folderDiv.createSpan({ text: folder });
-      const deleteButton = folderDiv.createEl("button", {
-        text: "Delete",
-        cls: "excluded-folder-delete"
+    if ((_a = this.plugin.settings) == null ? void 0 : _a.excludedFolders) {
+      this.plugin.settings.excludedFolders.forEach((folder, index) => {
+        const folderDiv = excludedFoldersContainer.createDiv("excluded-folder-item");
+        folderDiv.createSpan({ text: folder });
+        const deleteButton = folderDiv.createEl("button", {
+          text: "Delete",
+          cls: "excluded-folder-delete"
+        });
+        deleteButton.addEventListener("click", async () => {
+          this.plugin.settings.excludedFolders.splice(index, 1);
+          await this.plugin.saveSettings();
+          this.display();
+        });
       });
-      deleteButton.addEventListener("click", async () => {
-        this.plugin.settings.excludedFolders.splice(index, 1);
-        await this.plugin.saveSettings();
-        this.display();
-      });
-    });
+    }
     const newFolderSetting = new import_obsidian2.Setting(containerEl).setName("Add excluded folder").setDesc("Enter a folder path or browse to select").addText((text) => text.setPlaceholder("folder/subfolder").onChange(() => {
     })).addButton((button) => button.setButtonText("Browse").onClick(async () => {
       const folder = await this.browseForFolder();

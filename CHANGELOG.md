@@ -2,6 +2,11 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.5.1] - 2024-10-31
+
+### Fixed
+- Fixed bug where excluded folders were not being saved correctly
+
 ## [1.5.0] - 2024-10-31
 
 ### Added

@@ -9,7 +9,8 @@ const DEFAULT_SETTINGS = {
     borderRadius: 15,
     datesOpacity: 1,
     linksOpacity: 1,
-    showReleaseNotes: true
+    showReleaseNotes: true,
+    excludedFolders: []
 };
 
 class RichFootSettings {
@@ -74,7 +75,13 @@ class RichFootPlugin extends Plugin {
     }
 
     async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        const loadedData = await this.loadData();
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
+        
+        // Ensure excludedFolders is always an array
+        if (!Array.isArray(this.settings.excludedFolders)) {
+            this.settings.excludedFolders = [];
+        }
     }
 
     async saveSettings() {
@@ -325,6 +332,9 @@ class RichFootPlugin extends Plugin {
 
     // Add this method to check if a file should be excluded
     shouldExcludeFile(filePath) {
+        if (!this.settings?.excludedFolders) {
+            return false;
+        }
         return this.settings.excludedFolders.some(folder => filePath.startsWith(folder));
     }
 }
@@ -353,21 +363,23 @@ class RichFootSettingTab extends PluginSettingTab {
         const excludedFoldersContainer = containerEl.createDiv('excluded-folders-container');
         
         // Display current excluded folders
-        this.plugin.settings.excludedFolders.forEach((folder, index) => {
-            const folderDiv = excludedFoldersContainer.createDiv('excluded-folder-item');
-            folderDiv.createSpan({ text: folder });
-            
-            const deleteButton = folderDiv.createEl('button', {
-                text: 'Delete',
-                cls: 'excluded-folder-delete'
+        if (this.plugin.settings?.excludedFolders) {
+            this.plugin.settings.excludedFolders.forEach((folder, index) => {
+                const folderDiv = excludedFoldersContainer.createDiv('excluded-folder-item');
+                folderDiv.createSpan({ text: folder });
+                
+                const deleteButton = folderDiv.createEl('button', {
+                    text: 'Delete',
+                    cls: 'excluded-folder-delete'
+                });
+                
+                deleteButton.addEventListener('click', async () => {
+                    this.plugin.settings.excludedFolders.splice(index, 1);
+                    await this.plugin.saveSettings();
+                    this.display();
+                });
             });
-            
-            deleteButton.addEventListener('click', async () => {
-                this.plugin.settings.excludedFolders.splice(index, 1);
-                await this.plugin.saveSettings();
-                this.display(); // Refresh the display
-            });
-        });
+        }
 
         // Add new folder section
         const newFolderSetting = new Setting(containerEl)

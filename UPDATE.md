@@ -1,5 +1,8 @@
 ## 🎉 What's New
 
+### v1.5.1
+- Fixed bug where excluded folders were not being saved correctly
+
 ### v1.5.0
 #### New Customization Options
 Rich Foot now offers extensive customization options for fine-tuning the appearance of your note footers:
