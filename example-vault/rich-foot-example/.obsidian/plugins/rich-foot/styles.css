@@ -14,6 +14,11 @@
 /* ---------------------- */
 /* -- Backlinks Styles -- */
 /* ---------------------- */
+.rich-foot--backlinks,
+.rich-foot--outlinks {
+    opacity: var(--rich-foot-links-opacity, 1);
+}
+
 .rich-foot--backlinks::before { content: 'Backlinks';}
 .rich-foot--outlinks::before { content: 'Outlinks';}
 .rich-foot--backlinks::before,
@@ -52,7 +57,7 @@
     display: inline-block;
     margin: 0 4px;
     cursor: pointer;
-    border-radius: 14px;
+    border-radius: var(--rich-foot-border-radius, 15px);
     border: 1px solid rgba(255, 255, 255, 0.204);
     background-color: var(--tag-background);
     transition: 150ms ease-in-out all;
@@ -85,6 +90,7 @@
     font-size: .8em;
     filter: brightness(85%);
     color: var(--text-accent);
+    opacity: var(--rich-foot-dates-opacity, 1);
 }
 
 .rich-foot--created-date {
@@ -164,7 +170,10 @@ body.theme-light .rich-foot--backlinks ul li a {
 }
 
 .rich-foot > .rich-foot--dashed-line {
-    border-top: 1px dashed var(--text-accent);
+    border-top-width: var(--rich-foot-border-width, 1px);
+    border-top-style: var(--rich-foot-border-style, dashed);
+    border-top-color: var(--rich-foot-border-color, var(--text-accent));
+    opacity: var(--rich-foot-border-opacity, 1);
 }
 
 .rich-foot > .rich-foot--dates-wrapper {
@@ -178,16 +187,24 @@ body.theme-light .rich-foot--backlinks ul li a {
 /* --------------------- */
 /* -- Settings Styles -- */
 /* --------------------- */
+.rich-foot-settings {
+    display: flex;
+    flex-direction: column;
+}
+
 .rich-foot-settings .rich-foot-info {
-    margin-bottom: 20px;
-    padding: 15px;
+    margin-bottom: 10px;
+    padding: 15px 20px;
     background-color: var(--background-secondary);
+    color: var(--text-accent-hover);
     border-radius: 10px;
 }
 
 .rich-foot-settings .rich-foot-example-title {
     margin-top: 60px;
     margin-bottom: 10px;
+    border-top: 1px solid var(--text-accent);
+    padding-top: 30px;
 }
 
 .rich-foot-settings .rich-foot-example {
@@ -255,4 +272,97 @@ body.theme-light .rich-foot--backlinks ul li a {
 .excluded-folder-delete:hover {
     background-color: var(--text-error);
     color: var(--text-on-accent);
+}
+
+
+/* Release Notes Modal */
+.release-notes-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    background-color: var(--background-secondary);
+}
+
+.release-notes-section {
+    margin: 10px 0;
+}
+
+.release-notes-section h4 {
+    margin: 15px 0 5px 0;
+    color: var(--text-accent-hover);
+}
+
+.release-notes-container > ul {
+    padding-left: 25px;
+}
+.release-notes-container ul:not(:last-of-type) {
+    padding-bottom: 20px;
+}
+
+.release-notes-section ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.release-notes-container li,
+.release-notes-section li {
+    margin: 5px 0;
+}
+
+.release-notes-spacer {
+    margin: 10px 0;
+}
+
+/* Add these styles at the end of the file */
+
+/* Color Swatches Grid */
+.color-swatches-container {
+    margin: 12px 0;
+    padding: 12px;
+    background-color: var(--background-secondary);
+    border-radius: 10px;
+}
+
+.color-swatches-container h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+}
+
+.color-swatches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 150ms ease;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.color-swatch.selected {
+    border-color: var(--text-accent);
+    transform: scale(1.2);
+}
+
+/* Slider Styles */
+.rich-foot-settings .setting-item input[type="range"] {
+    width: 150px;
+}
+
+/* Reset Buttons */
+.rich-foot-settings .setting-item button {
+    font-size: 12px;
+    padding: 4px 8px;
+    margin-left: 8px;
 }

@@ -8,7 +8,7 @@ var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { en
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/main.js
-var import_obsidian2 = require("obsidian");
+var import_obsidian3 = require("obsidian");
 
 // src/settings.js
 var import_obsidian = require("obsidian");
@@ -36,11 +36,16 @@ var DEFAULT_SETTINGS = {
   fade: -75,
   customFadeField: ["banner-fade"],
   borderRadius: 17,
-  customBorderRadiusField: ["banner-radius"]
+  customBorderRadiusField: ["banner-radius"],
+  showPinIcon: true,
+  pinnedImageFolder: "pixel-banner-images",
+  showReleaseNotes: true,
+  lastVersion: null,
+  showRefreshIcon: true
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
-  constructor(app, onChoose) {
-    super(app);
+  constructor(app2, onChoose) {
+    super(app2);
     this.onChoose = onChoose;
   }
   getItems() {
@@ -77,12 +82,11 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     this.addDirectChildrenOnlyToggle();
   }
   addDeleteButton(containerEl) {
-    const deleteButton = containerEl.createEl("button");
+    const deleteButton = containerEl.createEl("button", { cls: "pixel-banner-setting--delete-button" });
     deleteButton.style.marginLeft = "20px";
     deleteButton.style.width = "30px";
     deleteButton.style.height = "30px";
     deleteButton.style.padding = "0";
-    deleteButton.style.border = "1px solid #80000030";
     deleteButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
     deleteButton.addEventListener("click", async () => {
       this.plugin.settings.folderImages.splice(this.index, 1);
@@ -91,12 +95,6 @@ var FolderImageSetting = class extends import_obsidian.Setting {
       if (this.onDelete) {
         this.onDelete();
       }
-    });
-    deleteButton.addEventListener("mouseover", () => {
-      deleteButton.style.color = "red";
-    });
-    deleteButton.addEventListener("mouseout", () => {
-      deleteButton.style.color = "";
     });
   }
   addFolderInput() {
@@ -333,8 +331,8 @@ function validateFieldNames(settings, allFields, currentField, newNames) {
   return { isValid: true };
 }
 var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
-  constructor(app, plugin) {
-    super(app, plugin);
+  constructor(app2, plugin) {
+    super(app2, plugin);
     this.plugin = plugin;
   }
   display() {
@@ -364,14 +362,14 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         tabsEl.querySelectorAll(".pixel-banner-settings-tab").forEach((tab) => tab.removeClass("active"));
         tabContentContainer.querySelectorAll(".tab-content").forEach((content) => content.style.display = "none");
         tabEl.addClass("active");
-        tabContentContainer.querySelector(`.tab-content[data-tab="${tabName}"]`).style.display = "block";
+        tabContentContainer.querySelector(`.tab-content[data-tab="${tabName}"]`).style.display = "flex";
       });
     });
     return { tabsEl, tabContentContainer };
   }
   createAPISettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "callout" });
-    calloutEl.createEl("p", { text: "Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
+    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+    calloutEl.createEl("div", { text: "Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
     new import_obsidian.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").setValue(this.plugin.settings.apiProvider).onChange(async (value) => {
       this.plugin.settings.apiProvider = value;
       await this.plugin.saveSettings();
@@ -422,6 +420,47 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     }));
     pixabayApiKeySetting.settingEl.style.width = "100%";
     new import_obsidian.Setting(containerEl).setName("Images").setDesc("Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.").setHeading();
+    new import_obsidian.Setting(containerEl).setName("Show Pin Icon").setDesc("Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.").addToggle((toggle) => toggle.setValue(this.plugin.settings.showPinIcon).onChange(async (value) => {
+      this.plugin.settings.showPinIcon = value;
+      folderInputSetting.settingEl.style.display = value ? "flex" : "none";
+      refreshIconSetting.settingEl.style.display = value ? "flex" : "none";
+      await this.plugin.saveSettings();
+    }));
+    const folderInputSetting = new import_obsidian.Setting(containerEl).setName("Pinned Images Folder").setDesc("Default folder where pinned banner images will be saved").addText((text) => {
+      text.setPlaceholder("pixel-banner-images").setValue(this.plugin.settings.pinnedImageFolder).onChange(async (value) => {
+        this.plugin.settings.pinnedImageFolder = value;
+        await this.plugin.saveSettings();
+      });
+      text.inputEl.addEventListener("blur", async () => {
+        let value = text.inputEl.value.trim();
+        if (!value) {
+          value = "pixel-banner-images";
+        }
+        text.setValue(value);
+        this.plugin.settings.pinnedImageFolder = value;
+        await this.plugin.saveSettings();
+      });
+      return text;
+    }).addButton((button) => button.setButtonText("Clean Orphaned Pins").setTooltip("Remove pinned images from the default folder that are no longer referenced in Notes").onClick(async () => {
+      button.setButtonText("\u{1FAE7} Cleaning...");
+      button.setDisabled(true);
+      try {
+        const result = await this.plugin.cleanOrphanedPins();
+        new Notice(`\u{1F9FC} Cleaned ${result.cleaned} orphaned pinned images`);
+      } catch (error) {
+        console.error("Error cleaning orphaned pins:", error);
+        new Notice("Failed to clean orphaned pins");
+      } finally {
+        button.setButtonText("Clean Orphaned Pins");
+        button.setDisabled(false);
+      }
+    }));
+    const refreshIconSetting = new import_obsidian.Setting(containerEl).setName("Show Refresh Icon").setDesc("Show a refresh icon next to the pin icon to get a new random image").addToggle((toggle) => toggle.setValue(this.plugin.settings.showRefreshIcon).onChange(async (value) => {
+      this.plugin.settings.showRefreshIcon = value;
+      await this.plugin.saveSettings();
+    }));
+    folderInputSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? "flex" : "none";
+    refreshIconSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? "flex" : "none";
     new import_obsidian.Setting(containerEl).setName("Size").setDesc("Select the size of the image - (API only)").addDropdown((dropdown) => dropdown.addOption("small", "Small").addOption("medium", "Medium").addOption("large", "Large").setValue(this.plugin.settings.imageSize).onChange(async (value) => {
       this.plugin.settings.imageSize = value;
       await this.plugin.saveSettings();
@@ -464,8 +503,8 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     defaultKeywordsSetting.settingEl.style.flexDirection = "column";
   }
   createGeneralSettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "callout" });
-    calloutEl.createEl("p", { text: "Set the default vertical position of the image, how it should be displayed, and where the content should start. These are global settings and apply to all notes with banners unless overridden by folder or note-specific settings." });
+    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+    calloutEl.createEl("div", { text: "Set the default vertical position of the image, how it should be displayed, and where the content should start. These are global settings and apply to all notes with banners unless overridden by folder or note-specific settings." });
     new import_obsidian.Setting(containerEl).setName("Image Vertical Position").setDesc("Set the vertical position of the image (0-100)").addSlider(
       (slider) => slider.setLimits(0, 100, 1).setValue(this.plugin.settings.yPosition).setDynamicTooltip().onChange(async (value) => {
         this.plugin.settings.yPosition = value;
@@ -594,10 +633,22 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       inputEl.value = DEFAULT_SETTINGS.borderRadius;
       inputEl.dispatchEvent(new Event("input"));
     }));
+    new import_obsidian.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(this.plugin.settings.showReleaseNotes).onChange(async (value) => {
+      this.plugin.settings.showReleaseNotes = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
+      await this.plugin.saveSettings();
+      const toggleEl = button.extraSettingsEl.parentElement.querySelector(".checkbox-container input");
+      if (toggleEl) {
+        toggleEl.checked = DEFAULT_SETTINGS.showReleaseNotes;
+        toggleEl.dispatchEvent(new Event("change"));
+      }
+    }));
   }
   createCustomFieldsSettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "callout" });
-    calloutEl.createEl("p", { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
+    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+    calloutEl.createEl("div", { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
     const customFields = [
       {
         setting: "customBannerField",
@@ -679,8 +730,8 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     });
   }
   createFolderSettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "callout" });
-    calloutEl.createEl("p", { text: "Set default banner images for specific folders. These will apply to all notes in the folder unless overridden by note-specific settings." });
+    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+    calloutEl.createEl("div", { text: 'Set default banner images for specific folders. These will apply to all notes in the folder unless overridden by note-specific settings. To get started, add a folder image setting and click the "+ Add Folder Image Setting" button below.' });
     const folderImagesContainer = containerEl.createDiv("folder-images-container");
     const updateFolderSettings = () => {
       var _a, _b;
@@ -820,8 +871,52 @@ async function testPixabayApi(apiKey) {
   }
 }
 
+// src/modals.js
+var import_obsidian2 = require("obsidian");
+var ReleaseNotesModal = class extends import_obsidian2.Modal {
+  constructor(app2, version, releaseNotes2) {
+    super(app2);
+    this.version = version;
+    this.releaseNotes = releaseNotes2;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: `Welcome to \u{1F6A9} Pixel Banner v${this.version}` });
+    contentEl.createEl("p", {
+      text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings General tab."
+    });
+    const kofiContainer = contentEl.createEl("div");
+    kofiContainer.style.textAlign = "right";
+    const kofiLink = kofiContainer.createEl("a", {
+      href: "https://ko-fi.com/Z8Z212UMBI",
+      target: "_blank"
+    });
+    kofiLink.createEl("img", {
+      attr: {
+        height: "36",
+        style: "border:0px;height:36px;",
+        src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/support.png",
+        border: "0",
+        alt: "Buy Me a Coffee at ko-fi.com"
+      }
+    });
+    const notesContainer = contentEl.createDiv("release-notes-container");
+    notesContainer.innerHTML = this.releaseNotes;
+    contentEl.createEl("div", { cls: "release-notes-spacer" }).style.height = "20px";
+    new import_obsidian2.Setting(contentEl).addButton((btn) => btn.setButtonText("Close").onClick(() => this.close()));
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
+
+// virtual-module:virtual:release-notes
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.6.4</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Content Start and Y Position inheritance issues</li>\n</ul>\n<h3>v2.6.3</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed issue where the Pin and Refresh Icons would sometimes display on notes without banners</li>\n<li>Fixed caching issue where banners from notes viewed previously would display on new/other notes</li>\n</ul>\n<h3>v2.6.2</h3>\n<h4>Added</h4>\n<ul>\n<li>Added command palette commands for Pin and Refresh actions<ul>\n<li>Commands are contextually available based on current note and settings</li>\n</ul>\n</li>\n<li>Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image</li>\n<li>Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting</li>\n</ul>\n<h3>v2.6.1</h3>\n<h4>Updated</h4>\n<ul>\n<li>Removed Pin and Refresh Icons from showing in Embedded Notes</li>\n</ul>\n<h3>v2.6.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Added a Refresh Icon that appears next to the pin icon for random API images</li>\n<li>Click the refresh icon (\u{1F504}) to instantly fetch a new random image</li>\n<li>Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)</li>\n</ul>\n";
+
 // src/main.js
-module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
+module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   constructor() {
     super(...arguments);
     __publicField(this, "debounceTimer", null);
@@ -835,15 +930,18 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     });
     __publicField(this, "lastYPositions", /* @__PURE__ */ new Map());
     __publicField(this, "lastFrontmatter", /* @__PURE__ */ new Map());
+    __publicField(this, "pendingImageUpdates", /* @__PURE__ */ new Map());
     __publicField(this, "debouncedEnsureBanner", debounce(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
-      if (activeLeaf && activeLeaf.view instanceof import_obsidian2.MarkdownView) {
+      if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView) {
         this.updateBanner(activeLeaf.view, false);
       }
     }, 100));
   }
+  // Track files waiting for potential renames
   async onload() {
     await this.loadSettings();
+    await this.checkVersion();
     this.addSettingTab(new PixelBannerSettingTab(this.app, this));
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", this.handleActiveLeafChange.bind(this))
@@ -859,6 +957,63 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     );
     this.registerMarkdownPostProcessor(this.postProcessor.bind(this));
     this.setupMutationObserver();
+    this.addCommand({
+      id: "pin-banner-image",
+      name: "\u{1F4CC} Pin current banner image",
+      checkCallback: (checking) => {
+        var _a;
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
+        if (!activeView || !activeView.file) return false;
+        const imageUrl = this.loadedImages.get(activeView.file.path);
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
+        let bannerImage, usedField;
+        for (const field of this.settings.customBannerField) {
+          if (frontmatter == null ? void 0 : frontmatter[field]) {
+            bannerImage = frontmatter[field];
+            usedField = field;
+            break;
+          }
+        }
+        const inputType = this.getInputType(bannerImage);
+        const canPin = imageUrl && inputType === "keyword" && this.settings.showPinIcon;
+        if (checking) return canPin;
+        if (canPin) {
+          setTimeout(() => handlePinIconClick(imageUrl, this, usedField), 0);
+        }
+        return true;
+      }
+    });
+    this.addCommand({
+      id: "refresh-banner-image",
+      name: "\u{1F504} Refresh current banner image",
+      checkCallback: (checking) => {
+        var _a;
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
+        if (!activeView || !activeView.file) return false;
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
+        let bannerImage;
+        for (const field of this.settings.customBannerField) {
+          if (frontmatter == null ? void 0 : frontmatter[field]) {
+            bannerImage = frontmatter[field];
+            break;
+          }
+        }
+        const inputType = this.getInputType(bannerImage);
+        const canRefresh = inputType === "keyword" && this.settings.showPinIcon && this.settings.showRefreshIcon;
+        if (checking) return canRefresh;
+        if (canRefresh) {
+          this.loadedImages.delete(activeView.file.path);
+          this.lastKeywords.delete(activeView.file.path);
+          this.updateBanner(activeView, true).then(() => {
+            new import_obsidian3.Notice("\u{1F504} Refreshed banner image");
+          }).catch((error) => {
+            console.error("Error refreshing image:", error);
+            new import_obsidian3.Notice("\u{1F62D} Failed to refresh image");
+          });
+        }
+        return true;
+      }
+    });
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -904,14 +1059,29 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     }
   }
   async handleActiveLeafChange(leaf) {
-    if (leaf && leaf.view instanceof import_obsidian2.MarkdownView && leaf.view.file) {
+    const previousLeaf = this.app.workspace.activeLeaf;
+    if (previousLeaf && previousLeaf.view instanceof import_obsidian3.MarkdownView) {
+      const previousContentEl = previousLeaf.view.contentEl;
+      previousContentEl.classList.remove("pixel-banner");
+      ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
+        const container = previousContentEl.querySelector(`.${selector}`);
+        if (container) {
+          const previousBanner = container.querySelector(".pixel-banner-image");
+          if (previousBanner) {
+            previousBanner.style.backgroundImage = "";
+            previousBanner.style.display = "none";
+          }
+        }
+      });
+    }
+    if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, false);
     }
   }
   async handleMetadataChange(file) {
     var _a;
     const activeLeaf = this.app.workspace.activeLeaf;
-    if (activeLeaf && activeLeaf.view instanceof import_obsidian2.MarkdownView && activeLeaf.view.file && activeLeaf.view.file === file) {
+    if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView && activeLeaf.view.file && activeLeaf.view.file === file) {
       const currentFrontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
       const cachedFrontmatter = this.lastFrontmatter.get(file.path);
       if (this.isFrontmatterChange(cachedFrontmatter, currentFrontmatter)) {
@@ -928,147 +1098,100 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
   handleLayoutChange() {
     setTimeout(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
-      if (activeLeaf && (activeLeaf.view instanceof import_obsidian2.MarkdownView || activeLeaf.view.getViewType() === "markdown")) {
+      if (activeLeaf && (activeLeaf.view instanceof import_obsidian3.MarkdownView || activeLeaf.view.getViewType() === "markdown")) {
         this.updateBanner(activeLeaf.view, false);
       }
     }, 100);
   }
   async handleModeChange(leaf) {
-    if (leaf && leaf.view instanceof import_obsidian2.MarkdownView && leaf.view.file) {
+    if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, true);
     }
   }
   async updateBanner(view, isContentChange) {
-    var _a;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
     if (!view || !view.file) {
       return;
     }
     const frontmatter = (_a = this.app.metadataCache.getFileCache(view.file)) == null ? void 0 : _a.frontmatter;
     const contentEl = view.contentEl;
-    let yPosition = this.settings.yPosition;
-    let contentStartPosition = this.settings.contentStartPosition;
-    let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField);
-    if (Array.isArray(bannerImage)) {
-      bannerImage = bannerImage.flat()[0];
-      bannerImage = `[[${bannerImage}]]`;
-    }
+    const isEmbedded = contentEl.classList.contains("internal-embed");
+    const existingBanner = contentEl.querySelector(".pixel-banner-image");
     const folderSpecific = this.getFolderSpecificImage(view.file.path);
-    if (folderSpecific) {
-      bannerImage = bannerImage || folderSpecific.image;
-      yPosition = folderSpecific.yPosition;
-      contentStartPosition = folderSpecific.contentStartPosition;
-    }
-    if (frontmatter) {
-      const customYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
-      if (customYPosition !== void 0) {
-        yPosition = customYPosition;
-      }
-      const customContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
-      if (customContentStart !== void 0) {
-        contentStartPosition = customContentStart;
+    let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || (folderSpecific == null ? void 0 : folderSpecific.image);
+    if (!isEmbedded && !bannerImage) {
+      contentEl.classList.remove("pixel-banner");
+      if (existingBanner) {
+        existingBanner.style.backgroundImage = "";
+        existingBanner.style.display = "none";
       }
     }
     if (isContentChange) {
       this.loadedImages.delete(view.file.path);
       this.lastKeywords.delete(view.file.path);
     }
-    await this.addPixelBanner(contentEl, {
-      frontmatter,
-      file: view.file,
-      isContentChange,
-      yPosition,
-      contentStartPosition,
-      customBannerField: this.settings.customBannerField,
-      customYPositionField: this.settings.customYPositionField,
-      customContentStartField: this.settings.customContentStartField,
-      bannerImage,
-      isReadingView: view.getMode && view.getMode() === "preview"
-    });
-    this.lastYPositions.set(view.file.path, yPosition);
-    const embeddedNotes = contentEl.querySelectorAll(".internal-embed");
-    for (const embed of embeddedNotes) {
-      const embedFile = this.app.metadataCache.getFirstLinkpathDest(embed.getAttribute("src"), "");
-      if (embedFile) {
-        const embedView = {
-          file: embedFile,
-          contentEl: embed,
-          getMode: () => "preview"
-        };
-        await this.updateBanner(embedView, false);
-      }
-    }
-  }
-  async addPixelBanner(el, ctx) {
-    var _a, _b, _c, _d, _e, _f;
-    const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
-    const viewContent = el;
-    const isEmbedded = viewContent.classList.contains("internal-embed");
-    if (!isEmbedded && !viewContent.classList.contains("view-content")) {
-      return;
-    }
-    viewContent.classList.toggle("pixel-banner", !!bannerImage);
-    let container;
-    if (isEmbedded) {
-      container = viewContent.querySelector(".markdown-embed-content");
-    } else {
-      container = isReadingView ? viewContent.querySelector(".markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)") : viewContent.querySelector(".cm-sizer");
-    }
-    if (!container) {
-      return;
-    }
-    let bannerDiv = container.querySelector(":scope > .pixel-banner-image");
-    if (!bannerDiv) {
-      bannerDiv = createDiv({ cls: "pixel-banner-image" });
-      container.insertBefore(bannerDiv, container.firstChild);
-      bannerDiv._isPersistentBanner = true;
-      if (!container._hasOverriddenSetChildrenInPlace) {
-        const originalSetChildrenInPlace = container.setChildrenInPlace;
-        container.setChildrenInPlace = function(children) {
-          const bannerElement = this.querySelector(":scope > .pixel-banner-image");
-          if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
-            children = [bannerElement, ...Array.from(children)];
-          }
-          originalSetChildrenInPlace.call(this, children);
-        };
-        container._hasOverriddenSetChildrenInPlace = true;
-      }
-    }
+    let yPosition = (_b = folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _b : this.settings.yPosition;
+    let contentStartPosition = (_c = folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _c : this.settings.contentStartPosition;
     if (bannerImage) {
-      let imageUrl = this.loadedImages.get(file.path);
-      const lastInput = this.lastKeywords.get(file.path);
-      if (!imageUrl || isContentChange && bannerImage !== lastInput) {
-        imageUrl = await this.getImageUrl(this.getInputType(bannerImage), bannerImage);
-        if (imageUrl) {
-          this.loadedImages.set(file.path, imageUrl);
-          this.lastKeywords.set(file.path, bannerImage);
-        }
+      if (Array.isArray(bannerImage)) {
+        bannerImage = bannerImage.flat()[0];
+        bannerImage = `[[${bannerImage}]]`;
       }
-      if (imageUrl) {
-        bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
-        bannerDiv.style.backgroundPosition = `center ${yPosition}%`;
-        bannerDiv.style.backgroundSize = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || this.getFolderSpecificSetting(file.path, "imageDisplay") || this.settings.imageDisplay || "cover";
-        const shouldRepeat = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField);
-        if (shouldRepeat !== void 0) {
-          const repeatValue = String(shouldRepeat).toLowerCase() === "true";
-          bannerDiv.style.backgroundRepeat = repeatValue ? "repeat" : "no-repeat";
+      if (typeof bannerImage === "string" && !bannerImage.startsWith("[[")) {
+        const bannerValues = bannerImage.includes(",") ? bannerImage.split(",").map((v) => v.trim()).filter((v) => v.length > 0).filter(Boolean) : [bannerImage];
+        if (bannerValues.length > 0) {
+          bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
         } else {
-          bannerDiv.style.backgroundRepeat = bannerDiv.style.backgroundSize === "contain" && (this.getFolderSpecificSetting(file.path, "imageRepeat") || this.settings.imageRepeat) ? "repeat" : "no-repeat";
+          bannerImage = null;
         }
-        const bannerHeight = getFrontmatterValue(frontmatter, this.settings.customBannerHeightField) || this.getFolderSpecificSetting(file.path, "bannerHeight") || this.settings.bannerHeight || 350;
-        bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
-        const fadeValue = (_c = (_b = (_a = getFrontmatterValue(frontmatter, this.settings.customFadeField)) != null ? _a : this.getFolderSpecificSetting(file.path, "fade")) != null ? _b : this.settings.fade) != null ? _c : -75;
-        bannerDiv.style.setProperty("--pixel-banner-fade", `${fadeValue}%`);
-        const borderRadius = (_f = (_e = (_d = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _d : this.getFolderSpecificSetting(file.path, "borderRadius")) != null ? _e : this.settings.borderRadius) != null ? _f : 17;
-        bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
-        bannerDiv.style.display = "block";
       }
-    } else {
-      bannerDiv.style.display = "none";
-      this.loadedImages.delete(file.path);
-      this.lastKeywords.delete(file.path);
-      this.applyContentStartPosition(viewContent, 0);
+      if (bannerImage && !bannerImage.startsWith("[[") && !bannerImage.startsWith("http")) {
+        const file = this.app.vault.getAbstractFileByPath(bannerImage);
+        if (file && "extension" in file) {
+          if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
+            bannerImage = `[[${bannerImage}]]`;
+          }
+        }
+      }
     }
-    this.applyContentStartPosition(viewContent, contentStartPosition);
+    let imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || (folderSpecific == null ? void 0 : folderSpecific.imageDisplay) || this.settings.imageDisplay;
+    let imageRepeat = (_e = (_d = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField)) != null ? _d : folderSpecific == null ? void 0 : folderSpecific.imageRepeat) != null ? _e : this.settings.imageRepeat;
+    let bannerHeight = (_g = (_f = getFrontmatterValue(frontmatter, this.settings.customBannerHeightField)) != null ? _f : folderSpecific == null ? void 0 : folderSpecific.bannerHeight) != null ? _g : this.settings.bannerHeight;
+    let fade = (_i = (_h = getFrontmatterValue(frontmatter, this.settings.customFadeField)) != null ? _h : folderSpecific == null ? void 0 : folderSpecific.fade) != null ? _i : this.settings.fade;
+    let borderRadius = (_k = (_j = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _j : folderSpecific == null ? void 0 : folderSpecific.borderRadius) != null ? _k : this.settings.borderRadius;
+    if (bannerImage) {
+      await this.addPixelBanner(contentEl, {
+        frontmatter,
+        file: view.file,
+        isContentChange,
+        yPosition,
+        contentStartPosition,
+        bannerImage,
+        imageDisplay,
+        imageRepeat,
+        bannerHeight,
+        fade,
+        borderRadius,
+        isReadingView: view.getMode && view.getMode() === "preview"
+      });
+      this.lastYPositions.set(view.file.path, yPosition);
+    } else if (existingBanner) {
+      existingBanner.style.display = "none";
+    }
+    if (!isEmbedded) {
+      const embeddedNotes = contentEl.querySelectorAll(".internal-embed");
+      for (const embed of embeddedNotes) {
+        const embedFile = this.app.metadataCache.getFirstLinkpathDest(embed.getAttribute("src"), "");
+        if (embedFile) {
+          const embedView = {
+            file: embedFile,
+            contentEl: embed,
+            getMode: () => "preview"
+          };
+          await this.updateBanner(embedView, false);
+        }
+      }
+    }
   }
   setupMutationObserver() {
     this.observer = new MutationObserver((mutations) => {
@@ -1083,6 +1206,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
             (node) => node.nodeType === Node.ELEMENT_NODE && (node.classList.contains("markdown-preview-section") || node.classList.contains("cm-content"))
           );
           if (bannerRemoved || contentChanged) {
+            const activeLeaf = this.app.workspace.activeLeaf;
+            if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView) {
+              const contentEl = activeLeaf.view.contentEl;
+              const hasBanner = contentEl.querySelector('.pixel-banner-image[style*="display: block"]');
+              if (!hasBanner) {
+                contentEl.classList.remove("pixel-banner");
+              }
+            }
             this.debouncedEnsureBanner();
           }
         }
@@ -1095,26 +1226,56 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
   }
   getFolderSpecificImage(filePath) {
     const folderPath = this.getFolderPath(filePath);
-    for (const folderImage of this.settings.folderImages) {
-      if (folderImage.directChildrenOnly) {
-        if (folderPath === folderImage.folder) {
-          return {
-            image: folderImage.image,
-            yPosition: folderImage.yPosition,
-            contentStartPosition: folderImage.contentStartPosition
-          };
+    const sortedFolderImages = [...this.settings.folderImages].sort(
+      (a, b) => {
+        var _a, _b;
+        return (((_a = b.folder) == null ? void 0 : _a.length) || 0) - (((_b = a.folder) == null ? void 0 : _b.length) || 0);
+      }
+    );
+    for (const folderImage of sortedFolderImages) {
+      if (!folderImage.folder) continue;
+      if (folderImage.folder === "/") {
+        if (folderImage.directChildrenOnly) {
+          if (!filePath.includes("/")) {
+            return this.createFolderImageSettings(folderImage);
+          }
+        } else {
+          return this.createFolderImageSettings(folderImage);
         }
-      } else if (folderPath.startsWith(folderImage.folder)) {
-        return {
-          image: folderImage.image,
-          yPosition: folderImage.yPosition,
-          contentStartPosition: folderImage.contentStartPosition
-        };
+        continue;
+      }
+      const normalizedFolderPath = folderImage.folder.startsWith("/") ? folderImage.folder : "/" + folderImage.folder;
+      const normalizedFileFolderPath = "/" + folderPath;
+      if (folderImage.directChildrenOnly) {
+        if (normalizedFileFolderPath === normalizedFolderPath) {
+          return this.createFolderImageSettings(folderImage);
+        }
+      } else {
+        if (normalizedFileFolderPath.startsWith(normalizedFolderPath)) {
+          return this.createFolderImageSettings(folderImage);
+        }
       }
     }
     return null;
   }
+  // Helper method to create folder image settings object
+  createFolderImageSettings(folderImage) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    return {
+      image: folderImage.image,
+      yPosition: (_a = folderImage.yPosition) != null ? _a : this.settings.yPosition,
+      contentStartPosition: (_b = folderImage.contentStartPosition) != null ? _b : this.settings.contentStartPosition,
+      imageDisplay: (_c = folderImage.imageDisplay) != null ? _c : this.settings.imageDisplay,
+      imageRepeat: (_d = folderImage.imageRepeat) != null ? _d : this.settings.imageRepeat,
+      bannerHeight: (_e = folderImage.bannerHeight) != null ? _e : this.settings.bannerHeight,
+      fade: (_f = folderImage.fade) != null ? _f : this.settings.fade,
+      borderRadius: (_g = folderImage.borderRadius) != null ? _g : this.settings.borderRadius
+    };
+  }
   getFolderPath(filePath) {
+    if (!filePath.includes("/")) {
+      return "/";
+    }
     const lastSlashIndex = filePath.lastIndexOf("/");
     return lastSlashIndex !== -1 ? filePath.substring(0, lastSlashIndex) : "";
   }
@@ -1133,18 +1294,23 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
       return this.getVaultImageUrl(input);
     }
     if (type === "keyword") {
-      if (this.settings.apiProvider === "pexels") {
-        return this.fetchPexelsImage(input);
-      } else if (this.settings.apiProvider === "pixabay") {
-        return this.fetchPixabayImage(input);
+      const keywords = input.includes(",") ? input.split(",").map((k) => k.trim()).filter((k) => k.length > 0).filter(Boolean) : [input];
+      if (keywords.length > 0) {
+        const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+        if (this.settings.apiProvider === "pexels") {
+          return this.fetchPexelsImage(selectedKeyword);
+        } else if (this.settings.apiProvider === "pixabay") {
+          return this.fetchPixabayImage(selectedKeyword);
+        }
       }
+      return null;
     }
     return null;
   }
   async fetchPexelsImage(keyword) {
     const apiKey = this.settings.pexelsApiKey;
     if (!apiKey) {
-      new import_obsidian2.Notice("Pexels API key is not set. Please set it in the plugin settings.");
+      new import_obsidian3.Notice("Pexels API key is not set. Please set it in the plugin settings.");
       return null;
     }
     const now = Date.now();
@@ -1157,7 +1323,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     const keywords = [keyword, fallbackKeyword];
     for (const currentKeyword of keywords) {
       try {
-        const response = await (0, import_obsidian2.requestUrl)({
+        const response = await (0, import_obsidian3.requestUrl)({
           url: `https://api.pexels.com/v1/search?query=${encodeURIComponent(currentKeyword)}&per_page=${this.settings.numberOfImages}&size=${this.settings.imageSize}&orientation=${this.settings.imageOrientation}`,
           method: "GET",
           headers: {
@@ -1186,7 +1352,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
         }
       } catch (error) {
         console.error(`Error fetching image from API for keyword "${currentKeyword}":`, error);
-        new import_obsidian2.Notice(`Failed to fetch image: ${error.message}`);
+        new import_obsidian3.Notice(`Failed to fetch image: ${error.message}`);
       }
     }
     console.error("No images found for any keywords, including the random default.");
@@ -1195,7 +1361,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
   async fetchPixabayImage(keyword) {
     const apiKey = this.settings.pixabayApiKey;
     if (!apiKey) {
-      new import_obsidian2.Notice("Pixabay API key is not set. Please set it in the plugin settings.");
+      new import_obsidian3.Notice("Pixabay API key is not set. Please set it in the plugin settings.");
       return null;
     }
     const defaultKeywords = this.settings.defaultKeywords.split(",").map((k) => k.trim());
@@ -1244,7 +1410,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
       }
     }
     console.error("No images found after all attempts");
-    new import_obsidian2.Notice("Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.");
+    new import_obsidian3.Notice("Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.");
     return null;
   }
   async makeRequest(url) {
@@ -1254,7 +1420,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     }
     this.rateLimiter.lastRequestTime = Date.now();
     try {
-      const response = await (0, import_obsidian2.requestUrl)({ url });
+      const response = await (0, import_obsidian3.requestUrl)({ url });
       return response;
     } catch (error) {
       console.error("Request failed:", error);
@@ -1277,7 +1443,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
       return "invalid";
     }
     input = input.trim().replace(/^["'](.*)["']$/, "$1");
-    if (input.startsWith("[[") && input.endsWith("]]")) {
+    if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?\[{2}.*\]{2}"?$/)) {
       return "obsidianLink";
     }
     try {
@@ -1344,6 +1510,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     }
   }
   applyContentStartPosition(el, contentStartPosition) {
+    if (!el) {
+      return;
+    }
     el.style.setProperty("--pixel-banner-content-start", `${contentStartPosition}px`);
   }
   getFolderSpecificSetting(filePath, settingName) {
@@ -1355,6 +1524,218 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
       }
     }
     return void 0;
+  }
+  async cleanOrphanedPins() {
+    var _a;
+    const vault = this.app.vault;
+    const folderPath = this.settings.pinnedImageFolder;
+    let cleaned = 0;
+    try {
+      if (!await vault.adapter.exists(folderPath)) {
+        return { cleaned };
+      }
+      const pinnedFolder = vault.getAbstractFileByPath(folderPath);
+      if (!pinnedFolder || !pinnedFolder.children) {
+        return { cleaned };
+      }
+      const imageExtensions = ["png", "jpg", "jpeg", "gif", "bmp", "webp", "svg"];
+      const pinnedImages = pinnedFolder.children.filter((file) => imageExtensions.includes(file.extension.toLowerCase())).map((file) => file.path);
+      if (!pinnedImages.length) {
+        return { cleaned };
+      }
+      const markdownFiles = this.app.vault.getMarkdownFiles();
+      const bannerFields = this.settings.customBannerField;
+      const referencedImages = /* @__PURE__ */ new Set();
+      for (const file of markdownFiles) {
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
+        if (frontmatter) {
+          for (const field of bannerFields) {
+            const bannerValue = frontmatter[field];
+            if (bannerValue && typeof bannerValue === "string") {
+              const cleanPath = bannerValue.replace(/[\[\]]/g, "").trim();
+              referencedImages.add(cleanPath);
+            }
+          }
+        }
+      }
+      for (const imagePath of pinnedImages) {
+        if (!referencedImages.has(imagePath)) {
+          await vault.trash(vault.getAbstractFileByPath(imagePath), true);
+          cleaned++;
+        }
+      }
+      return { cleaned };
+    } catch (error) {
+      console.error("Error in cleanOrphanedPins:", error);
+      throw error;
+    }
+  }
+  async checkVersion() {
+    const currentVersion = this.manifest.version;
+    const lastVersion = this.settings.lastVersion;
+    if (this.settings.showReleaseNotes && (!lastVersion || lastVersion !== currentVersion)) {
+      const releaseNotes2 = await this.getReleaseNotes(currentVersion);
+      new ReleaseNotesModal(this.app, currentVersion, releaseNotes2).open();
+      this.settings.lastVersion = currentVersion;
+      await this.saveSettings();
+    }
+  }
+  async getReleaseNotes(version) {
+    return releaseNotes;
+  }
+  async addPixelBanner(el, ctx) {
+    var _a, _b;
+    const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
+    const viewContent = el;
+    const isEmbedded = viewContent.classList.contains("internal-embed");
+    if (!isEmbedded) {
+      viewContent.classList.add("pixel-banner");
+    }
+    let container;
+    if (isEmbedded) {
+      container = viewContent.querySelector(".markdown-preview-sizer");
+      if (!container) {
+        container = viewContent.querySelector(".markdown-embed-content");
+      }
+      if (!container) {
+        container = viewContent;
+      }
+    } else {
+      container = isReadingView ? viewContent.querySelector(".markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)") : viewContent.querySelector(".cm-sizer");
+    }
+    if (!container) {
+      return;
+    }
+    let bannerDiv = container.querySelector(":scope > .pixel-banner-image");
+    let pinIcon = container.querySelector(":scope > .pin-icon");
+    if (!bannerDiv) {
+      bannerDiv = createDiv({ cls: "pixel-banner-image" });
+      container.insertBefore(bannerDiv, container.firstChild);
+      bannerDiv._isPersistentBanner = true;
+      if (!isEmbedded && this.settings.showPinIcon) {
+        pinIcon = createDiv({ cls: "pin-icon" });
+        pinIcon.style.position = "absolute";
+        pinIcon.style.top = "10px";
+        pinIcon.style.left = "5px";
+        pinIcon.style.fontSize = "1.5em";
+        pinIcon.style.cursor = "pointer";
+        pinIcon.innerHTML = "\u{1F4CC}";
+        pinIcon._isPersistentPin = true;
+        container.insertBefore(pinIcon, bannerDiv.nextSibling);
+        if (this.settings.showRefreshIcon) {
+          const refreshIcon = createDiv({ cls: "refresh-icon" });
+          refreshIcon.style.position = "absolute";
+          refreshIcon.style.top = "10px";
+          refreshIcon.style.left = "40px";
+          refreshIcon.style.fontSize = "1.5em";
+          refreshIcon.style.cursor = "pointer";
+          refreshIcon.innerHTML = "\u{1F504}";
+          refreshIcon._isPersistentRefresh = true;
+          container.insertBefore(refreshIcon, pinIcon.nextSibling);
+        }
+      }
+    }
+    if (!container._hasOverriddenSetChildrenInPlace) {
+      const originalSetChildrenInPlace = container.setChildrenInPlace;
+      container.setChildrenInPlace = function(children) {
+        const bannerElement = this.querySelector(":scope > .pixel-banner-image");
+        const pinElement = this.querySelector(":scope > .pin-icon");
+        const refreshElement = this.querySelector(":scope > .refresh-icon");
+        children = Array.from(children);
+        if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
+          children = [bannerElement, ...children];
+        }
+        if (pinElement == null ? void 0 : pinElement._isPersistentPin) {
+          children.splice(1, 0, pinElement);
+        }
+        if (refreshElement == null ? void 0 : refreshElement._isPersistentRefresh) {
+          children.splice(2, 0, refreshElement);
+        }
+        originalSetChildrenInPlace.call(this, children);
+      };
+      container._hasOverriddenSetChildrenInPlace = true;
+    }
+    if (bannerImage) {
+      let imageUrl = this.loadedImages.get(file.path);
+      const lastInput = this.lastKeywords.get(file.path);
+      const inputType = this.getInputType(bannerImage);
+      if (!imageUrl || isContentChange && bannerImage !== lastInput) {
+        imageUrl = await this.getImageUrl(inputType, bannerImage);
+        if (imageUrl) {
+          this.loadedImages.set(file.path, imageUrl);
+          this.lastKeywords.set(file.path, bannerImage);
+        }
+      }
+      if (imageUrl) {
+        const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
+        const folderSpecific = this.getFolderSpecificImage(file.path);
+        const effectiveYPosition = (_a = frontmatterYPosition != null ? frontmatterYPosition : folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _a : this.settings.yPosition;
+        bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
+        bannerDiv.style.backgroundPosition = `center ${effectiveYPosition}%`;
+        bannerDiv.style.display = "block";
+        this.applyBannerSettings(bannerDiv, ctx);
+        const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
+        const effectiveContentStart = (_b = frontmatterContentStart != null ? frontmatterContentStart : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
+        this.applyContentStartPosition(viewContent, effectiveContentStart);
+        if (!isEmbedded && inputType === "keyword" && this.settings.showPinIcon) {
+          const refreshIcon = container.querySelector(":scope > .refresh-icon");
+          if (pinIcon) {
+            pinIcon.style.display = "block";
+            pinIcon.onclick = async () => {
+              try {
+                let usedField;
+                for (const field of this.settings.customBannerField) {
+                  if (frontmatter == null ? void 0 : frontmatter[field]) {
+                    usedField = field;
+                    break;
+                  }
+                }
+                await handlePinIconClick(imageUrl, this, usedField);
+              } catch (error) {
+                console.error("Error pinning image:", error);
+                new import_obsidian3.Notice("\u{1F62D} Failed to pin the image.");
+              }
+            };
+          }
+          if (refreshIcon && this.settings.showRefreshIcon) {
+            refreshIcon.style.display = "block";
+            refreshIcon.onclick = async () => {
+              try {
+                this.loadedImages.delete(file.path);
+                this.lastKeywords.delete(file.path);
+                await this.updateBanner(this.app.workspace.activeLeaf.view, true);
+                new import_obsidian3.Notice("\u{1F504} Refreshed banner image");
+              } catch (error) {
+                console.error("Error refreshing image:", error);
+                new import_obsidian3.Notice("\u{1F62D} Failed to refresh image");
+              }
+            };
+          }
+        } else {
+          if (pinIcon) pinIcon.style.display = "none";
+          const refreshIcon = container.querySelector(":scope > .refresh-icon");
+          if (refreshIcon) refreshIcon.style.display = "none";
+        }
+      } else {
+        bannerDiv.style.display = "none";
+        if (pinIcon) pinIcon.style.display = "none";
+        const refreshIcon = container.querySelector(":scope > .refresh-icon");
+        if (refreshIcon) refreshIcon.style.display = "none";
+        this.loadedImages.delete(file.path);
+        this.lastKeywords.delete(file.path);
+        if (!isEmbedded) {
+          viewContent.classList.remove("pixel-banner");
+        }
+      }
+    }
+  }
+  applyBannerSettings(bannerDiv, ctx) {
+    const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
+    bannerDiv.style.backgroundSize = imageDisplay || "cover";
+    bannerDiv.style.backgroundRepeat = imageRepeat ? "repeat" : "no-repeat";
+    bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
+    bannerDiv.style.setProperty("--pixel-banner-fade", `${fade}%`);
+    bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
   }
 };
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -1369,6 +1750,222 @@ function getFrontmatterValue(frontmatter, fieldNames) {
     }
   }
   return void 0;
+}
+async function handlePinIconClick(imageUrl, plugin, usedField = null) {
+  const imageBlob = await fetchImage(imageUrl);
+  const { initialPath, file } = await saveImageLocally(imageBlob, plugin);
+  const finalPath = await waitForFileRename(file, plugin);
+  if (!finalPath) {
+    console.error("\u274C Failed to resolve valid file path");
+    new import_obsidian3.Notice("Failed to save image - file not found");
+    return;
+  }
+  await updateNoteFrontmatter(finalPath, plugin, usedField);
+  hidePinIcon();
+}
+async function fetchImage(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Image download failed");
+  return await response.arrayBuffer();
+}
+var FolderSelectionModal = class extends import_obsidian3.FuzzySuggestModal {
+  constructor(app2, defaultFolder, onChoose) {
+    super(app2);
+    this.defaultFolder = defaultFolder;
+    this.onChoose = onChoose;
+    this.setPlaceholder("Select or type folder path to save Pinned Banner Image");
+    this.titleEl.setText("Choose Folder to save Pinned Banner Image");
+  }
+  getItems() {
+    return [this.defaultFolder, ...this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path)];
+  }
+  getItemText(item) {
+    return item;
+  }
+  onChooseItem(item) {
+    this.onChoose(item);
+  }
+  onOpen() {
+    super.onOpen();
+    const inputEl = this.inputEl;
+    inputEl.value = this.defaultFolder;
+    inputEl.select();
+    this.updateSuggestions();
+  }
+};
+async function saveImageLocally(arrayBuffer, plugin) {
+  const vault = plugin.app.vault;
+  const defaultFolderPath = plugin.settings.pinnedImageFolder;
+  const folderPath = await new Promise((resolve) => {
+    const modal = new FolderSelectionModal(plugin.app, defaultFolderPath, (result) => {
+      resolve(result);
+    });
+    modal.open();
+  });
+  if (!folderPath) {
+    throw new Error("No folder selected");
+  }
+  if (!await vault.adapter.exists(folderPath)) {
+    await vault.createFolder(folderPath);
+  }
+  const suggestedName = "pixel-banner-image";
+  const userInput = await new Promise((resolve) => {
+    const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
+      resolve(result);
+    });
+    modal.open();
+  });
+  if (!userInput) {
+    throw new Error("No filename provided");
+  }
+  let baseName = userInput.replace(/[^a-zA-Z0-9-_ ]/g, "").trim();
+  if (!baseName) baseName = "banner";
+  if (!baseName.toLowerCase().endsWith(".png")) baseName += ".png";
+  let fileName = baseName;
+  let counter = 1;
+  while (await vault.adapter.exists(`${folderPath}/${fileName}`)) {
+    const nameWithoutExt = baseName.slice(0, -4);
+    fileName = `${nameWithoutExt}-${counter}.png`;
+    counter++;
+  }
+  const filePath = `${folderPath}/${fileName}`;
+  const savedFile = await vault.createBinary(filePath, arrayBuffer);
+  return {
+    initialPath: filePath,
+    file: savedFile
+  };
+}
+async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
+  const activeFile = app.workspace.getActiveFile();
+  if (!activeFile) return;
+  let fileContent = await app.vault.read(activeFile);
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+  const hasFrontmatter = frontmatterRegex.test(fileContent);
+  const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && plugin.settings.customBannerField.length > 0 ? plugin.settings.customBannerField[0] : "banner");
+  fileContent = fileContent.replace(/^\s+/, "");
+  let updatedContent;
+  if (hasFrontmatter) {
+    updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
+      const bannerRegex = new RegExp(`${bannerField}:\\s*.+`);
+      let cleanedFrontmatter = frontmatter.trim();
+      plugin.settings.customBannerField.forEach((field) => {
+        const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, "g");
+        cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, "");
+      });
+      cleanedFrontmatter = cleanedFrontmatter.trim();
+      const newFrontmatter = `${bannerField}: ${imagePath}${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
+      return `---
+${newFrontmatter}
+---`;
+    });
+  } else {
+    const cleanContent = fileContent.replace(/^\s+/, "");
+    updatedContent = `---
+${bannerField}: ${imagePath}
+---
+
+${cleanContent}`;
+  }
+  updatedContent = updatedContent.replace(/^\s+/, "");
+  if (updatedContent !== fileContent) {
+    await app.vault.modify(activeFile, updatedContent);
+  }
+}
+function hidePinIcon() {
+  const pinIcon = document.querySelector(".pin-icon");
+  if (pinIcon) pinIcon.style.display = "none";
+}
+var SaveImageModal = class extends import_obsidian3.Modal {
+  constructor(app2, suggestedName, onSubmit) {
+    super(app2);
+    this.suggestedName = suggestedName;
+    this.onSubmit = onSubmit;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: "Save Banner Image" });
+    const inputContainer = contentEl.createDiv();
+    inputContainer.style.margin = "1em 0";
+    const input = inputContainer.createEl("input", {
+      type: "text",
+      value: this.suggestedName
+    });
+    input.style.width = "100%";
+    input.focus();
+    input.select();
+    const buttonContainer = contentEl.createDiv();
+    buttonContainer.style.display = "flex";
+    buttonContainer.style.justifyContent = "flex-end";
+    buttonContainer.style.gap = "1em";
+    buttonContainer.style.marginTop = "1em";
+    const submitButton = buttonContainer.createEl("button", {
+      text: "Save"
+    });
+    submitButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.onSubmit(input.value);
+      this.close();
+    });
+    const cancelButton = buttonContainer.createEl("button", {
+      text: "Cancel"
+    });
+    cancelButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.onSubmit(null);
+      this.close();
+    });
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        event.stopPropagation();
+        setTimeout(() => {
+          this.onSubmit(input.value);
+          this.close();
+        }, 0);
+      }
+    });
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
+async function waitForFileRename(file, plugin) {
+  return new Promise((resolve) => {
+    const initialPath = file.path;
+    let timeoutId;
+    let renamedPath = null;
+    const validatePath = async (path) => {
+      if (!path) return false;
+      return await plugin.app.vault.adapter.exists(path);
+    };
+    const handleRename = async (theFile) => {
+      if (theFile == null ? void 0 : theFile.path) {
+        renamedPath = theFile == null ? void 0 : theFile.path;
+      }
+    };
+    const cleanup = () => {
+      plugin.app.vault.off("rename", handleRename);
+    };
+    plugin.app.vault.on("rename", handleRename);
+    timeoutId = setTimeout(async () => {
+      cleanup();
+      if (renamedPath) {
+        const exists = await validatePath(renamedPath);
+        if (exists) {
+          return resolve(renamedPath);
+        }
+      }
+      const initialExists = await validatePath(initialPath);
+      if (initialExists) {
+        return resolve(initialPath);
+      }
+      resolve(null);
+    }, 1500);
+  });
 }
 
 /* nosourcemap */

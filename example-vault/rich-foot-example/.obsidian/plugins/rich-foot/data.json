@@ -1,8 +1,14 @@
 {
+  "borderWidth": 1,
+  "borderStyle": "dashed",
+  "borderOpacity": 1,
+  "borderRadius": 15,
+  "datesOpacity": 1,
+  "linksOpacity": 1,
   "excludedFolders": [
     "exclude"
   ],
   "showBacklinks": true,
-  "showOutlinks": false,
+  "showOutlinks": true,
   "showDates": true
 }

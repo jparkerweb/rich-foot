@@ -22,24 +22,9 @@
   "customImageRepeatField": [
     "banner-repeat"
   ],
-  "folderImages": [
-    {
-      "folder": "exclude",
-      "image": "images/rich-feet-2.jpg",
-      "yPosition": 50,
-      "contentStartPosition": 300,
-      "directChildrenOnly": true
-    },
-    {
-      "folder": "exclude/me too",
-      "image": "images/rich-feet.jpg",
-      "yPosition": 50,
-      "contentStartPosition": 300,
-      "directChildrenOnly": true
-    }
-  ],
-  "contentStartPosition": 300,
-  "imageDisplay": "auto",
+  "folderImages": [],
+  "contentStartPosition": 150,
+  "imageDisplay": "cover",
   "imageRepeat": false,
   "bannerHeight": 350,
   "customBannerHeightField": [
@@ -52,5 +37,10 @@
   "borderRadius": 17,
   "customBorderRadiusField": [
     "banner-radius"
-  ]
+  ],
+  "showPinIcon": true,
+  "pinnedImageFolder": "pixel-banner-images",
+  "showReleaseNotes": true,
+  "lastVersion": "2.6.4",
+  "showRefreshIcon": true
 }
