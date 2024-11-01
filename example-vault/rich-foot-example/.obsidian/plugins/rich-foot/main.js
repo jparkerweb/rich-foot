@@ -32,17 +32,18 @@ var import_obsidian2 = require("obsidian");
 // src/modals.js
 var import_obsidian = require("obsidian");
 var ReleaseNotesModal = class extends import_obsidian.Modal {
-  constructor(app, version, releaseNotes2) {
+  constructor(app, plugin, version, releaseNotes2) {
     super(app);
+    this.plugin = plugin;
     this.version = version;
     this.releaseNotes = releaseNotes2;
   }
-  onOpen() {
+  async onOpen() {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.createEl("h2", { text: `Welcome to \u{1F9B6} Rich Foot v${this.version}` });
     contentEl.createEl("p", {
-      text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings General tab."
+      text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings."
     });
     const kofiContainer = contentEl.createEl("div");
     kofiContainer.style.textAlign = "right";
@@ -60,7 +61,13 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
       }
     });
     const notesContainer = contentEl.createDiv("release-notes-container");
-    notesContainer.innerHTML = this.releaseNotes;
+    await import_obsidian.MarkdownRenderer.renderMarkdown(
+      this.releaseNotes,
+      notesContainer,
+      "",
+      this.plugin,
+      this
+    );
     contentEl.createEl("div", { cls: "release-notes-spacer" }).style.height = "20px";
     new import_obsidian.Setting(contentEl).addButton((btn) => btn.setButtonText("Close").onClick(() => this.close()));
   }
@@ -80,7 +87,8 @@ var DEFAULT_SETTINGS = {
   borderOpacity: 1,
   borderRadius: 15,
   datesOpacity: 1,
-  linksOpacity: 1
+  linksOpacity: 1,
+  showReleaseNotes: true
 };
 var RichFootPlugin = class extends import_obsidian2.Plugin {
   async onload() {
@@ -120,9 +128,10 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
   async checkVersion() {
     const currentVersion = this.manifest.version;
     const lastVersion = this.settings.lastVersion;
-    if (this.settings.showReleaseNotes && (!lastVersion || lastVersion !== currentVersion)) {
+    const shouldShow = this.settings.showReleaseNotes && (!lastVersion || lastVersion !== currentVersion);
+    if (shouldShow) {
       const releaseNotes2 = await this.getReleaseNotes(currentVersion);
-      new ReleaseNotesModal(this.app, currentVersion, releaseNotes2).open();
+      new ReleaseNotesModal(this.app, this, currentVersion, releaseNotes2).open();
       this.settings.lastVersion = currentVersion;
       await this.saveSettings();
     }
@@ -449,6 +458,14 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
         alt: "Rich Foot Example"
       }
     });
+    new import_obsidian2.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(this.plugin.settings.showReleaseNotes).onChange(async (value) => {
+      this.plugin.settings.showReleaseNotes = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Show Release Notes").setDesc("View release notes for the current version").addButton((button) => button.setButtonText("Show Release Notes").onClick(async () => {
+      const notes = await this.plugin.getReleaseNotes(this.plugin.manifest.version);
+      new ReleaseNotesModal(this.app, this.plugin, this.plugin.manifest.version, notes).open();
+    }));
   }
   async browseForFolder() {
     const folders = this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path);

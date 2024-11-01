@@ -1,13 +1,14 @@
-import { Modal, Setting } from 'obsidian';
+import { Modal, Setting, MarkdownRenderer } from 'obsidian';
 
 export class ReleaseNotesModal extends Modal {
-    constructor(app, version, releaseNotes) {
+    constructor(app, plugin, version, releaseNotes) {
         super(app);
+        this.plugin = plugin;
         this.version = version;
         this.releaseNotes = releaseNotes;
     }
 
-    onOpen() {
+    async onOpen() {
         const { contentEl } = this;
         contentEl.empty();
 
@@ -16,9 +17,10 @@ export class ReleaseNotesModal extends Modal {
 
         // Message
         contentEl.createEl('p', { 
-            text: 'After each update you\'ll be prompted with the release notes. You can disable this in the plugin settings General tab.' 
+            text: 'After each update you\'ll be prompted with the release notes. You can disable this in the plugin settings.' 
         });
 
+        // Ko-fi container
         const kofiContainer = contentEl.createEl('div');
         kofiContainer.style.textAlign = 'right';
 
@@ -38,7 +40,13 @@ export class ReleaseNotesModal extends Modal {
 
         // Release notes content
         const notesContainer = contentEl.createDiv('release-notes-container');
-        notesContainer.innerHTML = this.releaseNotes;
+        await MarkdownRenderer.renderMarkdown(
+            this.releaseNotes,
+            notesContainer,
+            '',
+            this.plugin,
+            this
+        );
 
         // Add some spacing
         contentEl.createEl('div', { cls: 'release-notes-spacer' }).style.height = '20px';

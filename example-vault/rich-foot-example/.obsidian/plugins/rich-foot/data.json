@@ -5,10 +5,12 @@
   "borderRadius": 15,
   "datesOpacity": 1,
   "linksOpacity": 1,
+  "showReleaseNotes": true,
   "excludedFolders": [
     "exclude"
   ],
   "showBacklinks": true,
   "showOutlinks": true,
-  "showDates": true
+  "showDates": true,
+  "lastVersion": "1.4.0"
 }

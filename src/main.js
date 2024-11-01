@@ -8,7 +8,8 @@ const DEFAULT_SETTINGS = {
     borderOpacity: 1,
     borderRadius: 15,
     datesOpacity: 1,
-    linksOpacity: 1
+    linksOpacity: 1,
+    showReleaseNotes: true
 };
 
 class RichFootSettings {
@@ -83,15 +84,14 @@ class RichFootPlugin extends Plugin {
     async checkVersion() {
         const currentVersion = this.manifest.version;
         const lastVersion = this.settings.lastVersion;
+        const shouldShow = this.settings.showReleaseNotes && 
+            (!lastVersion || lastVersion !== currentVersion);
 
-        if (this.settings.showReleaseNotes && 
-            (!lastVersion || lastVersion !== currentVersion)) {
-            
-            // Get release notes for current version
+        if (shouldShow) {
             const releaseNotes = await this.getReleaseNotes(currentVersion);
             
             // Show the modal
-            new ReleaseNotesModal(this.app, currentVersion, releaseNotes).open();
+            new ReleaseNotesModal(this.app, this, currentVersion, releaseNotes).open();
             
             // Update the last shown version
             this.settings.lastVersion = currentVersion;
@@ -100,6 +100,7 @@ class RichFootPlugin extends Plugin {
     }
 
     async getReleaseNotes(version) {
+        // Simply return the bundled release notes
         return releaseNotes;
     }
 
@@ -588,6 +589,26 @@ class RichFootSettingTab extends PluginSettingTab {
                 alt: 'Rich Foot Example'
             }
         });
+
+        new Setting(containerEl)
+            .setName('Show Release Notes')
+            .setDesc('Show release notes after plugin updates')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showReleaseNotes)
+                .onChange(async (value) => {
+                    this.plugin.settings.showReleaseNotes = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('Show Release Notes')
+            .setDesc('View release notes for the current version')
+            .addButton(button => button
+                .setButtonText('Show Release Notes')
+                .onClick(async () => {
+                    const notes = await this.plugin.getReleaseNotes(this.plugin.manifest.version);
+                    new ReleaseNotesModal(this.app, this.plugin, this.plugin.manifest.version, notes).open();
+                }));
     }
 
     async browseForFolder() {
