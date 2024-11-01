@@ -1,4 +1,6 @@
-const { Plugin, MarkdownView, debounce, Setting, PluginSettingTab, EditorView, FuzzySuggestModal } = require('obsidian');
+import { Plugin, MarkdownView, debounce, Setting, PluginSettingTab, EditorView, FuzzySuggestModal } from 'obsidian';
+import { ReleaseNotesModal } from './modals';
+import { releaseNotes } from 'virtual:release-notes';
 
 class RichFootSettings {
     constructor() {
@@ -6,12 +8,17 @@ class RichFootSettings {
         this.showBacklinks = true;
         this.showOutlinks = false;
         this.showDates = true;
+        this.showReleaseNotes = true;
+        this.lastVersion = null;
     }
 }
 
 class RichFootPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
+
+        // Check version and show release notes if needed
+        await this.checkVersion();
 
         this.updateRichFoot = debounce(this.updateRichFoot.bind(this), 100, true);
 
@@ -48,6 +55,29 @@ class RichFootPlugin extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
+    }
+
+    async checkVersion() {
+        const currentVersion = this.manifest.version;
+        const lastVersion = this.settings.lastVersion;
+
+        if (this.settings.showReleaseNotes && 
+            (!lastVersion || lastVersion !== currentVersion)) {
+            
+            // Get release notes for current version
+            const releaseNotes = await this.getReleaseNotes(currentVersion);
+            
+            // Show the modal
+            new ReleaseNotesModal(this.app, currentVersion, releaseNotes).open();
+            
+            // Update the last shown version
+            this.settings.lastVersion = currentVersion;
+            await this.saveSettings();
+        }
+    }
+
+    async getReleaseNotes(version) {
+        return releaseNotes;
     }
 
     updateRichFoot() {
@@ -424,4 +454,4 @@ class FolderSuggestModal extends FuzzySuggestModal {
     }
 }
 
-module.exports = RichFootPlugin;
+export default RichFootPlugin;

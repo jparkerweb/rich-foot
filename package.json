@@ -1,10 +1,11 @@
 {
   "scripts": {
-    "dev": "node esbuild.config.mjs production && cp styles.css main.js manifest.json example-vault/rich-foot-example/.obsidian/plugins/rich-foot",
+    "test-build": "node esbuild.config.mjs production && cp styles.css main.js manifest.json example-vault/rich-foot-example/.obsidian/plugins/rich-foot",
     "build": "npm run dev && zip -r example-vault.zip example-vault"
   },
   "devDependencies": {
+    "builtin-modules": "4.0.0",
     "esbuild": "0.24.0",
-    "builtin-modules": "4.0.0"
+    "marked": "^14.1.3"
   }
 }
