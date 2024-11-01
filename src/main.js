@@ -2,6 +2,15 @@ import { Plugin, MarkdownView, debounce, Setting, PluginSettingTab, EditorView, 
 import { ReleaseNotesModal } from './modals';
 import { releaseNotes } from 'virtual:release-notes';
 
+const DEFAULT_SETTINGS = {
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderOpacity: 1,
+    borderRadius: 15,
+    datesOpacity: 1,
+    linksOpacity: 1
+};
+
 class RichFootSettings {
     constructor() {
         this.excludedFolders = [];
@@ -10,12 +19,26 @@ class RichFootSettings {
         this.showDates = true;
         this.showReleaseNotes = true;
         this.lastVersion = null;
+        this.borderWidth = DEFAULT_SETTINGS.borderWidth;
+        this.borderStyle = DEFAULT_SETTINGS.borderStyle;
+        this.borderOpacity = DEFAULT_SETTINGS.borderOpacity;
+        this.borderRadius = DEFAULT_SETTINGS.borderRadius;
+        this.datesOpacity = DEFAULT_SETTINGS.datesOpacity;
+        this.linksOpacity = DEFAULT_SETTINGS.linksOpacity;
     }
 }
 
 class RichFootPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
+
+        // Set initial CSS custom properties
+        document.documentElement.style.setProperty('--rich-foot-border-width', `${this.settings.borderWidth}px`);
+        document.documentElement.style.setProperty('--rich-foot-border-style', this.settings.borderStyle);
+        document.documentElement.style.setProperty('--rich-foot-border-opacity', this.settings.borderOpacity);
+        document.documentElement.style.setProperty('--rich-foot-border-radius', `${this.settings.borderRadius}px`);
+        document.documentElement.style.setProperty('--rich-foot-dates-opacity', this.settings.datesOpacity);
+        document.documentElement.style.setProperty('--rich-foot-links-opacity', this.settings.linksOpacity);
 
         // Check version and show release notes if needed
         await this.checkVersion();
@@ -50,7 +73,7 @@ class RichFootPlugin extends Plugin {
     }
 
     async loadSettings() {
-        this.settings = Object.assign(new RichFootSettings(), await this.loadData());
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
     }
 
     async saveSettings() {
@@ -81,6 +104,14 @@ class RichFootPlugin extends Plugin {
     }
 
     updateRichFoot() {
+        // Update CSS custom properties
+        document.documentElement.style.setProperty('--rich-foot-border-width', `${this.settings.borderWidth}px`);
+        document.documentElement.style.setProperty('--rich-foot-border-style', this.settings.borderStyle);
+        document.documentElement.style.setProperty('--rich-foot-border-opacity', this.settings.borderOpacity);
+        document.documentElement.style.setProperty('--rich-foot-border-radius', `${this.settings.borderRadius}px`);
+        document.documentElement.style.setProperty('--rich-foot-dates-opacity', this.settings.datesOpacity);
+        document.documentElement.style.setProperty('--rich-foot-links-opacity', this.settings.linksOpacity);
+
         const activeLeaf = this.app.workspace.activeLeaf;
         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
             this.addRichFoot(activeLeaf.view);
@@ -308,8 +339,7 @@ class RichFootSettingTab extends PluginSettingTab {
         containerEl.empty();
         containerEl.addClass('rich-foot-settings');
 
-        const infoDiv = containerEl.createEl('div', { cls: 'rich-foot-info' });
-        infoDiv.createEl('p', { text: 'Rich Foot adds a footer to your notes with useful information such as backlinks, creation date, and last modified date.' });
+        containerEl.createEl('div', { cls: 'rich-foot-info', text: '🦶 Rich Foot adds a footer to your notes with useful information such as backlinks, creation date, and last modified date. Use the settings below to customize the appearance.' });
 
         // Excluded Folders Section with description
         containerEl.createEl('h3', { text: 'Excluded Folders' });
@@ -403,6 +433,149 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.showDates = value;
                     await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }));
+
+        // Border Settings
+        containerEl.createEl('h3', { text: 'Style Settings' });
+
+        // Border Width
+        new Setting(containerEl)
+            .setName('Border Width')
+            .setDesc('Adjust the width of the footer border (1-10px)')
+            .addSlider(slider => slider
+                .setLimits(1, 10, 1)
+                .setValue(this.plugin.settings.borderWidth)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.borderWidth = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.borderWidth = DEFAULT_SETTINGS.borderWidth;
+                    await this.plugin.saveSettings();
+                    this.display();
+                    this.plugin.updateRichFoot();
+                }));
+
+        // Border Style
+        new Setting(containerEl)
+            .setName('Border Style')
+            .setDesc('Choose the style of the footer border')
+            .addDropdown(dropdown => dropdown
+                .addOptions({
+                    'solid': 'Solid',
+                    'dashed': 'Dashed',
+                    'dotted': 'Dotted',
+                    'double': 'Double',
+                    'groove': 'Groove',
+                    'ridge': 'Ridge',
+                    'inset': 'Inset',
+                    'outset': 'Outset'
+                })
+                .setValue(this.plugin.settings.borderStyle)
+                .onChange(async (value) => {
+                    this.plugin.settings.borderStyle = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.borderStyle = DEFAULT_SETTINGS.borderStyle;
+                    await this.plugin.saveSettings();
+                    this.display();
+                    this.plugin.updateRichFoot();
+                }));
+
+        // Border Opacity
+        new Setting(containerEl)
+            .setName('Border Opacity')
+            .setDesc('Adjust the opacity of the footer border (0-1)')
+            .addSlider(slider => slider
+                .setLimits(0, 1, 0.1)
+                .setValue(this.plugin.settings.borderOpacity)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.borderOpacity = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.borderOpacity = DEFAULT_SETTINGS.borderOpacity;
+                    await this.plugin.saveSettings();
+                    this.display();
+                    this.plugin.updateRichFoot();
+                }));
+
+        // Link Border Radius
+        new Setting(containerEl)
+            .setName('Link Border Radius')
+            .setDesc('Adjust the border radius of Backlinks and Outlinks (0-15px)')
+            .addSlider(slider => slider
+                .setLimits(0, 15, 1)
+                .setValue(this.plugin.settings.borderRadius)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.borderRadius = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
+                    await this.plugin.saveSettings();
+                    this.display();
+                    this.plugin.updateRichFoot();
+                }));
+
+        // Links Opacity
+        new Setting(containerEl)
+            .setName('Links Opacity')
+            .setDesc('Adjust the opacity of Backlinks and Outlinks (0-1)')
+            .addSlider(slider => slider
+                .setLimits(0, 1, 0.1)
+                .setValue(this.plugin.settings.linksOpacity)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.linksOpacity = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.linksOpacity = DEFAULT_SETTINGS.linksOpacity;
+                    await this.plugin.saveSettings();
+                    this.display();
+                    this.plugin.updateRichFoot();
+                }));
+
+        // Dates Opacity
+        new Setting(containerEl)
+            .setName('Dates Opacity')
+            .setDesc('Adjust the opacity of the Created / Modified Dates (0-1)')
+            .addSlider(slider => slider
+                .setLimits(0, 1, 0.1)
+                .setValue(this.plugin.settings.datesOpacity)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.datesOpacity = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.datesOpacity = DEFAULT_SETTINGS.datesOpacity;
+                    await this.plugin.saveSettings();
+                    this.display();
                     this.plugin.updateRichFoot();
                 }));
 

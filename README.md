@@ -9,6 +9,7 @@ Rich Foot is an Obsidian plugin that enhances the footer of your notes by adding
 - Displays `created` and `modified` dates for each note
 - Supports links in frontmatter
 - Stylish appearance with tag-like links
+- Highly customizable appearance with opacity and border controls
 - Option to exclude folder(s) from displaying 🦶 Rich Foot
 
 ## Installation
@@ -52,6 +53,24 @@ You can toggle the visibility of each section:
 - Show/Hide Backlinks
 - Show/Hide Outlinks (disabled by default)
 - Show/Hide Dates
+
+### Style Settings
+
+Customize the appearance of your Rich Foot:
+
+#### Border Customization
+- **Border Width**: Adjust thickness from 1-10px
+- **Border Style**: Choose from various styles (solid, dashed, dotted, double, groove, ridge, inset, outset)
+- **Border Opacity**: Control border transparency (0-1)
+
+#### Links Customization
+- **Link Border Radius**: Adjust the roundness of link corners (0-15px)
+- **Links Opacity**: Control transparency of backlinks and outlinks (0-1)
+
+#### Dates Customization
+- **Dates Opacity**: Control transparency of created/modified dates (0-1)
+
+Each setting includes a reset button to quickly return to default values.
 
 ### Excluding Folders
 
