@@ -10,7 +10,9 @@ const DEFAULT_SETTINGS = {
     datesOpacity: 1,
     linksOpacity: 1,
     showReleaseNotes: true,
-    excludedFolders: []
+    excludedFolders: [],
+    dateColor: 'var(--text-accent)',
+    borderColor: 'var(--text-accent)',
 };
 
 class RichFootSettings {
@@ -27,7 +29,36 @@ class RichFootSettings {
         this.borderRadius = DEFAULT_SETTINGS.borderRadius;
         this.datesOpacity = DEFAULT_SETTINGS.datesOpacity;
         this.linksOpacity = DEFAULT_SETTINGS.linksOpacity;
+        this.borderColor = DEFAULT_SETTINGS.borderColor;
     }
+}
+
+// Helper function to convert HSL to Hex
+function hslToHex(h, s, l) {
+    // Evaluate calc expressions if present
+    const evalCalc = (expr) => {
+        if (typeof expr !== 'string') return expr;
+        if (expr.includes('calc(')) {
+            // Extract the expression inside calc()
+            const calcExpr = expr.match(/calc\((.*?)\)/)[1];
+            // Basic evaluation of simple math expressions
+            return Function(`'use strict'; return (${calcExpr})`)();
+        }
+        return parseFloat(expr);
+    };
+
+    h = evalCalc(h);
+    s = evalCalc(s);
+    l = evalCalc(l);
+
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
 }
 
 class RichFootPlugin extends Plugin {
@@ -75,9 +106,9 @@ class RichFootPlugin extends Plugin {
     }
 
     async loadSettings() {
-        const loadedData = await this.loadData();
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
-        
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        document.documentElement.style.setProperty('--rich-foot-date-color', this.settings.dateColor);
+
         // Ensure excludedFolders is always an array
         if (!Array.isArray(this.settings.excludedFolders)) {
             this.settings.excludedFolders = [];
@@ -119,6 +150,8 @@ class RichFootPlugin extends Plugin {
         document.documentElement.style.setProperty('--rich-foot-border-radius', `${this.settings.borderRadius}px`);
         document.documentElement.style.setProperty('--rich-foot-dates-opacity', this.settings.datesOpacity);
         document.documentElement.style.setProperty('--rich-foot-links-opacity', this.settings.linksOpacity);
+        document.documentElement.style.setProperty('--rich-foot-date-color', this.settings.dateColor);
+        document.documentElement.style.setProperty('--rich-foot-border-color', this.settings.borderColor);
 
         const activeLeaf = this.app.workspace.activeLeaf;
         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
@@ -470,8 +503,10 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.borderWidth = DEFAULT_SETTINGS.borderWidth;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just the slider value
+                    const slider = this.containerEl.querySelector('input[type="range"]');
+                    if (slider) slider.value = DEFAULT_SETTINGS.borderWidth;
                 }));
 
         // Border Style
@@ -500,8 +535,10 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.borderStyle = DEFAULT_SETTINGS.borderStyle;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just the dropdown value
+                    const dropdown = this.containerEl.querySelector('select');
+                    if (dropdown) dropdown.value = DEFAULT_SETTINGS.borderStyle;
                 }));
 
         // Border Opacity
@@ -522,8 +559,57 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.borderOpacity = DEFAULT_SETTINGS.borderOpacity;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just the slider value
+                    const slider = this.containerEl.querySelector('input[type="range"]');
+                    if (slider) slider.value = DEFAULT_SETTINGS.borderOpacity;
+                }));
+
+        // Border Color
+        new Setting(containerEl)
+            .setName('Border Color')
+            .setDesc('Choose the color for the footer border')
+            .addColorPicker(color => color
+                .setValue(this.plugin.settings.borderColor.startsWith('var(--') ? 
+                    (() => {
+                        const temp = document.createElement('div');
+                        temp.style.borderColor = 'var(--text-accent)';
+                        document.body.appendChild(temp);
+                        const color = getComputedStyle(temp).borderColor;
+                        document.body.removeChild(temp);
+                        
+                        const rgb = color.match(/\d+/g);
+                        if (rgb) {
+                            return '#' + rgb.map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+                        }
+                        return '#000000';
+                    })() : 
+                    this.plugin.settings.borderColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.borderColor = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.borderColor = 'var(--text-accent)';
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                    // Get the specific color picker for border color
+                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+                    if (colorPicker) {
+                        const temp = document.createElement('div');
+                        temp.style.borderColor = 'var(--text-accent)';
+                        document.body.appendChild(temp);
+                        const color = getComputedStyle(temp).borderColor;
+                        document.body.removeChild(temp);
+                        
+                        const rgb = color.match(/\d+/g);
+                        if (rgb && colorPicker) {
+                            colorPicker.value = '#' + rgb.map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+                        }
+                    }
                 }));
 
         // Link Border Radius
@@ -544,8 +630,10 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just the slider value
+                    const slider = this.containerEl.querySelector('input[type="range"]');
+                    if (slider) slider.value = DEFAULT_SETTINGS.borderRadius;
                 }));
 
         // Links Opacity
@@ -566,8 +654,10 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.linksOpacity = DEFAULT_SETTINGS.linksOpacity;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just the slider value
+                    const slider = this.containerEl.querySelector('input[type="range"]');
+                    if (slider) slider.value = DEFAULT_SETTINGS.linksOpacity;
                 }));
 
         // Dates Opacity
@@ -588,8 +678,59 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.datesOpacity = DEFAULT_SETTINGS.datesOpacity;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just the slider value
+                    const slider = this.containerEl.querySelector('input[type="range"]');
+                    if (slider) slider.value = DEFAULT_SETTINGS.datesOpacity;
+                }));
+
+        // Date Color
+        new Setting(containerEl)
+            .setName('Date Color')
+            .setDesc('Choose the color for Created / Modified Dates')
+            .addColorPicker(color => color
+                .setValue(this.plugin.settings.dateColor.startsWith('var(--') ? 
+                    (() => {
+                        // Create a temporary element to compute the color
+                        const temp = document.createElement('div');
+                        temp.style.color = 'var(--text-accent)';
+                        document.body.appendChild(temp);
+                        const color = getComputedStyle(temp).color;
+                        document.body.removeChild(temp);
+                        
+                        // Convert rgb to hex
+                        const rgb = color.match(/\d+/g);
+                        if (rgb) {
+                            return '#' + rgb.map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+                        }
+                        return '#000000';
+                    })() : 
+                    this.plugin.settings.dateColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.dateColor = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.dateColor = 'var(--text-accent)';
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                    // Update color picker to show current theme color
+                    const colorPicker = this.containerEl.querySelector('input[type="color"]');
+                    if (colorPicker) {
+                        const temp = document.createElement('div');
+                        temp.style.color = 'var(--text-accent)';
+                        document.body.appendChild(temp);
+                        const color = getComputedStyle(temp).color;
+                        document.body.removeChild(temp);
+                        
+                        const rgb = color.match(/\d+/g);
+                        if (rgb && colorPicker) {
+                            colorPicker.value = '#' + rgb.map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+                        }
+                    }
                 }));
 
         // Add Example Screenshot section

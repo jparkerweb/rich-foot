@@ -89,7 +89,7 @@
     padding-left: 0;
     font-size: .8em;
     filter: brightness(85%);
-    color: var(--text-accent);
+    color: var(--rich-foot-date-color, var(--text-accent));
     opacity: var(--rich-foot-dates-opacity, 1);
 }
 
@@ -103,6 +103,7 @@
     font-size: .7em;
     text-transform: uppercase;
     padding: 2px 8px 0 0;
+    color: var(--rich-foot-date-color, var(--text-accent));
 }
 
 .rich-foot--created-date::before {
@@ -181,6 +182,7 @@ body.theme-light .rich-foot--backlinks ul li a {
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
+    color: var(--rich-foot-date-color);
 }
 
 
