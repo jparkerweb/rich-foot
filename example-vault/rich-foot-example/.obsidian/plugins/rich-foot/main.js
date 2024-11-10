@@ -78,7 +78,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v1.6.0</h3>\n<h4>New Color Customization Options</h4>\n<ul>\n<li>New Border, Links, and Date color customization options in settings<ul>\n<li>Color picker to select custom colors</li>\n<li>Reset button to restore default colors (theme accent color)</li>\n<li>Real-time color updates</li>\n</ul>\n</li>\n</ul>\n<h3>v1.5.0</h3>\n<h4>New Customization Options</h4>\n<p>Rich Foot now offers extensive customization options for fine-tuning the appearance of your note footers:</p>\n<h5>Border Controls</h5>\n<ul>\n<li>Adjustable border width (1-10px)</li>\n<li>Multiple border styles (solid, dashed, dotted, double, groove, ridge, inset, outset)</li>\n<li>Border opacity control (0-1)</li>\n</ul>\n<h5>Link Appearance</h5>\n<ul>\n<li>Customizable border radius for links (0-15px)</li>\n<li>Opacity control for backlinks and outlinks (0-1)</li>\n</ul>\n<h5>Date Display</h5>\n<ul>\n<li>Adjustable opacity for created/modified dates (0-1)</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v1.6.0</h3>\n<h4>New Color Customization Options</h4>\n<ul>\n<li>New Border, Links, and Date color customization options in settings<ul>\n<li>Color picker to select custom colors</li>\n<li>Reset button to restore default colors (theme accent color)</li>\n<li>Real-time color updates</li>\n</ul>\n</li>\n</ul>\n";
 
 // src/main.js
 var DEFAULT_SETTINGS = {
