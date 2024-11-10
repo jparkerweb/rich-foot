@@ -1,7 +1,11 @@
 ## 🎉 What's New
 
-### v1.5.1
-- Fixed bug where excluded folders were not being saved correctly
+### v1.6.0
+#### New Color Customization Options
+- New Border, Links, and Date color customization options in settings
+  - Color picker to select custom colors
+  - Reset button to restore default colors (theme accent color)
+  - Real-time color updates
 
 ### v1.5.0
 #### New Customization Options
