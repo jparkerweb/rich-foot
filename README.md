@@ -62,13 +62,16 @@ Customize the appearance of your Rich Foot:
 - **Border Width**: Adjust thickness from 1-10px
 - **Border Style**: Choose from various styles (solid, dashed, dotted, double, groove, ridge, inset, outset)
 - **Border Opacity**: Control border transparency (0-1)
+- **Border Color**: Choose custom color for the border with color picker
 
 #### Links Customization
 - **Link Border Radius**: Adjust the roundness of link corners (0-15px)
 - **Links Opacity**: Control transparency of backlinks and outlinks (0-1)
+- **Links Color**: Choose custom color for backlinks and outlinks with color picker
 
 #### Dates Customization
 - **Dates Opacity**: Control transparency of created/modified dates (0-1)
+- **Dates Color**: Choose custom color for created/modified dates with color picker
 
 Each setting includes a reset button to quickly return to default values.
 

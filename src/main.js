@@ -10,7 +10,12 @@ const DEFAULT_SETTINGS = {
     datesOpacity: 1,
     linksOpacity: 1,
     showReleaseNotes: true,
-    excludedFolders: []
+    excludedFolders: [],
+    dateColor: 'var(--text-accent)',
+    borderColor: 'var(--text-accent)',
+    linkColor: 'var(--link-color)',
+    linkBackgroundColor: 'var(--tag-background)',
+    linkBorderColor: 'rgba(255, 255, 255, 0.204)',
 };
 
 class RichFootSettings {
@@ -27,7 +32,88 @@ class RichFootSettings {
         this.borderRadius = DEFAULT_SETTINGS.borderRadius;
         this.datesOpacity = DEFAULT_SETTINGS.datesOpacity;
         this.linksOpacity = DEFAULT_SETTINGS.linksOpacity;
+        this.borderColor = DEFAULT_SETTINGS.borderColor;
+        this.linkColor = DEFAULT_SETTINGS.linkColor;
+        this.linkBackgroundColor = DEFAULT_SETTINGS.linkBackgroundColor;
+        this.linkBorderColor = DEFAULT_SETTINGS.linkBorderColor;
     }
+}
+
+// Helper function to convert HSL to Hex
+function hslToHex(h, s, l) {
+    // Evaluate calc expressions if present
+    const evalCalc = (expr) => {
+        if (typeof expr !== 'string') return expr;
+        if (expr.includes('calc(')) {
+            // Extract the expression inside calc()
+            const calcExpr = expr.match(/calc\((.*?)\)/)[1];
+            // Basic evaluation of simple math expressions
+            return Function(`'use strict'; return (${calcExpr})`)();
+        }
+        return parseFloat(expr);
+    };
+
+    h = evalCalc(h);
+    s = evalCalc(s);
+    l = evalCalc(l);
+
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+// Helper function to convert RGB/RGBA to hex
+function rgbToHex(color) {
+    // For HSLA colors, create a temporary div to convert to RGB
+    if (color.startsWith('hsl')) {
+        const temp = document.createElement('div');
+        temp.style.color = color;
+        document.body.appendChild(temp);
+        color = getComputedStyle(temp).color;
+        document.body.removeChild(temp);
+    }
+    
+    // Extract RGB values, handling both RGB and RGBA
+    const rgb = color.match(/\d+/g);
+    if (!rgb || rgb.length < 3) return '#000000';
+    
+    // Take only the first 3 values (RGB) and ensure they're valid hex values
+    const [r, g, b] = rgb.slice(0, 3).map(x => {
+        // Ensure value is between 0-255
+        const val = Math.min(255, Math.max(0, Math.round(parseFloat(x))));
+        return val.toString(16).padStart(2, '0');
+    });
+    
+    return `#${r}${g}${b}`;
+}
+
+// Add the blendRgbaWithBackground function
+function blendRgbaWithBackground(rgba, backgroundRgb) {
+    // Extract foreground RGBA values
+    const rgbaMatch = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),\s*(\d*\.?\d+)\)/);
+    if (!rgbaMatch) return null;
+
+    const [ , fr, fg, fb, fa] = rgbaMatch.map(Number); // Parse to numbers
+    const alpha = fa !== undefined ? fa : 1; // Default alpha to 1 if not provided
+    
+    // Extract background RGB values
+    const rgbMatch = backgroundRgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (!rgbMatch) return null;
+
+    const [ , br, bg, bb] = rgbMatch.map(Number); // Parse to numbers
+
+    // Blend each channel using the formula: result = fg * alpha + bg * (1 - alpha)
+    const r = Math.round(fr * alpha + br * (1 - alpha));
+    const g = Math.round(fg * alpha + bg * (1 - alpha));
+    const b = Math.round(fb * alpha + bb * (1 - alpha));
+
+    // Return the blended color as an RGB string
+    return `rgb(${r}, ${g}, ${b})`;
 }
 
 class RichFootPlugin extends Plugin {
@@ -75,9 +161,9 @@ class RichFootPlugin extends Plugin {
     }
 
     async loadSettings() {
-        const loadedData = await this.loadData();
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
-        
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        document.documentElement.style.setProperty('--rich-foot-date-color', this.settings.dateColor);
+
         // Ensure excludedFolders is always an array
         if (!Array.isArray(this.settings.excludedFolders)) {
             this.settings.excludedFolders = [];
@@ -119,6 +205,11 @@ class RichFootPlugin extends Plugin {
         document.documentElement.style.setProperty('--rich-foot-border-radius', `${this.settings.borderRadius}px`);
         document.documentElement.style.setProperty('--rich-foot-dates-opacity', this.settings.datesOpacity);
         document.documentElement.style.setProperty('--rich-foot-links-opacity', this.settings.linksOpacity);
+        document.documentElement.style.setProperty('--rich-foot-date-color', this.settings.dateColor);
+        document.documentElement.style.setProperty('--rich-foot-border-color', this.settings.borderColor);
+        document.documentElement.style.setProperty('--rich-foot-link-color', this.settings.linkColor);
+        document.documentElement.style.setProperty('--rich-foot-link-background', this.settings.linkBackgroundColor);
+        document.documentElement.style.setProperty('--rich-foot-link-border-color', this.settings.linkBorderColor);
 
         const activeLeaf = this.app.workspace.activeLeaf;
         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
@@ -470,8 +561,10 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.borderWidth = DEFAULT_SETTINGS.borderWidth;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just the slider value
+                    const slider = this.containerEl.querySelector('input[type="range"]');
+                    if (slider) slider.value = DEFAULT_SETTINGS.borderWidth;
                 }));
 
         // Border Style
@@ -500,8 +593,10 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.borderStyle = DEFAULT_SETTINGS.borderStyle;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just the dropdown value
+                    const dropdown = this.containerEl.querySelector('select');
+                    if (dropdown) dropdown.value = DEFAULT_SETTINGS.borderStyle;
                 }));
 
         // Border Opacity
@@ -522,8 +617,57 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.borderOpacity = DEFAULT_SETTINGS.borderOpacity;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update the slider value
+                    const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
+                    if (slider) slider.value = DEFAULT_SETTINGS.borderOpacity;
+                }));
+
+        // Border Color
+        new Setting(containerEl)
+            .setName('Border Color')
+            .setDesc('Choose the color for the footer border')
+            .addColorPicker(color => color
+                .setValue(this.plugin.settings.borderColor.startsWith('var(--') ? 
+                    (() => {
+                        const temp = document.createElement('div');
+                        temp.style.borderColor = 'var(--text-accent)';
+                        document.body.appendChild(temp);
+                        const color = getComputedStyle(temp).borderColor;
+                        document.body.removeChild(temp);
+                        
+                        const rgb = color.match(/\d+/g);
+                        if (rgb) {
+                            return '#' + rgb.map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+                        }
+                        return '#000000';
+                    })() : 
+                    this.plugin.settings.borderColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.borderColor = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.borderColor = 'var(--text-accent)';
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                    // Get the specific color picker for border color
+                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+                    if (colorPicker) {
+                        const temp = document.createElement('div');
+                        temp.style.borderColor = 'var(--text-accent)';
+                        document.body.appendChild(temp);
+                        const color = getComputedStyle(temp).borderColor;
+                        document.body.removeChild(temp);
+                        
+                        const rgb = color.match(/\d+/g);
+                        if (rgb && colorPicker) {
+                            colorPicker.value = '#' + rgb.map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+                        }
+                    }
                 }));
 
         // Link Border Radius
@@ -544,8 +688,10 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just THIS setting's slider value
+                    const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
+                    if (slider) slider.value = DEFAULT_SETTINGS.borderRadius;
                 }));
 
         // Links Opacity
@@ -566,10 +712,155 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.linksOpacity = DEFAULT_SETTINGS.linksOpacity;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just THIS setting's slider value
+                    const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
+                    if (slider) slider.value = DEFAULT_SETTINGS.linksOpacity;
                 }));
 
+        // Link Text Color
+        new Setting(containerEl)
+            .setName('Link Text Color')
+            .setDesc('Choose the color for link text')
+            .addColorPicker(color => color
+                .setValue(this.plugin.settings.linkColor.startsWith('var(--') ? 
+                    (() => {
+                        const temp = document.createElement('div');
+                        temp.style.color = 'var(--link-color)';
+                        document.body.appendChild(temp);
+                        const color = getComputedStyle(temp).color;
+                        document.body.removeChild(temp);
+                        return rgbToHex(color);
+                    })() : 
+                    this.plugin.settings.linkColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.linkColor = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.linkColor = 'var(--link-color)';
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+                    if (colorPicker) {
+                        const temp = document.createElement('div');
+                        temp.style.color = 'var(--link-color)';
+                        document.body.appendChild(temp);
+                        const color = getComputedStyle(temp).color;
+                        document.body.removeChild(temp);
+                        
+                        const rgb = color.match(/\d+/g);
+                        if (rgb && colorPicker) {
+                            colorPicker.value = '#' + rgb.map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+                        }
+                    }
+                }));
+
+        // Link Background Color
+        new Setting(containerEl)
+            .setName('Link Background Color')
+            .setDesc('Choose the background color for links')
+            .addColorPicker(color => color
+                .setValue(this.plugin.settings.linkBackgroundColor.startsWith('var(--') ? 
+                    (() => {
+                        // Get background color
+                        const temp = document.createElement('div');
+                        temp.style.backgroundColor = 'var(--background-primary)';
+                        document.body.appendChild(temp);
+                        const bgColor = getComputedStyle(temp).backgroundColor;
+                        
+                        // Get tag background color
+                        temp.style.backgroundColor = 'var(--tag-background)';
+                        const tagColor = getComputedStyle(temp).backgroundColor;
+                        document.body.removeChild(temp);
+
+                        // Blend colors and convert to hex
+                        const blendedColor = blendRgbaWithBackground(tagColor, bgColor);
+                        return blendedColor ? rgbToHex(blendedColor) : '#000000';
+                    })() : 
+                    this.plugin.settings.linkBackgroundColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.linkBackgroundColor = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.linkBackgroundColor = 'var(--tag-background)';
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+                    if (colorPicker) {
+                        // Get background color
+                        const temp = document.createElement('div');
+                        temp.style.backgroundColor = 'var(--background-primary)';
+                        document.body.appendChild(temp);
+                        const bgColor = getComputedStyle(temp).backgroundColor;
+                        
+                        // Get tag background color
+                        temp.style.backgroundColor = 'var(--tag-background)';
+                        const tagColor = getComputedStyle(temp).backgroundColor;
+                        document.body.removeChild(temp);
+
+                        // Blend colors and convert to hex
+                        const blendedColor = blendRgbaWithBackground(tagColor, bgColor);
+                        if (blendedColor) {
+                            colorPicker.value = rgbToHex(blendedColor);
+                        }
+                    }
+                }));
+        
+        // Link Border Color
+        new Setting(containerEl)
+            .setName('Link Border Color')
+            .setDesc('Choose the border color for links')
+            .addColorPicker(color => color
+                .setValue(this.plugin.settings.linkBorderColor.startsWith('rgba(255, 255, 255,') ? 
+                    (() => {
+                        // Get background color
+                        const temp = document.createElement('div');
+                        temp.style.backgroundColor = 'var(--background-primary)';
+                        document.body.appendChild(temp);
+                        const bgColor = getComputedStyle(temp).backgroundColor;
+                        
+                        // Blend with default rgba color
+                        const blendedColor = blendRgbaWithBackground('rgba(255, 255, 255, 0.204)', bgColor);
+                        document.body.removeChild(temp);
+                        return blendedColor ? rgbToHex(blendedColor) : '#000000';
+                    })() : 
+                    this.plugin.settings.linkBorderColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.linkBorderColor = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.linkBorderColor = 'rgba(255, 255, 255, 0.204)';
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+                    if (colorPicker) {
+                        // Get background color
+                        const temp = document.createElement('div');
+                        temp.style.backgroundColor = 'var(--background-primary)';
+                        document.body.appendChild(temp);
+                        const bgColor = getComputedStyle(temp).backgroundColor;
+                        
+                        // Blend with default rgba color
+                        const blendedColor = blendRgbaWithBackground('rgba(255, 255, 255, 0.204)', bgColor);
+                        document.body.removeChild(temp);
+                        if (blendedColor) {
+                            colorPicker.value = rgbToHex(blendedColor);
+                        }
+                    }
+                }));
+        
         // Dates Opacity
         new Setting(containerEl)
             .setName('Dates Opacity')
@@ -588,8 +879,48 @@ class RichFootSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.datesOpacity = DEFAULT_SETTINGS.datesOpacity;
                     await this.plugin.saveSettings();
-                    this.display();
                     this.plugin.updateRichFoot();
+                    // Update just THIS setting's slider value
+                    const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
+                    if (slider) slider.value = DEFAULT_SETTINGS.datesOpacity;
+                }));
+
+        // Date Color
+        new Setting(containerEl)
+            .setName('Date Color')
+            .setDesc('Choose the color for Created / Modified Dates')
+            .addColorPicker(color => color
+                .setValue(this.plugin.settings.dateColor.startsWith('var(--') ? 
+                    (() => {
+                        const temp = document.createElement('div');
+                        temp.style.color = 'var(--text-accent)';
+                        document.body.appendChild(temp);
+                        const color = getComputedStyle(temp).color;
+                        document.body.removeChild(temp);
+                        return rgbToHex(color);
+                    })() : 
+                    this.plugin.settings.dateColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.dateColor = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.dateColor = 'var(--text-accent)';
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                    // Update just THIS setting's color picker
+                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+                    if (colorPicker) {
+                        const temp = document.createElement('div');
+                        temp.style.color = 'var(--text-accent)';
+                        document.body.appendChild(temp);
+                        const color = getComputedStyle(temp).color;
+                        document.body.removeChild(temp);
+                        colorPicker.value = rgbToHex(color);
+                    }
                 }));
 
         // Add Example Screenshot section

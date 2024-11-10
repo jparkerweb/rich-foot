@@ -2,6 +2,14 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.6.0] - 2024-11-09
+
+### Added
+- New Border, Links, and Date color customization options in settings
+  - Color picker to select custom colors
+  - Reset button to restore default colors (theme accent color)
+  - Real-time color updates
+
 ## [1.5.1] - 2024-10-31
 
 ### Fixed
