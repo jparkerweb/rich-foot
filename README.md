@@ -67,6 +67,7 @@ Customize the appearance of your Rich Foot:
 #### Links Customization
 - **Link Border Radius**: Adjust the roundness of link corners (0-15px)
 - **Links Opacity**: Control transparency of backlinks and outlinks (0-1)
+- **Links Color**: Choose custom color for backlinks and outlinks with color picker
 
 #### Dates Customization
 - **Dates Opacity**: Control transparency of created/modified dates (0-1)
