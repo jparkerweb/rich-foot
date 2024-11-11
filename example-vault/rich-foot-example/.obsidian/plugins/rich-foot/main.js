@@ -43,7 +43,8 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
     contentEl.empty();
     contentEl.createEl("h2", { text: `Welcome to \u{1F9B6} Rich Foot v${this.version}` });
     contentEl.createEl("p", {
-      text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings."
+      text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings.",
+      cls: "release-notes-instructions"
     });
     const kofiContainer = contentEl.createEl("div");
     kofiContainer.style.textAlign = "right";
