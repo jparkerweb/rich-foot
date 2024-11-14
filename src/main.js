@@ -228,9 +228,9 @@ class RichFootPlugin extends Plugin {
             // Remove any existing Rich Foot if the file is now excluded
             const content = view.contentEl;
             let container;
-            if (view.getMode() === 'preview') {
+            if ((view.getMode?.() ?? view.mode) === 'preview') {
                 container = content.querySelector('.markdown-preview-section');
-            } else if (view.getMode() === 'source' || view.getMode() === 'live') {
+            } else if ((view.getMode?.() ?? view.mode) === 'source' || (view.getMode?.() ?? view.mode) === 'live') {
                 container = content.querySelector('.cm-sizer');
             }
             if (container) {
@@ -242,9 +242,9 @@ class RichFootPlugin extends Plugin {
         const content = view.contentEl;
         let container;
 
-        if (view.getMode() === 'preview') {
+        if ((view.getMode?.() ?? view.mode) === 'preview') {
             container = content.querySelector('.markdown-preview-section');
-        } else if (view.getMode() === 'source' || view.getMode() === 'live') {
+        } else if ((view.getMode?.() ?? view.mode) === 'source' || (view.getMode?.() ?? view.mode) === 'live') {
             container = content.querySelector('.cm-sizer');
         }
 
@@ -259,7 +259,7 @@ class RichFootPlugin extends Plugin {
         const richFoot = this.createRichFoot(file);
 
         // Append the Rich Foot to the container
-        if (view.getMode() === 'source' || view.getMode() === 'live') {
+        if ((view.getMode?.() ?? view.mode) === 'source' || (view.getMode?.() ?? view.mode) === 'live') {
             container.appendChild(richFoot);
         } else {
             container.appendChild(richFoot);
@@ -689,7 +689,7 @@ class RichFootSettingTab extends PluginSettingTab {
                     this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
                     await this.plugin.saveSettings();
                     this.plugin.updateRichFoot();
-                    // Update just THIS setting's slider value
+                    // Update just the slider value
                     const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
                     if (slider) slider.value = DEFAULT_SETTINGS.borderRadius;
                 }));
