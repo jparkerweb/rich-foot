@@ -79,7 +79,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v1.6.0</h3>\n<h4>New Color Customization Options</h4>\n<ul>\n<li>New Border, Links, and Date color customization options in settings<ul>\n<li>Color picker to select custom colors</li>\n<li>Reset button to restore default colors (theme accent color)</li>\n<li>Real-time color updates</li>\n</ul>\n</li>\n</ul>\n<p><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.6.0.jpg" alt="New Color Customization Options"></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v1.6.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed console error when switching between reading/editing modes</li>\n</ul>\n<h3>v1.6.0</h3>\n<h4>New Color Customization Options</h4>\n<ul>\n<li>New Border, Links, and Date color customization options in settings<ul>\n<li>Color picker to select custom colors</li>\n<li>Reset button to restore default colors (theme accent color)</li>\n<li>Real-time color updates</li>\n</ul>\n</li>\n</ul>\n<p><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.6.0.jpg" alt="New Color Customization Options"></p>\n';
 
 // src/main.js
 var DEFAULT_SETTINGS = {
@@ -197,6 +197,7 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
     }
   }
   addRichFoot(view) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
     const file = view.file;
     if (!file || !file.path) {
       return;
@@ -204,9 +205,9 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
     if (this.shouldExcludeFile(file.path)) {
       const content2 = view.contentEl;
       let container2;
-      if (view.getMode() === "preview") {
+      if (((_b = (_a = view.getMode) == null ? void 0 : _a.call(view)) != null ? _b : view.mode) === "preview") {
         container2 = content2.querySelector(".markdown-preview-section");
-      } else if (view.getMode() === "source" || view.getMode() === "live") {
+      } else if (((_d = (_c = view.getMode) == null ? void 0 : _c.call(view)) != null ? _d : view.mode) === "source" || ((_f = (_e = view.getMode) == null ? void 0 : _e.call(view)) != null ? _f : view.mode) === "live") {
         container2 = content2.querySelector(".cm-sizer");
       }
       if (container2) {
@@ -216,9 +217,9 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
     }
     const content = view.contentEl;
     let container;
-    if (view.getMode() === "preview") {
+    if (((_h = (_g = view.getMode) == null ? void 0 : _g.call(view)) != null ? _h : view.mode) === "preview") {
       container = content.querySelector(".markdown-preview-section");
-    } else if (view.getMode() === "source" || view.getMode() === "live") {
+    } else if (((_j = (_i = view.getMode) == null ? void 0 : _i.call(view)) != null ? _j : view.mode) === "source" || ((_l = (_k = view.getMode) == null ? void 0 : _k.call(view)) != null ? _l : view.mode) === "live") {
       container = content.querySelector(".cm-sizer");
     }
     if (!container) {
@@ -226,7 +227,7 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
     }
     this.removeExistingRichFoot(container);
     const richFoot = this.createRichFoot(file);
-    if (view.getMode() === "source" || view.getMode() === "live") {
+    if (((_n = (_m = view.getMode) == null ? void 0 : _m.call(view)) != null ? _n : view.mode) === "source" || ((_p = (_o = view.getMode) == null ? void 0 : _o.call(view)) != null ? _p : view.mode) === "live") {
       container.appendChild(richFoot);
     } else {
       container.appendChild(richFoot);

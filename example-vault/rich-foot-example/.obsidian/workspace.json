@@ -15,6 +15,7 @@
               "state": {
                 "file": "🦶 Rich Foot.md",
                 "mode": "preview",
+                "backlinks": false,
                 "source": false
               },
               "icon": "lucide-file",
@@ -88,39 +89,6 @@
         "type": "tabs",
         "children": [
           {
-            "id": "992b20760e0b7ed2",
-            "type": "leaf",
-            "state": {
-              "type": "backlink",
-              "state": {
-                "file": "backlink test.md",
-                "collapseAll": false,
-                "extraContext": false,
-                "sortOrder": "alphabetical",
-                "showSearch": false,
-                "searchQuery": "",
-                "backlinkCollapsed": false,
-                "unlinkedCollapsed": true
-              },
-              "icon": "links-coming-in",
-              "title": "Backlinks for backlink test"
-            }
-          },
-          {
-            "id": "f542438b8c4a4d89",
-            "type": "leaf",
-            "state": {
-              "type": "outgoing-link",
-              "state": {
-                "file": "backlink test.md",
-                "linksCollapsed": false,
-                "unlinkedCollapsed": true
-              },
-              "icon": "links-going-out",
-              "title": "Outgoing links from backlink test"
-            }
-          },
-          {
             "id": "9769f022647280d1",
             "type": "leaf",
             "state": {
@@ -144,8 +112,29 @@
               "icon": "lucide-list",
               "title": "Outline of backlink test"
             }
+          },
+          {
+            "id": "4508dfcd1d199dfa",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "388b22a3a54ccc4c",
+            "type": "leaf",
+            "state": {
+              "type": "Saved Queries View",
+              "state": {},
+              "icon": "feather-mouse-pointer",
+              "title": "Saved Queries"
+            }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
@@ -154,24 +143,23 @@
   },
   "left-ribbon": {
     "hiddenItems": {
+      "cmdr:Open Plugin Settings: Pixel Banner": false,
+      "cmdr:Open Plugin Settings: Rich Foot": false,
       "cmdr:Reload app without saving": false,
       "switcher:Open quick switcher": false,
-      "graph:Open graph view": false,
-      "canvas:Create new canvas": false,
-      "daily-notes:Open today's daily note": false,
-      "templates:Insert template": false,
+      "templates:Insert template": true,
       "command-palette:Open command palette": false
     }
   },
   "active": "e2b1b7584f7a474c",
   "lastOpenFiles": [
+    "exclude/me too/no rich-feet here either.md",
     "backlink test.md",
     "exclude/no rich-feet here.md",
-    "exclude/me too/no rich-feet here either.md",
     "🦶 Rich Foot.md",
     "images/rich-feet-3.jpg",
-    "images/rich-feet.jpg",
     "images/rich-feet-2.jpg",
+    "images/rich-feet.jpg",
     "images",
     "exclude/me too",
     "exclude",
