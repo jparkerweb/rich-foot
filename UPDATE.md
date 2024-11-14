@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v1.6.1
+#### Fixed
+- Fixed console error when switching between reading/editing modes
+
 ### v1.6.0
 #### New Color Customization Options
 - New Border, Links, and Date color customization options in settings

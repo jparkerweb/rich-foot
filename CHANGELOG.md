@@ -2,6 +2,11 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.6.1] - 2024-11-14
+
+### Fixed
+- Fixed console error when switching between reading/editing modes
+
 ## [1.6.0] - 2024-11-09
 
 ### Added
