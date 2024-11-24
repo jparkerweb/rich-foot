@@ -79,7 +79,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v1.6.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed console error when switching between reading/editing modes</li>\n</ul>\n<h3>v1.6.0</h3>\n<h4>New Color Customization Options</h4>\n<ul>\n<li>New Border, Links, and Date color customization options in settings<ul>\n<li>Color picker to select custom colors</li>\n<li>Reset button to restore default colors (theme accent color)</li>\n<li>Real-time color updates</li>\n</ul>\n</li>\n</ul>\n<p><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.6.0.jpg" alt="New Color Customization Options"></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v1.6.2</h3>\n<h4>Updated</h4>\n<ul>\n<li>outlinks section to inclued transclusion links (example <code>[[note#section]]</code> or <code>[text](note#section)</code>)</li>\n</ul>\n<h3>v1.6.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed console error when switching between reading/editing modes</li>\n</ul>\n<h3>v1.6.0</h3>\n<h4>New Color Customization Options</h4>\n<ul>\n<li>New Border, Links, and Date color customization options in settings<ul>\n<li>Color picker to select custom colors</li>\n<li>Reset button to restore default colors (theme accent color)</li>\n<li>Real-time color updates</li>\n</ul>\n</li>\n</ul>\n<p><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.6.0.jpg" alt="New Color Customization Options"></p>\n';
 
 // src/main.js
 var DEFAULT_SETTINGS = {
@@ -323,12 +323,13 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
     return richFoot;
   }
   getOutlinks(file) {
-    var _a, _b;
+    var _a, _b, _c, _d;
     const cache = this.app.metadataCache.getFileCache(file);
     const links = /* @__PURE__ */ new Set();
     if (cache == null ? void 0 : cache.links) {
       for (const link of cache.links) {
-        const targetFile = this.app.metadataCache.getFirstLinkpathDest(link.link, file.path);
+        const linkPath = link.link.split("#")[0];
+        const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
         if (targetFile && targetFile.extension === "md") {
           links.add(targetFile.path);
         }
@@ -340,9 +341,36 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
         for (const link of frontmatterLinks) {
           const linkText = (_b = link.match(/\[\[(.*?)\]\]/)) == null ? void 0 : _b[1];
           if (linkText) {
-            const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkText, file.path);
+            const linkPath = linkText.split("#")[0];
+            const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
             if (targetFile && targetFile.extension === "md") {
               links.add(targetFile.path);
+            }
+          }
+        }
+      }
+    }
+    if (cache == null ? void 0 : cache.embeds) {
+      for (const embed of cache.embeds) {
+        const filePath = embed.link.split("#")[0];
+        const targetFile = this.app.metadataCache.getFirstLinkpathDest(filePath, file.path);
+        if (targetFile && targetFile.extension === "md") {
+          links.add(targetFile.path);
+        }
+      }
+    }
+    if (cache == null ? void 0 : cache.sections) {
+      for (const section of cache.sections) {
+        if (section.type === "paragraph") {
+          const matches = ((_c = section.text) == null ? void 0 : _c.match(/\[.*?\]\((.*?)(?:#.*?)?\)/g)) || [];
+          for (const match of matches) {
+            const linkPath = (_d = match.match(/\[.*?\]\((.*?)(?:#.*?)?\)/)) == null ? void 0 : _d[1];
+            if (linkPath) {
+              const cleanPath = linkPath.split("#")[0];
+              const targetFile = this.app.metadataCache.getFirstLinkpathDest(cleanPath, file.path);
+              if (targetFile && targetFile.extension === "md") {
+                links.add(targetFile.path);
+              }
             }
           }
         }

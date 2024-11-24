@@ -13,9 +13,11 @@ var import_obsidian3 = require("obsidian");
 // src/settings.js
 var import_obsidian = require("obsidian");
 var DEFAULT_SETTINGS = {
-  apiProvider: "pexels",
+  apiProvider: "all",
   pexelsApiKey: "",
   pixabayApiKey: "",
+  flickrApiKey: "",
+  unsplashApiKey: "",
   imageSize: "medium",
   imageOrientation: "landscape",
   numberOfImages: 10,
@@ -41,7 +43,11 @@ var DEFAULT_SETTINGS = {
   pinnedImageFolder: "pixel-banner-images",
   showReleaseNotes: true,
   lastVersion: null,
-  showRefreshIcon: true
+  showRefreshIcon: true,
+  hidePixelBannerFields: false,
+  hidePropertiesSectionIfOnlyBanner: false,
+  titleColor: "var(--inline-title-color)",
+  customTitleColorField: ["banner-inline-title-color"]
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app2, onChoose) {
@@ -79,6 +85,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     this.addFadeAndBannerHeight();
     const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
     this.addBorderRadiusInput(controlEl);
+    this.addColorSettings(controlEl);
     this.addDirectChildrenOnlyToggle();
   }
   addDeleteButton(containerEl) {
@@ -264,7 +271,57 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     label.appendChild(sliderContainer);
     containerEl.appendChild(label);
   }
-  // Add this method
+  addColorSettings(containerEl) {
+    const colorContainer = containerEl.createDiv("color-settings-container");
+    new import_obsidian.Setting(colorContainer).setName("inline title color").addColorPicker((color) => color.setValue((() => {
+      const currentColor = this.folderImage.titleColor || this.plugin.settings.titleColor;
+      console.log("Current color:", currentColor);
+      if (currentColor.startsWith("var(--")) {
+        console.log("Processing CSS variable");
+        const temp = document.createElement("div");
+        temp.style.color = currentColor;
+        document.body.appendChild(temp);
+        const computedColor = getComputedStyle(temp).color;
+        console.log("Computed color:", computedColor);
+        document.body.removeChild(temp);
+        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        console.log("RGB match:", rgbMatch);
+        if (rgbMatch) {
+          const [_, r, g, b] = rgbMatch;
+          const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+          console.log("Final hex color:", hexColor);
+          return hexColor;
+        }
+        return "#000000";
+      }
+      return currentColor;
+    })()).onChange(async (value) => {
+      this.folderImage.titleColor = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.folderImage.titleColor = this.plugin.settings.titleColor;
+      await this.plugin.saveSettings();
+      const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
+      if (colorPickerEl) {
+        const currentColor = this.plugin.settings.titleColor;
+        if (currentColor.startsWith("var(--")) {
+          const temp = document.createElement("div");
+          temp.style.color = currentColor;
+          document.body.appendChild(temp);
+          const computedColor = getComputedStyle(temp).color;
+          document.body.removeChild(temp);
+          const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+          if (rgbMatch) {
+            const [_, r, g, b] = rgbMatch;
+            const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+            colorPickerEl.value = hexColor;
+          }
+        } else {
+          colorPickerEl.value = currentColor;
+        }
+      }
+    }));
+  }
   addDirectChildrenOnlyToggle() {
     new import_obsidian.Setting(this.settingEl).setName("Direct Children Only").setDesc("Apply banner only to direct children of the folder").addToggle((toggle) => {
       toggle.setValue(this.folderImage.directChildrenOnly || false).onChange(async (value) => {
@@ -273,7 +330,6 @@ var FolderImageSetting = class extends import_obsidian.Setting {
       });
     });
   }
-  // In FolderImageSetting class, add this method
   addBorderRadiusInput(containerEl) {
     var _a;
     const label = containerEl.createEl("label", { text: "border radius", cls: "setting-item-name__label" });
@@ -340,13 +396,19 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     containerEl.empty();
     containerEl.addClass("pixel-banner-settings");
     const mainContent = containerEl.createEl("div", { cls: "pixel-banner-main-content" });
-    const { tabsEl, tabContentContainer } = this.createTabs(mainContent, ["API Settings", "General", "Custom Field Names", "Folder Images", "Examples"]);
-    const apiTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "API Settings" } });
-    this.createAPISettings(apiTab);
+    const { tabsEl, tabContentContainer } = this.createTabs(mainContent, [
+      "General",
+      "Custom Field Names",
+      "API Settings",
+      "Folder Images",
+      "Examples"
+    ]);
     const generalTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "General" } });
     this.createGeneralSettings(generalTab);
     const customFieldsTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Custom Field Names" } });
     this.createCustomFieldsSettings(customFieldsTab);
+    const apiTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "API Settings" } });
+    this.createAPISettings(apiTab);
     const foldersTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Folder Images" } });
     this.createFolderSettings(foldersTab);
     const examplesTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Examples" } });
@@ -370,7 +432,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
   createAPISettings(containerEl) {
     const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
     calloutEl.createEl("div", { text: "Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
-    new import_obsidian.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").setValue(this.plugin.settings.apiProvider).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("all", "All (Random)").addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").addOption("flickr", "Flickr").addOption("unsplash", "Unsplash").setValue(this.plugin.settings.apiProvider).onChange(async (value) => {
       this.plugin.settings.apiProvider = value;
       await this.plugin.saveSettings();
       this.display();
@@ -419,6 +481,48 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       new Notice(isValid ? "\u2705 Pixabay API key is valid!" : "\u274C Invalid Pixabay API key");
     }));
     pixabayApiKeySetting.settingEl.style.width = "100%";
+    new import_obsidian.Setting(containerEl).setName("Flickr API Key");
+    containerEl.createEl("span", { text: "Enter your Flickr API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://www.flickr.com/services/api/", text: "Flickr API" });
+    const flickrApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
+      text.setPlaceholder("Flickr API key").setValue(this.plugin.settings.flickrApiKey).onChange(async (value) => {
+        this.plugin.settings.flickrApiKey = value;
+        await this.plugin.saveSettings();
+      });
+      text.inputEl.style.width = "calc(100% - 100px)";
+    }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
+      const apiKey = this.plugin.settings.flickrApiKey;
+      if (!apiKey) {
+        new Notice("Please enter an API key first");
+        return;
+      }
+      button.setButtonText("Testing...");
+      button.setDisabled(true);
+      const isValid = await testFlickrApi(apiKey);
+      button.setButtonText("Test API");
+      button.setDisabled(false);
+      new Notice(isValid ? "\u2705 Flickr API key is valid!" : "\u274C Invalid Flickr API key");
+    }));
+    new import_obsidian.Setting(containerEl).setName("Unsplash API Key");
+    containerEl.createEl("span", { text: "Enter your Unsplash API key (Access Key). Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://unsplash.com/oauth/applications", text: "Unsplash API" });
+    const unsplashApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
+      text.setPlaceholder("Unsplash API key").setValue(this.plugin.settings.unsplashApiKey).onChange(async (value) => {
+        this.plugin.settings.unsplashApiKey = value;
+        await this.plugin.saveSettings();
+      });
+      text.inputEl.style.width = "calc(100% - 100px)";
+    }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
+      const apiKey = this.plugin.settings.unsplashApiKey;
+      if (!apiKey) {
+        new Notice("Please enter an API key first");
+        return;
+      }
+      button.setButtonText("Testing...");
+      button.setDisabled(true);
+      const isValid = await testUnsplashApi(apiKey);
+      button.setButtonText("Test API");
+      button.setDisabled(false);
+      new Notice(isValid ? "\u2705 Unsplash API key is valid!" : "\u274C Invalid Unsplash API key");
+    }));
     new import_obsidian.Setting(containerEl).setName("Images").setDesc("Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.").setHeading();
     new import_obsidian.Setting(containerEl).setName("Show Pin Icon").setDesc("Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.").addToggle((toggle) => toggle.setValue(this.plugin.settings.showPinIcon).onChange(async (value) => {
       this.plugin.settings.showPinIcon = value;
@@ -504,7 +608,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
   }
   createGeneralSettings(containerEl) {
     const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
-    calloutEl.createEl("div", { text: "Set the default vertical position of the image, how it should be displayed, and where the content should start. These are global settings and apply to all notes with banners unless overridden by folder or note-specific settings." });
+    calloutEl.createEl("div", { text: "Configure default settings for all notes. These can be overridden per folder or per note." });
     new import_obsidian.Setting(containerEl).setName("Image Vertical Position").setDesc("Set the vertical position of the image (0-100)").addSlider(
       (slider) => slider.setLimits(0, 100, 1).setValue(this.plugin.settings.yPosition).setDynamicTooltip().onChange(async (value) => {
         this.plugin.settings.yPosition = value;
@@ -539,11 +643,14 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       inputEl.value = DEFAULT_SETTINGS.contentStartPosition;
       inputEl.dispatchEvent(new Event("input"));
     }));
-    new import_obsidian.Setting(containerEl).setName("Image Display").setDesc("Set how the banner image should be displayed").addDropdown((dropdown) => dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(this.plugin.settings.imageDisplay || "cover").onChange(async (value) => {
-      this.plugin.settings.imageDisplay = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    new import_obsidian.Setting(containerEl).setName("Image Display").setDesc("Set how the banner image should be displayed").addDropdown((dropdown) => {
+      dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(this.plugin.settings.imageDisplay || "cover").onChange(async (value) => {
+        this.plugin.settings.imageDisplay = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+      });
+      return dropdown;
+    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
       this.plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
       await this.plugin.saveSettings();
       this.plugin.updateAllBanners();
@@ -551,11 +658,14 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
       dropdownEl.dispatchEvent(new Event("change"));
     }));
-    new import_obsidian.Setting(containerEl).setName("Image Repeat").setDesc('Enable image repetition when "Contain" is selected').addToggle((toggle) => toggle.setValue(this.plugin.settings.imageRepeat).onChange(async (value) => {
-      this.plugin.settings.imageRepeat = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    new import_obsidian.Setting(containerEl).setName("Image Repeat").setDesc('Enable image repetition when "Contain" is selected').addToggle((toggle) => {
+      toggle.setValue(this.plugin.settings.imageRepeat).onChange(async (value) => {
+        this.plugin.settings.imageRepeat = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+      });
+      return toggle;
+    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
       this.plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
       await this.plugin.saveSettings();
       this.plugin.updateAllBanners();
@@ -633,6 +743,114 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       inputEl.value = DEFAULT_SETTINGS.borderRadius;
       inputEl.dispatchEvent(new Event("input"));
     }));
+    new import_obsidian.Setting(containerEl).setName("Inline Title Color").setDesc("Set the default inline title color for all banners").addColorPicker((color) => color.setValue((() => {
+      const currentColor = this.plugin.settings.titleColor;
+      console.log("General tab - Current color:", currentColor);
+      if (currentColor.startsWith("var(--")) {
+        console.log("General tab - Processing CSS variable");
+        const temp = document.createElement("div");
+        temp.style.color = currentColor;
+        document.body.appendChild(temp);
+        const computedColor = getComputedStyle(temp).color;
+        console.log("General tab - Computed color:", computedColor);
+        document.body.removeChild(temp);
+        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        console.log("General tab - RGB match:", rgbMatch);
+        if (rgbMatch) {
+          const [_, r, g, b] = rgbMatch;
+          const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+          console.log("General tab - Final hex color:", hexColor);
+          return hexColor;
+        }
+        return "#000000";
+      }
+      return currentColor;
+    })()).onChange(async (value) => {
+      this.plugin.settings.titleColor = value;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+      const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
+      if (colorPickerEl) {
+        const temp = document.createElement("div");
+        temp.style.color = DEFAULT_SETTINGS.titleColor;
+        document.body.appendChild(temp);
+        const computedColor = getComputedStyle(temp).color;
+        document.body.removeChild(temp);
+        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgbMatch) {
+          const [_, r, g, b] = rgbMatch;
+          const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+          colorPickerEl.value = hexColor;
+        }
+      }
+    }));
+    new import_obsidian.Setting(containerEl).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => {
+      toggle.setValue(this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
+        this.plugin.settings.hidePixelBannerFields = value;
+        if (!value) {
+          this.plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
+          const dependentToggle = hidePropertiesSection.components[0];
+          if (dependentToggle) {
+            dependentToggle.setValue(false);
+            dependentToggle.setDisabled(true);
+          }
+          this.app.workspace.iterateAllLeaves((leaf) => {
+            if (leaf.view instanceof import_obsidian.MarkdownView && leaf.view.contentEl) {
+              const propertiesContainer = leaf.view.contentEl.querySelector(".metadata-container");
+              if (propertiesContainer) {
+                propertiesContainer.classList.remove("pixel-banner-hidden-section");
+                const hiddenFields = propertiesContainer.querySelectorAll(".pixel-banner-hidden-field");
+                hiddenFields.forEach((field) => {
+                  field.classList.remove("pixel-banner-hidden-field");
+                });
+              }
+            }
+          });
+        } else {
+          const dependentToggle = hidePropertiesSection.components[0];
+          if (dependentToggle) {
+            dependentToggle.setDisabled(false);
+          }
+        }
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+      });
+      return toggle;
+    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.hidePixelBannerFields = DEFAULT_SETTINGS.hidePixelBannerFields;
+      this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+      await this.plugin.saveSettings();
+      const mainToggle = hidePixelBannerFieldsSetting.components[0];
+      if (mainToggle) {
+        mainToggle.setValue(DEFAULT_SETTINGS.hidePixelBannerFields);
+      }
+      const dependentToggle = hidePropertiesSection.components[0];
+      if (dependentToggle) {
+        dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+        dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
+      }
+      this.plugin.updateAllBanners();
+    }));
+    const hidePropertiesSection = new import_obsidian.Setting(containerEl).setName("Hide Properties Section").setDesc("Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields").addToggle((toggle) => {
+      toggle.setValue(this.plugin.settings.hidePropertiesSectionIfOnlyBanner).setDisabled(!this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
+        this.plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+      });
+      return toggle;
+    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+      await this.plugin.saveSettings();
+      const toggle = hidePropertiesSection.components[0];
+      if (toggle) {
+        toggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+      }
+      this.plugin.updateAllBanners();
+    }));
     new import_obsidian.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(this.plugin.settings.showReleaseNotes).onChange(async (value) => {
       this.plugin.settings.showReleaseNotes = value;
       await this.plugin.saveSettings();
@@ -697,6 +915,12 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         name: "Border Radius Field Names",
         desc: "Set custom field names for the border radius in frontmatter (comma-separated)",
         placeholder: "banner-radius, border-radius, banner-corner-radius"
+      },
+      {
+        setting: "customTitleColorField",
+        name: "Inline Title Color Field Names",
+        desc: "Set custom field names for the inline title color in frontmatter (comma-separated)",
+        placeholder: "banner-title-color, title-color, header-color"
       }
     ];
     customFields.forEach((field) => {
@@ -760,7 +984,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     }));
   }
   createExampleSettings(containerEl) {
-    new import_obsidian.Setting(containerEl).setName("How to use").setHeading();
+    new import_obsidian.Setting(containerEl).setName("How to use").setHeading().settingEl.querySelector(".setting-item-name").style.cssText = "color: var(--text-accent-hover); font-size: var(--font-ui-large);";
     const getRandomFieldName = (fieldNames) => {
       const names = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
       return names[Math.floor(Math.random() * names.length)];
@@ -778,6 +1002,7 @@ ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: true
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 400
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 25
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff0000
 ---
 
 # Or use a direct URL:
@@ -789,6 +1014,7 @@ ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: cover
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 300
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 0
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #00ff00
 ---
 
 # Or use a path to an image in the vault:
@@ -800,6 +1026,7 @@ ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: auto
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 250
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 50
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #0000ff
 ---
 
 # Or use an Obsidian internal link:
@@ -812,6 +1039,7 @@ ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: false
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 500
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 17
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff00ff
 ---`
     });
     instructionsEl.createEl("p", { text: 'Note: The image display options are "auto", "cover", or "contain". The image repeat option is only applicable when the display is set to "contain".' });
@@ -844,7 +1072,7 @@ function debounce(func, wait) {
 }
 async function testPexelsApi(apiKey) {
   try {
-    const response = await fetch("https://api.pexels.com/v1/search?query=test&per_page=3", {
+    const response = await fetch("https://api.pexels.com/v1/search?query=dog&per_page=3", {
       headers: {
         "Authorization": apiKey
       }
@@ -870,6 +1098,27 @@ async function testPixabayApi(apiKey) {
     return false;
   }
 }
+async function testFlickrApi(apiKey) {
+  try {
+    const response = await fetch(`https://www.flickr.com/services/rest/?method=flickr.test.echo&api_key=${apiKey}&format=json&nojsoncallback=1`);
+    const data = await response.json();
+    return data.stat === "ok";
+  } catch (error) {
+    return false;
+  }
+}
+async function testUnsplashApi(apiKey) {
+  try {
+    const response = await fetch("https://api.unsplash.com/photos/random", {
+      headers: {
+        "Authorization": `Client-ID ${apiKey}`
+      }
+    });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
 
 // src/modals.js
 var import_obsidian2 = require("obsidian");
@@ -884,7 +1133,8 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
     contentEl.empty();
     contentEl.createEl("h2", { text: `Welcome to \u{1F6A9} Pixel Banner v${this.version}` });
     contentEl.createEl("p", {
-      text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings General tab."
+      text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings General tab.",
+      cls: "release-notes-instructions"
     });
     const kofiContainer = contentEl.createEl("div");
     kofiContainer.style.textAlign = "right";
@@ -913,7 +1163,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.6.4</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Content Start and Y Position inheritance issues</li>\n</ul>\n<h3>v2.6.3</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed issue where the Pin and Refresh Icons would sometimes display on notes without banners</li>\n<li>Fixed caching issue where banners from notes viewed previously would display on new/other notes</li>\n</ul>\n<h3>v2.6.2</h3>\n<h4>Added</h4>\n<ul>\n<li>Added command palette commands for Pin and Refresh actions<ul>\n<li>Commands are contextually available based on current note and settings</li>\n</ul>\n</li>\n<li>Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image</li>\n<li>Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting</li>\n</ul>\n<h3>v2.6.1</h3>\n<h4>Updated</h4>\n<ul>\n<li>Removed Pin and Refresh Icons from showing in Embedded Notes</li>\n</ul>\n<h3>v2.6.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Added a Refresh Icon that appears next to the pin icon for random API images</li>\n<li>Click the refresh icon (\u{1F504}) to instantly fetch a new random image</li>\n<li>Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.10.1</h3>\n<h4>Added</h4>\n<ul>\n<li>Color Picker Reset button for Folder Images tab (only applies if Inline Titles are enabled in Obsidian Settings)</li>\n</ul>\n<h4>Fixed</h4>\n<ul>\n<li>Display the correct color in the Color Picker for Inline Titles when the control is reset</li>\n</ul>\n<h3>v2.10.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Color Picker for Inline Titles<ul>\n<li>Only applied if Inline Titles are enabled in Obsidian Settings:<ul>\n<li><code>Appearance</code> &gt; <code>Show inline title</code></li>\n</ul>\n</li>\n<li>Can be defined on the General, Custom Field Names, and Folder Images tabs</li>\n</ul>\n</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -930,7 +1180,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     });
     __publicField(this, "lastYPositions", /* @__PURE__ */ new Map());
     __publicField(this, "lastFrontmatter", /* @__PURE__ */ new Map());
-    __publicField(this, "pendingImageUpdates", /* @__PURE__ */ new Map());
     __publicField(this, "debouncedEnsureBanner", debounce(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
       if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView) {
@@ -938,7 +1187,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       }
     }, 100));
   }
-  // Track files waiting for potential renames
   async onload() {
     await this.loadSettings();
     await this.checkVersion();
@@ -947,7 +1195,38 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       this.app.workspace.on("active-leaf-change", this.handleActiveLeafChange.bind(this))
     );
     this.registerEvent(
-      this.app.metadataCache.on("changed", this.handleMetadataChange.bind(this))
+      this.app.metadataCache.on("changed", async (file) => {
+        var _a;
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
+        if (!frontmatter) return;
+        const previousFrontmatter = this.lastFrontmatter.get(file.path);
+        if (JSON.stringify(frontmatter) === JSON.stringify(previousFrontmatter)) {
+          return;
+        }
+        const relevantFields = [
+          ...this.settings.customBannerField,
+          ...this.settings.customYPositionField,
+          ...this.settings.customContentStartField,
+          ...this.settings.customImageDisplayField,
+          ...this.settings.customImageRepeatField,
+          ...this.settings.customBannerHeightField,
+          ...this.settings.customFadeField,
+          ...this.settings.customBorderRadiusField
+        ];
+        const hasRelevantFieldChange = relevantFields.some(
+          (field) => frontmatter[field] !== (previousFrontmatter == null ? void 0 : previousFrontmatter[field])
+        );
+        if (!hasRelevantFieldChange) return;
+        this.lastFrontmatter.set(file.path, frontmatter);
+        const leaves = this.app.workspace.getLeavesOfType("markdown");
+        for (const leaf of leaves) {
+          if (leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file === file && !leaf.containerEl.style.display && leaf.containerEl.matches(".workspace-leaf")) {
+            this.loadedImages.delete(file.path);
+            this.lastKeywords.delete(file.path);
+            await this.updateBanner(leaf.view, true);
+          }
+        }
+      })
     );
     this.registerEvent(
       this.app.workspace.on("layout-change", this.handleLayoutChange.bind(this))
@@ -1014,6 +1293,23 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         return true;
       }
     });
+    this.registerEvent(
+      this.app.workspace.on("editor-change", async (editor) => {
+        var _a;
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
+        if (!activeView || !activeView.file) return;
+        const currentFrontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
+        if (!currentFrontmatter || !currentFrontmatter.hasOwnProperty("pixel-banner") && !currentFrontmatter.hasOwnProperty("pixel-banner-query")) {
+          return;
+        }
+        const cursor = editor.getCursor();
+        const line = editor.getLine(cursor.line);
+        if (!line.includes("pixel-banner") && !line.includes("pixel-banner-query")) {
+          return;
+        }
+        await this.updateBanner(activeView, true);
+      })
+    );
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -1053,10 +1349,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     this.loadedImages.clear();
     this.lastKeywords.clear();
     this.imageCache.clear();
-    const activeLeaf = this.app.workspace.activeLeaf;
-    if (activeLeaf && activeLeaf.view.getViewType() === "markdown") {
-      await this.updateBanner(activeLeaf.view, true);
-    }
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      if (leaf.view instanceof import_obsidian3.MarkdownView) {
+        this.updateBanner(leaf.view, true);
+        if (this.settings.hidePixelBannerFields) {
+          this.updateFieldVisibility(leaf.view);
+        }
+      }
+    });
   }
   async handleActiveLeafChange(leaf) {
     const previousLeaf = this.app.workspace.activeLeaf;
@@ -1070,6 +1370,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           if (previousBanner) {
             previousBanner.style.backgroundImage = "";
             previousBanner.style.display = "none";
+            if (previousLeaf.view.file) {
+              const existingUrl = this.loadedImages.get(previousLeaf.view.file.path);
+              if (existingUrl == null ? void 0 : existingUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(existingUrl);
+              }
+              this.loadedImages.delete(previousLeaf.view.file.path);
+            }
           }
         }
       });
@@ -1077,23 +1384,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, false);
     }
-  }
-  async handleMetadataChange(file) {
-    var _a;
-    const activeLeaf = this.app.workspace.activeLeaf;
-    if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView && activeLeaf.view.file && activeLeaf.view.file === file) {
-      const currentFrontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
-      const cachedFrontmatter = this.lastFrontmatter.get(file.path);
-      if (this.isFrontmatterChange(cachedFrontmatter, currentFrontmatter)) {
-        this.lastFrontmatter.set(file.path, currentFrontmatter);
-        await this.updateBanner(activeLeaf.view, true);
-      }
-    }
-  }
-  isFrontmatterChange(cachedFrontmatter, currentFrontmatter) {
-    if (!cachedFrontmatter && !currentFrontmatter) return false;
-    if (!cachedFrontmatter || !currentFrontmatter) return true;
-    return JSON.stringify(cachedFrontmatter) !== JSON.stringify(currentFrontmatter);
   }
   handleLayoutChange() {
     setTimeout(() => {
@@ -1106,6 +1396,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   async handleModeChange(leaf) {
     if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, true);
+      if (this.settings.hidePixelBannerFields) {
+        this.updateFieldVisibility(leaf.view);
+      }
     }
   }
   async updateBanner(view, isContentChange) {
@@ -1192,6 +1485,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
       }
     }
+    if (this.settings.hidePixelBannerFields && view.getMode() === "preview") {
+      this.updateFieldVisibility(view);
+    }
   }
   setupMutationObserver() {
     this.observer = new MutationObserver((mutations) => {
@@ -1260,7 +1556,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   }
   // Helper method to create folder image settings object
   createFolderImageSettings(folderImage) {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     return {
       image: folderImage.image,
       yPosition: (_a = folderImage.yPosition) != null ? _a : this.settings.yPosition,
@@ -1269,7 +1565,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       imageRepeat: (_d = folderImage.imageRepeat) != null ? _d : this.settings.imageRepeat,
       bannerHeight: (_e = folderImage.bannerHeight) != null ? _e : this.settings.bannerHeight,
       fade: (_f = folderImage.fade) != null ? _f : this.settings.fade,
-      borderRadius: (_g = folderImage.borderRadius) != null ? _g : this.settings.borderRadius
+      borderRadius: (_g = folderImage.borderRadius) != null ? _g : this.settings.borderRadius,
+      titleColor: (_h = folderImage.titleColor) != null ? _h : this.settings.titleColor
     };
   }
   getFolderPath(filePath) {
@@ -1297,10 +1594,15 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       const keywords = input.includes(",") ? input.split(",").map((k) => k.trim()).filter((k) => k.length > 0).filter(Boolean) : [input];
       if (keywords.length > 0) {
         const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
-        if (this.settings.apiProvider === "pexels") {
+        const provider = this.getActiveApiProvider();
+        if (provider === "pexels") {
           return this.fetchPexelsImage(selectedKeyword);
-        } else if (this.settings.apiProvider === "pixabay") {
+        } else if (provider === "pixabay") {
           return this.fetchPixabayImage(selectedKeyword);
+        } else if (provider === "flickr") {
+          return this.fetchFlickrImage(selectedKeyword);
+        } else if (provider === "unsplash") {
+          return this.fetchUnsplashImage(selectedKeyword);
         }
       }
       return null;
@@ -1413,14 +1715,129 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     new import_obsidian3.Notice("Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.");
     return null;
   }
-  async makeRequest(url) {
+  async fetchFlickrImage(keyword) {
+    const apiKey = this.settings.flickrApiKey;
+    if (!apiKey) {
+      new import_obsidian3.Notice("Flickr API key is not set. Please set it in the plugin settings.");
+      return null;
+    }
+    const defaultKeywords = this.settings.defaultKeywords.split(",").map((k) => k.trim());
+    const keywordsToTry = [keyword, ...defaultKeywords];
+    const maxAttempts = 4;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];
+      try {
+        const searchUrl = `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${apiKey}&text=${encodeURIComponent(currentKeyword)}&per_page=${this.settings.numberOfImages}&format=json&nojsoncallback=1&sort=relevance&content_type=1&media=photos&safe_search=1`;
+        const response = await this.makeRequest(searchUrl);
+        if (response.status !== 200) {
+          console.error(`Flickr API error: ${response.status} ${response.statusText}`);
+          continue;
+        }
+        const data = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
+        if (data.stat !== "ok") {
+          console.error("Flickr API error:", data);
+          continue;
+        }
+        if (data.photos && data.photos.photo && data.photos.photo.length > 0) {
+          const photos = data.photos.photo;
+          const randomIndex = Math.floor(Math.random() * photos.length);
+          const photo = photos[randomIndex];
+          let size = "z";
+          switch (this.settings.imageSize) {
+            case "small":
+              size = "n";
+              break;
+            // Small 320
+            case "medium":
+              size = "z";
+              break;
+            // Medium 640
+            case "large":
+              size = "b";
+              break;
+          }
+          const imageUrl = `https://live.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}_${size}.jpg`;
+          return imageUrl;
+        }
+        console.log(`No images found for keyword: ${currentKeyword}`);
+      } catch (error) {
+        console.error("Error fetching image from Flickr:", error);
+      }
+    }
+    console.error("No images found after all attempts");
+    new import_obsidian3.Notice("Failed to fetch an image after multiple attempts");
+    return null;
+  }
+  async fetchUnsplashImage(keyword) {
+    const apiKey = this.settings.unsplashApiKey;
+    if (!apiKey) {
+      new import_obsidian3.Notice("Unsplash API key is not set. Please set it in the plugin settings.");
+      return null;
+    }
+    const defaultKeywords = this.settings.defaultKeywords.split(",").map((k) => k.trim());
+    const keywordsToTry = [keyword, ...defaultKeywords];
+    const maxAttempts = 4;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];
+      try {
+        let apiUrl = "https://api.unsplash.com/search/photos";
+        const params = new URLSearchParams({
+          query: currentKeyword,
+          per_page: this.settings.numberOfImages,
+          orientation: this.settings.imageOrientation
+        });
+        const response = await this.makeRequest(`${apiUrl}?${params}`, {
+          headers: {
+            "Authorization": `Client-ID ${apiKey}`,
+            "Accept-Version": "v1"
+          }
+        });
+        if (response.status !== 200) {
+          console.error(`Unsplash API error: ${response.status}`);
+          continue;
+        }
+        const data = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
+        if (!data.results || data.results.length === 0) {
+          console.log(`No images found for keyword: ${currentKeyword}`);
+          continue;
+        }
+        const randomIndex = Math.floor(Math.random() * data.results.length);
+        const photo = data.results[randomIndex];
+        let imageUrl;
+        switch (this.settings.imageSize) {
+          case "small":
+            imageUrl = photo.urls.small;
+            break;
+          case "medium":
+            imageUrl = photo.urls.regular;
+            break;
+          case "large":
+            imageUrl = photo.urls.full;
+            break;
+          default:
+            imageUrl = photo.urls.regular;
+        }
+        return imageUrl;
+      } catch (error) {
+        console.error("Error fetching image from Unsplash:", error);
+      }
+    }
+    console.error("No images found after all attempts");
+    new import_obsidian3.Notice("Failed to fetch an image after multiple attempts");
+    return null;
+  }
+  async makeRequest(url, options = {}) {
     const now = Date.now();
     if (now - this.rateLimiter.lastRequestTime < this.rateLimiter.minInterval) {
       await new Promise((resolve) => setTimeout(resolve, this.rateLimiter.minInterval));
     }
     this.rateLimiter.lastRequestTime = Date.now();
     try {
-      const response = await (0, import_obsidian3.requestUrl)({ url });
+      const response = await (0, import_obsidian3.requestUrl)({
+        url,
+        headers: options.headers || {},
+        ...options
+      });
       return response;
     } catch (error) {
       console.error("Request failed:", error);
@@ -1471,7 +1888,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       try {
         const arrayBuffer = await this.app.vault.readBinary(file);
         const blob = new Blob([arrayBuffer], { type: `image/${file.extension}` });
-        return URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        return url;
       } catch (error) {
         console.error("Error reading vault image:", error);
         return null;
@@ -1502,6 +1920,28 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         customImageRepeatField: this.settings.customImageRepeatField,
         bannerImage: frontmatter[this.settings.customBannerField]
       });
+      if (this.settings.hidePixelBannerFields) {
+        const frontmatterEl = el.querySelector(".frontmatter");
+        if (frontmatterEl) {
+          const fieldsToHide = [
+            ...this.settings.customBannerField,
+            ...this.settings.customYPositionField,
+            ...this.settings.customContentStartField,
+            ...this.settings.customImageDisplayField,
+            ...this.settings.customImageRepeatField,
+            ...this.settings.customBannerHeightField,
+            ...this.settings.customFadeField,
+            ...this.settings.customBorderRadiusField
+          ];
+          const rows = frontmatterEl.querySelectorAll(".frontmatter-container .frontmatter-section-label");
+          rows.forEach((row) => {
+            const label = row.textContent.replace(":", "").trim();
+            if (fieldsToHide.includes(label)) {
+              row.closest(".frontmatter-section").classList.add("pixel-banner-hidden-field");
+            }
+          });
+        }
+      }
     }
   }
   onunload() {
@@ -1731,11 +2171,65 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   }
   applyBannerSettings(bannerDiv, ctx) {
     const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
+    const folderSpecific = this.getFolderSpecificImage(ctx.file.path);
+    const titleColor = getFrontmatterValue(frontmatter, this.settings.customTitleColorField) || (folderSpecific == null ? void 0 : folderSpecific.titleColor) || this.settings.titleColor;
     bannerDiv.style.backgroundSize = imageDisplay || "cover";
     bannerDiv.style.backgroundRepeat = imageRepeat ? "repeat" : "no-repeat";
     bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
     bannerDiv.style.setProperty("--pixel-banner-fade", `${fade}%`);
     bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
+    const container = bannerDiv.closest(".markdown-preview-view, .markdown-source-view");
+    if (container) {
+      container.style.setProperty("--pixel-banner-title-color", titleColor);
+    }
+  }
+  // Add this helper method to randomly select an API provider
+  getActiveApiProvider() {
+    if (this.settings.apiProvider !== "all") {
+      return this.settings.apiProvider;
+    }
+    const availableProviders = [];
+    if (this.settings.pexelsApiKey) availableProviders.push("pexels");
+    if (this.settings.pixabayApiKey) availableProviders.push("pixabay");
+    if (this.settings.flickrApiKey) availableProviders.push("flickr");
+    if (this.settings.unsplashApiKey) availableProviders.push("unsplash");
+    if (availableProviders.length === 0) {
+      return "pexels";
+    }
+    return availableProviders[Math.floor(Math.random() * availableProviders.length)];
+  }
+  // Add this new method to handle field visibility
+  updateFieldVisibility(view) {
+    if (!view || view.getMode() !== "preview") return;
+    const fieldsToHide = [
+      ...this.settings.customBannerField,
+      ...this.settings.customYPositionField,
+      ...this.settings.customContentStartField,
+      ...this.settings.customImageDisplayField,
+      ...this.settings.customImageRepeatField,
+      ...this.settings.customBannerHeightField,
+      ...this.settings.customFadeField,
+      ...this.settings.customBorderRadiusField
+    ];
+    const propertiesContainer = view.contentEl.querySelector(".metadata-container");
+    if (!propertiesContainer) return;
+    const propertyElements = propertiesContainer.querySelectorAll(".metadata-property");
+    let visiblePropertiesCount = 0;
+    let bannerPropertiesCount = 0;
+    propertyElements.forEach((propertyEl) => {
+      const key = propertyEl.getAttribute("data-property-key");
+      if (fieldsToHide.includes(key)) {
+        propertyEl.classList.add("pixel-banner-hidden-field");
+        bannerPropertiesCount++;
+      } else {
+        visiblePropertiesCount++;
+      }
+    });
+    if (this.settings.hidePropertiesSectionIfOnlyBanner && this.settings.hidePixelBannerFields && visiblePropertiesCount === 0 && bannerPropertiesCount > 0) {
+      propertiesContainer.classList.add("pixel-banner-hidden-section");
+    } else {
+      propertiesContainer.classList.remove("pixel-banner-hidden-section");
+    }
   }
 };
 function getFrontmatterValue(frontmatter, fieldNames) {

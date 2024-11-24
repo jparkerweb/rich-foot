@@ -1,11 +1,10 @@
+/* ------------------------------------------------------------------ */
+/* -- configure default: move banner image to top, fade/size, etc. -- */
+/* ------------------------------------------------------------------ */
 @keyframes pixel-banner-image--fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-
-/* ------------------------------------------------------------------ */
-/* -- configure default: move banner image to top, fade/size, etc. -- */
-/* ------------------------------------------------------------------ */
 .pixel-banner-image {
 	position: absolute;
 	top: 0;
@@ -23,26 +22,40 @@
 	will-change: opacity;
 	transform: translateZ(0);
 	background-repeat: no-repeat;
-    z-index: 0;
+    z-index: -1;
 }
+
+/* Apply title color to both reading and editing mode */
+.pixel-banner div.inline-title,
+.markdown-source-view div.inline-title {
+    color: var(--pixel-banner-title-color, var(--inline-title-color));
+}
+
 /* fix for banner image overlapping with note content */
-.pixel-banner-image ~ div {
-    z-index: 1;
+/* isolate the banner image from the note content */
+.view-content.pixel-banner {
+    position: relative;
+    isolation: isolate;
 }
+
 .cm-sizer .metadata-container,
 .markdown-preview-sizer .metadata-container {
     z-index: 1;
-}
-.cm-sizer,
-.markdown-preview-sizer {
-    display: flex;
-    flex-direction: column;
 }
 
 /* fix overflow issue with embedded notes */
 .internal-embed:not(.image-embed),
 .internal-embed:not(.image-embed) > .markdown-embed-content > .markdown-preview-view {
     overflow: hidden;
+}
+
+/* hide frontmatter fields in reading mode */
+.markdown-preview-view .pixel-banner-hidden-field {
+    display: none !important;
+}
+/* Add specific targeting for properties view */
+.metadata-property.pixel-banner-hidden-field {
+    display: none !important;
 }
 
 /* pin / refresh icons */
@@ -86,7 +99,6 @@
     overflow: hidden;
     padding: 20px;
     max-width: 800px;
-    margin: 50px auto 0 auto;
 }
 
 .pixel-banner-header {
@@ -107,7 +119,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 10px;
     overflow: hidden;
 }
 
@@ -261,10 +273,11 @@
 
 .pixel-banner-settings-tabs {
     display: flex;
+    flex-wrap: wrap;
 }
 
 .pixel-banner-settings-tab {
-    margin-right: 10px;
+    margin: 0 10px 10px 0;
     padding: 10px 20px;
     border: none;
     background: none;
@@ -352,6 +365,16 @@
     background-color: var(--background-secondary);
 }
 
+.release-notes-container img {
+    max-width: 100%;
+}
+
+.release-notes-instructions {
+    font-size: 0.75em;
+    font-weight: 300;
+    letter-spacing: 2px;
+}
+
 .release-notes-section {
     margin: 10px 0;
 }
@@ -380,4 +403,9 @@
 
 .release-notes-spacer {
     margin: 10px 0;
+}
+
+/* Add to your existing CSS */
+.metadata-container.pixel-banner-hidden-section {
+    display: none !important;
 }

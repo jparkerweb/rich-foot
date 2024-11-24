@@ -127,6 +127,26 @@
             "id": "388b22a3a54ccc4c",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "fc7ebc193edee888",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "86780c664be3375b",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -134,7 +154,7 @@
             }
           }
         ],
-        "currentTab": 3
+        "currentTab": 5
       }
     ],
     "direction": "horizontal",
@@ -153,10 +173,10 @@
   },
   "active": "e2b1b7584f7a474c",
   "lastOpenFiles": [
-    "exclude/me too/no rich-feet here either.md",
     "backlink test.md",
     "exclude/no rich-feet here.md",
     "🦶 Rich Foot.md",
+    "exclude/me too/no rich-feet here either.md",
     "images/rich-feet-3.jpg",
     "images/rich-feet-2.jpg",
     "images/rich-feet.jpg",
