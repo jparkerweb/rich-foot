@@ -385,7 +385,9 @@ class RichFootPlugin extends Plugin {
         // Check regular links in content
         if (cache?.links) {
             for (const link of cache.links) {
-                const targetFile = this.app.metadataCache.getFirstLinkpathDest(link.link, file.path);
+                // Handle both standard links and links with section references
+                const linkPath = link.link.split('#')[0];  // Remove section reference if present
+                const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
                 if (targetFile && targetFile.extension === 'md') {
                     links.add(targetFile.path);
                 }
@@ -399,9 +401,40 @@ class RichFootPlugin extends Plugin {
                 for (const link of frontmatterLinks) {
                     const linkText = link.match(/\[\[(.*?)\]\]/)?.[1];
                     if (linkText) {
-                        const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkText, file.path);
+                        const linkPath = linkText.split('#')[0];  // Remove section reference if present
+                        const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
                         if (targetFile && targetFile.extension === 'md') {
                             links.add(targetFile.path);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Check embeds/transclusions
+        if (cache?.embeds) {
+            for (const embed of cache.embeds) {
+                const filePath = embed.link.split('#')[0];
+                const targetFile = this.app.metadataCache.getFirstLinkpathDest(filePath, file.path);
+                if (targetFile && targetFile.extension === 'md') {
+                    links.add(targetFile.path);
+                }
+            }
+        }
+
+        // Check for data-href links in the rendered content
+        if (cache?.sections) {
+            for (const section of cache.sections) {
+                if (section.type === 'paragraph') {
+                    const matches = section.text?.match(/\[.*?\]\((.*?)(?:#.*?)?\)/g) || [];
+                    for (const match of matches) {
+                        const linkPath = match.match(/\[.*?\]\((.*?)(?:#.*?)?\)/)?.[1];
+                        if (linkPath) {
+                            const cleanPath = linkPath.split('#')[0];  // Remove section reference if present
+                            const targetFile = this.app.metadataCache.getFirstLinkpathDest(cleanPath, file.path);
+                            if (targetFile && targetFile.extension === 'md') {
+                                links.add(targetFile.path);
+                            }
                         }
                     }
                 }

@@ -2,6 +2,12 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+
+## [1.6.2] - 2024-11-23
+
+### Updated
+- outlinks section to inclued transclusion links (example `[[note#section]]` or `[text](note#section)`)
+
 ## [1.6.1] - 2024-11-14
 
 ### 🐛 Fixed

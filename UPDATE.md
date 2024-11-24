@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v1.6.2
+#### Updated
+- outlinks section to inclued transclusion links (example `[[note#section]]` or `[text](note#section)`)
+
 ### v1.6.1
 #### Fixed
 - Fixed console error when switching between reading/editing modes
