@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS = {
     linkColor: 'var(--link-color)',
     linkBackgroundColor: 'var(--tag-background)',
     linkBorderColor: 'rgba(255, 255, 255, 0.204)',
+    customCreatedDateProp: '',
+    customModifiedDateProp: '',
 };
 
 class RichFootSettings {
@@ -36,6 +38,8 @@ class RichFootSettings {
         this.linkColor = DEFAULT_SETTINGS.linkColor;
         this.linkBackgroundColor = DEFAULT_SETTINGS.linkBackgroundColor;
         this.linkBorderColor = DEFAULT_SETTINGS.linkBorderColor;
+        this.customCreatedDateProp = DEFAULT_SETTINGS.customCreatedDateProp;
+        this.customModifiedDateProp = DEFAULT_SETTINGS.customModifiedDateProp;
     }
 }
 
@@ -359,16 +363,30 @@ class RichFootPlugin extends Plugin {
         // Dates
         if (this.settings.showDates) {
             const datesWrapper = richFoot.createDiv({ cls: 'rich-foot--dates-wrapper' });
+            const cache = this.app.metadataCache.getFileCache(file);
+            const frontmatter = cache?.frontmatter;
 
-            const fileUpdate = new Date(file.stat.mtime);
-            const modified = `${fileUpdate.toLocaleString('default', { month: 'long' })} ${fileUpdate.getDate()}, ${fileUpdate.getFullYear()}`;
+            // Modified date
+            let modifiedDate;
+            if (this.settings.customModifiedDateProp && frontmatter && frontmatter[this.settings.customModifiedDateProp]) {
+                modifiedDate = new Date(frontmatter[this.settings.customModifiedDateProp]);
+            } else {
+                modifiedDate = new Date(file.stat.mtime);
+            }
+            const modified = `${modifiedDate.toLocaleString('default', { month: 'long' })} ${modifiedDate.getDate()}, ${modifiedDate.getFullYear()}`;
             datesWrapper.createDiv({
                 cls: 'rich-foot--modified-date',
                 text: `${modified}`
             });
 
-            const fileCreated = new Date(file.stat.ctime);
-            const created = `${fileCreated.toLocaleString('default', { month: 'long' })} ${fileCreated.getDate()}, ${fileCreated.getFullYear()}`;
+            // Created date
+            let createdDate;
+            if (this.settings.customCreatedDateProp && frontmatter && frontmatter[this.settings.customCreatedDateProp]) {
+                createdDate = new Date(frontmatter[this.settings.customCreatedDateProp]);
+            } else {
+                createdDate = new Date(file.stat.ctime);
+            }
+            const created = `${createdDate.toLocaleString('default', { month: 'long' })} ${createdDate.getDate()}, ${createdDate.getFullYear()}`;
             datesWrapper.createDiv({
                 cls: 'rich-foot--created-date',
                 text: `${created}`
@@ -569,6 +587,42 @@ class RichFootSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.showDates)
                 .onChange(async (value) => {
                     this.plugin.settings.showDates = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }));
+
+        // Add Date Settings
+        containerEl.createEl('h3', { text: 'Date Settings' });
+        
+        new Setting(containerEl)
+            .setName('Show Dates')
+            .setDesc('Show creation and modification dates in the footer')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showDates)
+                .onChange(async (value) => {
+                    this.plugin.settings.showDates = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }));
+
+        new Setting(containerEl)
+            .setName('Custom Created Date Property')
+            .setDesc('Specify a frontmatter property to use for creation date (leave empty to use file creation date)')
+            .addText(text => text
+                .setValue(this.plugin.settings.customCreatedDateProp)
+                .onChange(async (value) => {
+                    this.plugin.settings.customCreatedDateProp = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateRichFoot();
+                }));
+
+        new Setting(containerEl)
+            .setName('Custom Modified Date Property')
+            .setDesc('Specify a frontmatter property to use for modification date (leave empty to use file modification date)')
+            .addText(text => text
+                .setValue(this.plugin.settings.customModifiedDateProp)
+                .onChange(async (value) => {
+                    this.plugin.settings.customModifiedDateProp = value;
                     await this.plugin.saveSettings();
                     this.plugin.updateRichFoot();
                 }));
