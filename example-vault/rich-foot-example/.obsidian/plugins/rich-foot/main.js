@@ -46,17 +46,45 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
       text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings.",
       cls: "release-notes-instructions"
     });
-    const kofiContainer = contentEl.createEl("div");
-    kofiContainer.style.textAlign = "right";
-    const kofiLink = kofiContainer.createEl("a", {
-      href: "https://ko-fi.com/jparkerweb",
+    const promotionalLinks = contentEl.createEl("div");
+    promotionalLinks.style.display = "flex";
+    promotionalLinks.style.flexDirection = "row";
+    promotionalLinks.style.justifyContent = "space-around";
+    const equilllabsLink = promotionalLinks.createEl("a", {
+      href: "https://www.equilllabs.com",
+      target: "_blank"
+    });
+    equilllabsLink.createEl("img", {
+      attr: {
+        height: "36",
+        style: "border:0px;height:36px;",
+        src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/equilllabs.png?raw=true",
+        border: "0",
+        alt: "eQuill-Labs"
+      }
+    });
+    const discordLink = promotionalLinks.createEl("a", {
+      href: "https://discord.gg/sp8AQQhMJ7",
+      target: "_blank"
+    });
+    discordLink.createEl("img", {
+      attr: {
+        height: "36",
+        style: "border:0px;height:36px;",
+        src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/discord.png?raw=true",
+        border: "0",
+        alt: "Discord"
+      }
+    });
+    const kofiLink = promotionalLinks.createEl("a", {
+      href: "https://ko-fi.com/Z8Z212UMBI",
       target: "_blank"
     });
     kofiLink.createEl("img", {
       attr: {
         height: "36",
         style: "border:0px;height:36px;",
-        src: "https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/support.png",
+        src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/support.png?raw=true",
         border: "0",
         alt: "Buy Me a Coffee at ko-fi.com"
       }
@@ -79,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v1.6.2</h3>\n<h4>Updated</h4>\n<ul>\n<li>outlinks section to inclued transclusion links (example <code>[[note#section]]</code> or <code>[text](note#section)</code>)</li>\n</ul>\n<h3>v1.6.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed console error when switching between reading/editing modes</li>\n</ul>\n<h3>v1.6.0</h3>\n<h4>New Color Customization Options</h4>\n<ul>\n<li>New Border, Links, and Date color customization options in settings<ul>\n<li>Color picker to select custom colors</li>\n<li>Reset button to restore default colors (theme accent color)</li>\n<li>Real-time color updates</li>\n</ul>\n</li>\n</ul>\n<p><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.6.0.jpg" alt="New Color Customization Options"></p>\n';
+var releaseNotes = '<h2>\u{1F4C6} Dates Your Way</h2>\n<h3>v1.7.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><code>Custom Created/Modified Date Property</code> fields to allow users to specify their own frontmatter properties for dates, useful when file system dates are affected by sync processes and you track them separately.</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 var DEFAULT_SETTINGS = {
@@ -95,7 +123,9 @@ var DEFAULT_SETTINGS = {
   borderColor: "var(--text-accent)",
   linkColor: "var(--link-color)",
   linkBackgroundColor: "var(--tag-background)",
-  linkBorderColor: "rgba(255, 255, 255, 0.204)"
+  linkBorderColor: "rgba(255, 255, 255, 0.204)",
+  customCreatedDateProp: "",
+  customModifiedDateProp: ""
 };
 function rgbToHex(color) {
   if (color.startsWith("hsl")) {
@@ -307,17 +337,29 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
     }
     if (this.settings.showDates) {
       const datesWrapper = richFoot.createDiv({ cls: "rich-foot--dates-wrapper" });
-      const fileUpdate = new Date(file.stat.mtime);
-      const modified = `${fileUpdate.toLocaleString("default", { month: "long" })} ${fileUpdate.getDate()}, ${fileUpdate.getFullYear()}`;
+      const cache = this.app.metadataCache.getFileCache(file);
+      const frontmatter = cache == null ? void 0 : cache.frontmatter;
+      let modifiedDate;
+      if (this.settings.customModifiedDateProp && frontmatter && frontmatter[this.settings.customModifiedDateProp]) {
+        modifiedDate = frontmatter[this.settings.customModifiedDateProp];
+      } else {
+        modifiedDate = new Date(file.stat.mtime);
+        modifiedDate = `${modifiedDate.toLocaleString("default", { month: "long" })} ${modifiedDate.getDate()}, ${modifiedDate.getFullYear()}`;
+      }
       datesWrapper.createDiv({
         cls: "rich-foot--modified-date",
-        text: `${modified}`
+        text: `${modifiedDate}`
       });
-      const fileCreated = new Date(file.stat.ctime);
-      const created = `${fileCreated.toLocaleString("default", { month: "long" })} ${fileCreated.getDate()}, ${fileCreated.getFullYear()}`;
+      let createdDate;
+      if (this.settings.customCreatedDateProp && frontmatter && frontmatter[this.settings.customCreatedDateProp]) {
+        createdDate = frontmatter[this.settings.customCreatedDateProp];
+      } else {
+        createdDate = new Date(file.stat.ctime);
+        createdDate = `${createdDate.toLocaleString("default", { month: "long" })} ${createdDate.getDate()}, ${createdDate.getFullYear()}`;
+      }
       datesWrapper.createDiv({
         cls: "rich-foot--created-date",
-        text: `${created}`
+        text: `${createdDate}`
       });
     }
     return richFoot;
@@ -400,6 +442,8 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
+    this.createdDateInput = null;
+    this.modifiedDateInput = null;
   }
   display() {
     var _a;
@@ -460,6 +504,40 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
       this.plugin.settings.showDates = value;
       await this.plugin.saveSettings();
       this.plugin.updateRichFoot();
+    }));
+    containerEl.createEl("h3", { text: "Date Settings" });
+    new import_obsidian2.Setting(containerEl).setName("Show Dates").setDesc("Show creation and modification dates in the footer").addToggle((toggle) => toggle.setValue(this.plugin.settings.showDates).onChange(async (value) => {
+      this.plugin.settings.showDates = value;
+      await this.plugin.saveSettings();
+      this.plugin.updateRichFoot();
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Custom Created Date Property").setDesc("Specify a frontmatter property to use for creation date (leave empty to use file creation date)").addText((text) => {
+      text.setValue(this.plugin.settings.customCreatedDateProp).onChange(async (value) => {
+        this.plugin.settings.customCreatedDateProp = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateRichFoot();
+      });
+      this.createdDateInput = text;
+      return text;
+    }).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.customCreatedDateProp = "";
+      await this.plugin.saveSettings();
+      this.plugin.updateRichFoot();
+      this.createdDateInput.setValue("");
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Custom Modified Date Property").setDesc("Specify a frontmatter property to use for modification date (leave empty to use file modification date)").addText((text) => {
+      text.setValue(this.plugin.settings.customModifiedDateProp).onChange(async (value) => {
+        this.plugin.settings.customModifiedDateProp = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateRichFoot();
+      });
+      this.modifiedDateInput = text;
+      return text;
+    }).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.customModifiedDateProp = "";
+      await this.plugin.saveSettings();
+      this.plugin.updateRichFoot();
+      this.modifiedDateInput.setValue("");
     }));
     containerEl.createEl("h3", { text: "Style Settings" });
     new import_obsidian2.Setting(containerEl).setName("Border Width").setDesc("Adjust the width of the footer border (1-10px)").addSlider((slider) => slider.setLimits(1, 10, 1).setValue(this.plugin.settings.borderWidth).setDynamicTooltip().onChange(async (value) => {

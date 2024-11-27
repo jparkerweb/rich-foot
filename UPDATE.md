@@ -1,18 +1,7 @@
-## 🎉 What's New
+## 📆 Dates Your Way
 
-### v1.6.2
-#### Updated
-- outlinks section to inclued transclusion links (example `[[note#section]]` or `[text](note#section)`)
+### v1.7.0
+#### ✨ Added
+- `Custom Created/Modified Date Property` fields to allow users to specify their own frontmatter properties for dates, useful when file system dates are affected by sync processes and you track them separately.
 
-### v1.6.1
-#### Fixed
-- Fixed console error when switching between reading/editing modes
-
-### v1.6.0
-#### New Color Customization Options
-- New Border, Links, and Date color customization options in settings
-  - Color picker to select custom colors
-  - Reset button to restore default colors (theme accent color)
-  - Real-time color updates
-
-![New Color Customization Options](https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.6.0.jpg)
+[![screenshot](https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg)](https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg)
