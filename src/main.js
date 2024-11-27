@@ -580,17 +580,6 @@ class RichFootSettingTab extends PluginSettingTab {
                     this.plugin.updateRichFoot();
                 }));
 
-        new Setting(containerEl)
-            .setName('Show Dates')
-            .setDesc('Show creation and modification dates in the footer')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.showDates)
-                .onChange(async (value) => {
-                    this.plugin.settings.showDates = value;
-                    await this.plugin.saveSettings();
-                    this.plugin.updateRichFoot();
-                }));
-
         // Add Date Settings
         containerEl.createEl('h3', { text: 'Date Settings' });
         
