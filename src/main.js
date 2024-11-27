@@ -139,6 +139,22 @@ class RichFootPlugin extends Plugin {
 
         this.addSettingTab(new RichFootSettingTab(this.app, this));
 
+        // Register for frontmatter changes
+        this.registerEvent(
+            this.app.metadataCache.on('changed', (file) => {
+                const cache = this.app.metadataCache.getFileCache(file);
+                if (cache?.frontmatter) {
+                    const customCreatedProp = this.settings.customCreatedDateProp;
+                    const customModifiedProp = this.settings.customModifiedDateProp;
+                    
+                    if ((customCreatedProp && customCreatedProp in cache.frontmatter) ||
+                        (customModifiedProp && customModifiedProp in cache.frontmatter)) {
+                        this.updateRichFoot();
+                    }
+                }
+            })
+        );
+
         // Wait for the layout to be ready before registering events
         this.app.workspace.onLayoutReady(() => {
             this.registerEvent(
@@ -307,7 +323,9 @@ class RichFootPlugin extends Plugin {
         const richFoot = createDiv({ cls: 'rich-foot' });
         const richFootDashedLine = richFoot.createDiv({ cls: 'rich-foot--dashed-line' });
 
-        // Backlinks
+        // ---------------
+        // -- Backlinks --
+        // ---------------
         if (this.settings.showBacklinks) {
             const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
 
@@ -335,7 +353,9 @@ class RichFootPlugin extends Plugin {
             }
         }
 
-        // Outlinks
+        // --------------
+        // -- Outlinks --
+        // --------------
         if (this.settings.showOutlinks) {
             const outlinks = this.getOutlinks(file);
             
@@ -360,16 +380,23 @@ class RichFootPlugin extends Plugin {
             }
         }
 
-        // Dates
+        // -----------
+        // -- Dates --
+        // -----------
         if (this.settings.showDates) {
             const datesWrapper = richFoot.createDiv({ cls: 'rich-foot--dates-wrapper' });
             const cache = this.app.metadataCache.getFileCache(file);
             const frontmatter = cache?.frontmatter;
 
-            // Modified date
+            // -- Modified date --
             let modifiedDate;
             if (this.settings.customModifiedDateProp && frontmatter && frontmatter[this.settings.customModifiedDateProp]) {
                 modifiedDate = frontmatter[this.settings.customModifiedDateProp];
+                if (!isNaN(Date.parse(modifiedDate))) {
+                    const [year, month, day] = modifiedDate.split('-').map(Number);
+                    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                    modifiedDate = `${months[month - 1]} ${day}, ${year}`;
+                }
             } else {
                 modifiedDate = new Date(file.stat.mtime);
                 modifiedDate = `${modifiedDate.toLocaleString('default', { month: 'long' })} ${modifiedDate.getDate()}, ${modifiedDate.getFullYear()}`;
@@ -379,10 +406,15 @@ class RichFootPlugin extends Plugin {
                 text: `${modifiedDate}`
             });
 
-            // Created date
+            // -- Created date --
             let createdDate;
             if (this.settings.customCreatedDateProp && frontmatter && frontmatter[this.settings.customCreatedDateProp]) {
                 createdDate = frontmatter[this.settings.customCreatedDateProp];
+                if (!isNaN(Date.parse(createdDate))) {
+                    const [year, month, day] = createdDate.split('-').map(Number);
+                    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                    createdDate = `${months[month - 1]} ${day}, ${year}`;
+                }
             } else {
                 createdDate = new Date(file.stat.ctime);
                 createdDate = `${createdDate.toLocaleString('default', { month: 'long' })} ${createdDate.getDate()}, ${createdDate.getFullYear()}`;
