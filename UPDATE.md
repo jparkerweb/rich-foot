@@ -3,6 +3,7 @@
 ### v1.7.1
 #### 🐛 Fixed
 - Note embeds in canvas now have the correct height
+- Duplicate "show dates" option in settings
 
 ### v1.7.0
 #### ✨ Added
