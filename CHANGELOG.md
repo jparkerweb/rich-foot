@@ -2,6 +2,9 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.7.1] - 2024-11-27
+### 🐛 Fixed
+- Note embeds in canvas now have the correct height
 
 ## [1.7.0] - 2024-11-26
 ### ✨ Added

@@ -156,12 +156,19 @@ body.theme-light .rich-foot--backlinks ul li a {
     padding-bottom: 0 !important;
 }
 
+/* fix note embed height scroll in canvas */
+.canvas-node-content.markdown-embed div.cm-sizer,
+.canvas-node-content.markdown-embed div.markdown-preview-sizer {
+	min-height: unset !important;
+}
+
+
 .cm-sizer .rich-foot--backlinks {
     margin-top: 0;
 }
 
 .markdown-preview-sizer > div {
-    flex: 0;
+    flex: 0 auto;
 }
 
 .markdown-preview-sizer > .rich-foot {
