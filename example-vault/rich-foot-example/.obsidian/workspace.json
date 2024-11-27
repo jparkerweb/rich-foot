@@ -179,6 +179,36 @@
             "id": "4674f52fab9186d3",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c27c8283769f4466",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c4f94b5118e3d0e8",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "459a2d3da0268437",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -186,7 +216,7 @@
             }
           }
         ],
-        "currentTab": 8
+        "currentTab": 11
       }
     ],
     "direction": "horizontal",
@@ -201,17 +231,20 @@
       "cmdr:Reload app without saving": false,
       "switcher:Open quick switcher": false,
       "templates:Insert template": true,
-      "command-palette:Open command palette": false
+      "command-palette:Open command palette": false,
+      "canvas:Create new canvas": false
     }
   },
   "active": "e2b1b7584f7a474c",
   "lastOpenFiles": [
-    "releases/v1.7.0 - 📆 Dates Your Way.md",
+    "backlink test.md",
+    "note with table.md",
     "🦶 Rich Foot.md",
-    "pixel-banner-images/calendar-feet.png",
+    "Untitled.canvas",
     "exclude/no rich-feet here.md",
     "exclude/me too/no rich-feet here either.md",
-    "backlink test.md",
+    "releases/v1.7.0 - 📆 Dates Your Way.md",
+    "pixel-banner-images/calendar-feet.png",
     "images/rich-feet-3.jpg",
     "images/rich-feet-2.jpg",
     "images/rich-feet.jpg",

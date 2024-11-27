@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F4C6} Dates Your Way</h2>\n<h3>v1.7.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><code>Custom Created/Modified Date Property</code> fields to allow users to specify their own frontmatter properties for dates, useful when file system dates are affected by sync processes and you track them separately.</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F4C6} Dates Your Way</h2>\n<h3>v1.7.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Note embeds in canvas now have the correct height</li>\n</ul>\n<h3>v1.7.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><code>Custom Created/Modified Date Property</code> fields to allow users to specify their own frontmatter properties for dates, useful when file system dates are affected by sync processes and you track them separately.</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 var DEFAULT_SETTINGS = {
