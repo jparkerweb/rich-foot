@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F4C6} Dates Your Way</h2>\n<h3>v1.7.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Note embeds in canvas now have the correct height</li>\n<li>Duplicate &quot;show dates&quot; option in settings</li>\n</ul>\n<h3>v1.7.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><code>Custom Created/Modified Date Property</code> fields to allow users to specify their own frontmatter properties for dates, useful when file system dates are affected by sync processes and you track them separately.</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F4C6} Dates Your Way</h2>\n<h3>v1.7.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Note embeds in canvas now have the correct height</li>\n<li>Duplicate &quot;show dates&quot; option in settings</li>\n</ul>\n<h4>\u2728 Added</h4>\n<ul>\n<li>If using custom created/modified date properties, the date now displays in the format of &quot;Month Day, Year&quot; if in proper date format, otherwise it displays the raw frontmatter filed string value.</li>\n</ul>\n<h3>v1.7.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><code>Custom Created/Modified Date Property</code> fields to allow users to specify their own frontmatter properties for dates, useful when file system dates are affected by sync processes and you track them separately.</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 var DEFAULT_SETTINGS = {
@@ -168,6 +168,18 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
     await this.checkVersion();
     this.updateRichFoot = (0, import_obsidian2.debounce)(this.updateRichFoot.bind(this), 100, true);
     this.addSettingTab(new RichFootSettingTab(this.app, this));
+    this.registerEvent(
+      this.app.metadataCache.on("changed", (file) => {
+        const cache = this.app.metadataCache.getFileCache(file);
+        if (cache == null ? void 0 : cache.frontmatter) {
+          const customCreatedProp = this.settings.customCreatedDateProp;
+          const customModifiedProp = this.settings.customModifiedDateProp;
+          if (customCreatedProp && customCreatedProp in cache.frontmatter || customModifiedProp && customModifiedProp in cache.frontmatter) {
+            this.updateRichFoot();
+          }
+        }
+      })
+    );
     this.app.workspace.onLayoutReady(() => {
       this.registerEvent(
         this.app.workspace.on("layout-change", this.updateRichFoot)
@@ -342,6 +354,11 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
       let modifiedDate;
       if (this.settings.customModifiedDateProp && frontmatter && frontmatter[this.settings.customModifiedDateProp]) {
         modifiedDate = frontmatter[this.settings.customModifiedDateProp];
+        if (!isNaN(Date.parse(modifiedDate))) {
+          const [year, month, day] = modifiedDate.split("-").map(Number);
+          const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+          modifiedDate = `${months[month - 1]} ${day}, ${year}`;
+        }
       } else {
         modifiedDate = new Date(file.stat.mtime);
         modifiedDate = `${modifiedDate.toLocaleString("default", { month: "long" })} ${modifiedDate.getDate()}, ${modifiedDate.getFullYear()}`;
@@ -353,6 +370,11 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
       let createdDate;
       if (this.settings.customCreatedDateProp && frontmatter && frontmatter[this.settings.customCreatedDateProp]) {
         createdDate = frontmatter[this.settings.customCreatedDateProp];
+        if (!isNaN(Date.parse(createdDate))) {
+          const [year, month, day] = createdDate.split("-").map(Number);
+          const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+          createdDate = `${months[month - 1]} ${day}, ${year}`;
+        }
       } else {
         createdDate = new Date(file.stat.ctime);
         createdDate = `${createdDate.toLocaleString("default", { month: "long" })} ${createdDate.getDate()}, ${createdDate.getFullYear()}`;
