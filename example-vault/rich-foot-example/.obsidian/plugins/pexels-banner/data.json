@@ -45,8 +45,8 @@
   "showReleaseNotes": true,
   "lastVersion": "2.10.1",
   "showRefreshIcon": true,
-  "hidePixelBannerFields": false,
-  "hidePropertiesSectionIfOnlyBanner": false,
+  "hidePixelBannerFields": true,
+  "hidePropertiesSectionIfOnlyBanner": true,
   "titleColor": "var(--inline-title-color)",
   "customTitleColorField": [
     "banner-inline-title-color"

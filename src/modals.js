@@ -21,19 +21,47 @@ export class ReleaseNotesModal extends Modal {
             cls: 'release-notes-instructions'
         });
 
-        // Ko-fi container
-        const kofiContainer = contentEl.createEl('div');
-        kofiContainer.style.textAlign = 'right';
+        // Promotional links
+        const promotionalLinks = contentEl.createEl('div');
+        promotionalLinks.style.display = 'flex';
+        promotionalLinks.style.flexDirection = 'row';
+        promotionalLinks.style.justifyContent = 'space-around';
 
-        const kofiLink = kofiContainer.createEl('a', {
-            href: 'https://ko-fi.com/jparkerweb',
+        const equilllabsLink = promotionalLinks.createEl('a', {
+            href: 'https://www.equilllabs.com',
+            target: '_blank',
+        });
+        equilllabsLink.createEl('img', {
+            attr: {
+                height: '36',
+                style: 'border:0px;height:36px;',
+                src: 'https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/equilllabs.png?raw=true',
+                border: '0',
+                alt: 'eQuill-Labs'
+            }
+        });
+        const discordLink = promotionalLinks.createEl('a', {
+            href: 'https://discord.gg/sp8AQQhMJ7',
+            target: '_blank',
+        });
+        discordLink.createEl('img', {
+            attr: {
+                height: '36',
+                style: 'border:0px;height:36px;',
+                src: 'https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/discord.png?raw=true',
+                border: '0',
+                alt: 'Discord'
+            }
+        });
+        const kofiLink = promotionalLinks.createEl('a', {
+            href: 'https://ko-fi.com/Z8Z212UMBI',
             target: '_blank',
         });
         kofiLink.createEl('img', {
             attr: {
                 height: '36',
                 style: 'border:0px;height:36px;',
-                src: 'https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/support.png',
+                src: 'https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/support.png?raw=true',
                 border: '0',
                 alt: 'Buy Me a Coffee at ko-fi.com'
             }

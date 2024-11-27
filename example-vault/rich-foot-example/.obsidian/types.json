@@ -3,6 +3,8 @@
     "aliases": "aliases",
     "cssclasses": "multitext",
     "tags": "tags",
-    "links": "multitext"
+    "links": "multitext",
+    "created": "text",
+    "modified": "text"
   }
 }

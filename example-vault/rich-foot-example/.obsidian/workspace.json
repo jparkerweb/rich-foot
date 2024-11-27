@@ -106,15 +106,37 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {
-                "file": "backlink test.md"
-              },
+              "state": {},
               "icon": "lucide-list",
-              "title": "Outline of backlink test"
+              "title": "Outline"
             }
           },
           {
-            "id": "4508dfcd1d199dfa",
+            "id": "46d47ecd473a3665",
+            "type": "leaf",
+            "state": {
+              "type": "file-properties",
+              "state": {},
+              "icon": "lucide-info",
+              "title": "File properties"
+            }
+          },
+          {
+            "id": "8b76c4ae7238dba8",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "52fd00eedba22e1b",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -124,7 +146,7 @@
             }
           },
           {
-            "id": "388b22a3a54ccc4c",
+            "id": "d79a08e8670c4660",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -134,7 +156,7 @@
             }
           },
           {
-            "id": "fc7ebc193edee888",
+            "id": "31c3f2d74db82215",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -144,7 +166,17 @@
             }
           },
           {
-            "id": "86780c664be3375b",
+            "id": "8d18b4a09cbaab4e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4674f52fab9186d3",
             "type": "leaf",
             "state": {
               "type": "Saved Queries View",
@@ -154,15 +186,16 @@
             }
           }
         ],
-        "currentTab": 5
+        "currentTab": 8
       }
     ],
     "direction": "horizontal",
-    "width": 300,
+    "width": 454.5,
     "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
+      "obsidian-custom-frames:Open 📄 release notes": false,
       "cmdr:Open Plugin Settings: Pixel Banner": false,
       "cmdr:Open Plugin Settings: Rich Foot": false,
       "cmdr:Reload app without saving": false,
@@ -173,10 +206,12 @@
   },
   "active": "e2b1b7584f7a474c",
   "lastOpenFiles": [
-    "backlink test.md",
-    "exclude/no rich-feet here.md",
+    "releases/v1.7.0 - 📆 Dates Your Way.md",
     "🦶 Rich Foot.md",
+    "pixel-banner-images/calendar-feet.png",
+    "exclude/no rich-feet here.md",
     "exclude/me too/no rich-feet here either.md",
+    "backlink test.md",
     "images/rich-feet-3.jpg",
     "images/rich-feet-2.jpg",
     "images/rich-feet.jpg",

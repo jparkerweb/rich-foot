@@ -369,27 +369,27 @@ class RichFootPlugin extends Plugin {
             // Modified date
             let modifiedDate;
             if (this.settings.customModifiedDateProp && frontmatter && frontmatter[this.settings.customModifiedDateProp]) {
-                modifiedDate = new Date(frontmatter[this.settings.customModifiedDateProp]);
+                modifiedDate = frontmatter[this.settings.customModifiedDateProp];
             } else {
                 modifiedDate = new Date(file.stat.mtime);
+                modifiedDate = `${modifiedDate.toLocaleString('default', { month: 'long' })} ${modifiedDate.getDate()}, ${modifiedDate.getFullYear()}`;
             }
-            const modified = `${modifiedDate.toLocaleString('default', { month: 'long' })} ${modifiedDate.getDate()}, ${modifiedDate.getFullYear()}`;
             datesWrapper.createDiv({
                 cls: 'rich-foot--modified-date',
-                text: `${modified}`
+                text: `${modifiedDate}`
             });
 
             // Created date
             let createdDate;
             if (this.settings.customCreatedDateProp && frontmatter && frontmatter[this.settings.customCreatedDateProp]) {
-                createdDate = new Date(frontmatter[this.settings.customCreatedDateProp]);
+                createdDate = frontmatter[this.settings.customCreatedDateProp];
             } else {
                 createdDate = new Date(file.stat.ctime);
+                createdDate = `${createdDate.toLocaleString('default', { month: 'long' })} ${createdDate.getDate()}, ${createdDate.getFullYear()}`;
             }
-            const created = `${createdDate.toLocaleString('default', { month: 'long' })} ${createdDate.getDate()}, ${createdDate.getFullYear()}`;
             datesWrapper.createDiv({
                 cls: 'rich-foot--created-date',
-                text: `${created}`
+                text: `${createdDate}`
             });
         }
 
@@ -485,6 +485,8 @@ class RichFootSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
         super(app, plugin);
         this.plugin = plugin;
+        this.createdDateInput = null;
+        this.modifiedDateInput = null;
     }
 
     display() {
@@ -608,23 +610,49 @@ class RichFootSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Custom Created Date Property')
             .setDesc('Specify a frontmatter property to use for creation date (leave empty to use file creation date)')
-            .addText(text => text
-                .setValue(this.plugin.settings.customCreatedDateProp)
-                .onChange(async (value) => {
-                    this.plugin.settings.customCreatedDateProp = value;
+            .addText(text => {
+                text.setValue(this.plugin.settings.customCreatedDateProp)
+                    .onChange(async (value) => {
+                        this.plugin.settings.customCreatedDateProp = value;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateRichFoot();
+                    });
+                // Store the text component for reset access
+                this.createdDateInput = text;
+                return text;
+            })
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.customCreatedDateProp = '';
                     await this.plugin.saveSettings();
                     this.plugin.updateRichFoot();
+                    // Update the text input using the stored component
+                    this.createdDateInput.setValue('');
                 }));
 
         new Setting(containerEl)
             .setName('Custom Modified Date Property')
             .setDesc('Specify a frontmatter property to use for modification date (leave empty to use file modification date)')
-            .addText(text => text
-                .setValue(this.plugin.settings.customModifiedDateProp)
-                .onChange(async (value) => {
-                    this.plugin.settings.customModifiedDateProp = value;
+            .addText(text => {
+                text.setValue(this.plugin.settings.customModifiedDateProp)
+                    .onChange(async (value) => {
+                        this.plugin.settings.customModifiedDateProp = value;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateRichFoot();
+                    });
+                // Store the text component for reset access
+                this.modifiedDateInput = text;
+                return text;
+            })
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.customModifiedDateProp = '';
                     await this.plugin.saveSettings();
                     this.plugin.updateRichFoot();
+                    // Update the text input using the stored component
+                    this.modifiedDateInput.setValue('');
                 }));
 
         // Border Settings

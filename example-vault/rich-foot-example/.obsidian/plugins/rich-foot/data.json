@@ -14,8 +14,10 @@
   "linkColor": "var(--link-color)",
   "linkBackgroundColor": "var(--tag-background)",
   "linkBorderColor": "rgba(255, 255, 255, 0.204)",
+  "customCreatedDateProp": "created",
+  "customModifiedDateProp": "modified",
   "showBacklinks": true,
   "showOutlinks": true,
   "showDates": true,
-  "lastVersion": "1.6.2"
+  "lastVersion": "1.6.0"
 }
