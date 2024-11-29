@@ -16,6 +16,7 @@
   "linkBorderColor": "rgba(255, 255, 255, 0.204)",
   "customCreatedDateProp": "created",
   "customModifiedDateProp": "modified",
+  "dateDisplayFormat": "mmmm dd, yyyy",
   "showBacklinks": true,
   "showOutlinks": true,
   "showDates": true,

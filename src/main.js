@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS = {
     linkBorderColor: 'rgba(255, 255, 255, 0.204)',
     customCreatedDateProp: '',
     customModifiedDateProp: '',
+    dateDisplayFormat: 'mmmm dd, yyyy',
 };
 
 class RichFootSettings {
@@ -40,6 +41,7 @@ class RichFootSettings {
         this.linkBorderColor = DEFAULT_SETTINGS.linkBorderColor;
         this.customCreatedDateProp = DEFAULT_SETTINGS.customCreatedDateProp;
         this.customModifiedDateProp = DEFAULT_SETTINGS.customModifiedDateProp;
+        this.dateDisplayFormat = DEFAULT_SETTINGS.dateDisplayFormat;
     }
 }
 
@@ -118,6 +120,57 @@ function blendRgbaWithBackground(rgba, backgroundRgb) {
 
     // Return the blended color as an RGB string
     return `rgb(${r}, ${g}, ${b})`;
+}
+
+// Add this helper function to format dates
+function formatDate(date, format) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const day = d.getDate();
+    const weekday = d.getDay();
+    
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthsShort = months.map(m => m.slice(0, 3));
+    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const weekdaysShort = weekdays.map(w => w.slice(0, 3));
+
+    // Helper to pad numbers
+    const pad = (num) => num.toString().padStart(2, '0');
+
+    // Create a map of tokens to their values
+    const tokens = {
+        'dddd': weekdays[weekday],
+        'ddd': weekdaysShort[weekday],
+        'dd': pad(day),
+        'd': day.toString(),
+        'mmmm': months[month],
+        'mmm': monthsShort[month],
+        'mm': pad(month + 1),
+        'm': (month + 1).toString(),
+        'yyyy': year.toString(),
+        'yy': year.toString().slice(-2)
+    };
+
+    // Sort tokens by length (longest first) to avoid partial matches
+    const sortedTokens = Object.keys(tokens).sort((a, b) => b.length - a.length);
+
+    // Replace each token with a unique placeholder
+    let result = format;
+    const replacements = new Map();
+    
+    sortedTokens.forEach((token, index) => {
+        const placeholder = `__${index}__`;
+        replacements.set(placeholder, tokens[token]);
+        result = result.replace(new RegExp(token, 'g'), placeholder);
+    });
+
+    // Replace placeholders with final values
+    replacements.forEach((value, placeholder) => {
+        result = result.replace(new RegExp(placeholder, 'g'), value);
+    });
+
+    return result;
 }
 
 class RichFootPlugin extends Plugin {
@@ -423,19 +476,19 @@ class RichFootPlugin extends Plugin {
                 }
 
                 if (isValidDate) {
-                    // Split on 'T' to handle timestamps, then split the date part
+                    // Split on 'T' to handle timestamps
                     const datePart = tempDate.split('T')[0];
-                    // Handle different separators
-                    const parts = datePart.split(/[-./]/);
-                    const [year, month, day] = parts.map(Number);
-                    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                    modifiedDate = `${months[month - 1]} ${day}, ${year}`;
+                    // If there's no time component, parse in local timezone by appending T00:00:00
+                    const dateStr = tempDate.includes('T') ? tempDate : `${datePart}T00:00:00`;
+                    // Create a Date object from the parts
+                    const dateObj = new Date(dateStr);
+                    modifiedDate = formatDate(dateObj, this.settings.dateDisplayFormat);
                 } else {
                     modifiedDate = modifiedDate;
                 }
             } else {
                 modifiedDate = new Date(file.stat.mtime);
-                modifiedDate = `${modifiedDate.toLocaleString('default', { month: 'long' })} ${modifiedDate.getDate()}, ${modifiedDate.getFullYear()}`;
+                modifiedDate = formatDate(modifiedDate, this.settings.dateDisplayFormat);
             }
             datesWrapper.createDiv({
                 cls: 'rich-foot--modified-date',
@@ -477,19 +530,19 @@ class RichFootPlugin extends Plugin {
                 }
 
                 if (isValidDate) {
-                    // Split on 'T' to handle timestamps, then split the date part
+                    // Split on 'T' to handle timestamps
                     const datePart = tempDate.split('T')[0];
-                    // Handle different separators
-                    const parts = datePart.split(/[-./]/);
-                    const [year, month, day] = parts.map(Number);
-                    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                    createdDate = `${months[month - 1]} ${day}, ${year}`;
+                    // If there's no time component, parse in local timezone by appending T00:00:00
+                    const dateStr = tempDate.includes('T') ? tempDate : `${datePart}T00:00:00`;
+                    // Create a Date object from the parts
+                    const dateObj = new Date(dateStr);
+                    createdDate = formatDate(dateObj, this.settings.dateDisplayFormat);
                 } else {
                     createdDate = createdDate;
                 }
             } else {
                 createdDate = new Date(file.stat.ctime);
-                createdDate = `${createdDate.toLocaleString('default', { month: 'long' })} ${createdDate.getDate()}, ${createdDate.getFullYear()}`;
+                createdDate = formatDate(createdDate, this.settings.dateDisplayFormat);
             }
             datesWrapper.createDiv({
                 cls: 'rich-foot--created-date',
@@ -699,6 +752,40 @@ class RichFootSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                     this.plugin.updateRichFoot();
                 }));
+
+        new Setting(containerEl)
+            .setName('Date Display Format')
+            .setDesc('Choose how dates should be displayed in the footer')
+            .addDropdown(dropdown => {
+                const today = new Date();
+                const formats = [
+                    'mm/dd/yyyy',
+                    'dd/mm/yyyy',
+                    'yyyy-mm-dd',
+                    'mmm dd, yyyy',
+                    'dd mmm yyyy',
+                    'mmmm dd, yyyy',
+                    'ddd, mmm dd, yyyy',
+                    'dddd, mmmm dd, yyyy',
+                    'mm/dd/yy',
+                    'dd/mm/yy',
+                    'yy-mm-dd',
+                    'm/d/yy'
+                ];
+                
+                formats.forEach(format => {
+                    const example = formatDate(today, format);
+                    dropdown.addOption(format, `${format} (example: ${example})`);
+                });
+                
+                dropdown
+                    .setValue(this.plugin.settings.dateDisplayFormat)
+                    .onChange(async (value) => {
+                        this.plugin.settings.dateDisplayFormat = value;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateRichFoot();
+                    });
+            });
 
         new Setting(containerEl)
             .setName('Custom Created Date Property')
