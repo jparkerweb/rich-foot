@@ -1,5 +1,9 @@
 ## 📆 Dates Your Way
 
+### v1.7.2
+#### 🐛 Fixed
+- Date not formatted correctly if timestamp was included in the Custom Created/Modified Date Property
+
 ### v1.7.1
 #### 🐛 Fixed
 - Note embeds in canvas now have the correct height

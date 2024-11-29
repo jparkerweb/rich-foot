@@ -2,6 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.7.2] - 2024-11-29
+### 🐛 Fixed
+- Date not formatted correctly if timestamp was included in the Custom Created/Modified Date Property
+
 ## [1.7.1] - 2024-11-27
 ### 🐛 Fixed
 - Note embeds in canvas now have the correct height

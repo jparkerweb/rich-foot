@@ -393,7 +393,9 @@ class RichFootPlugin extends Plugin {
             if (this.settings.customModifiedDateProp && frontmatter && frontmatter[this.settings.customModifiedDateProp]) {
                 modifiedDate = frontmatter[this.settings.customModifiedDateProp];
                 if (!isNaN(Date.parse(modifiedDate))) {
-                    const [year, month, day] = modifiedDate.split('-').map(Number);
+                    // Split on 'T' to handle timestamps, then split the date part
+                    const datePart = modifiedDate.split('T')[0];
+                    const [year, month, day] = datePart.split('-').map(Number);
                     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                     modifiedDate = `${months[month - 1]} ${day}, ${year}`;
                 }
@@ -411,7 +413,9 @@ class RichFootPlugin extends Plugin {
             if (this.settings.customCreatedDateProp && frontmatter && frontmatter[this.settings.customCreatedDateProp]) {
                 createdDate = frontmatter[this.settings.customCreatedDateProp];
                 if (!isNaN(Date.parse(createdDate))) {
-                    const [year, month, day] = createdDate.split('-').map(Number);
+                    // Split on 'T' to handle timestamps, then split the date part
+                    const datePart = createdDate.split('T')[0];
+                    const [year, month, day] = datePart.split('-').map(Number);
                     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                     createdDate = `${months[month - 1]} ${day}, ${year}`;
                 }
