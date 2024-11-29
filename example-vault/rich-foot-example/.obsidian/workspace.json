@@ -13,13 +13,13 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "releases/v1.7.0 - 📆 Dates Your Way.md",
+                "file": "🦶 Rich Foot.md",
                 "mode": "preview",
                 "backlinks": false,
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "v1.7.0 - 📆 Dates Your Way"
+              "title": "🦶 Rich Foot"
             }
           }
         ]
@@ -369,6 +369,26 @@
             "id": "2c847f2d16aaf127",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "14652de8e6a18ccc",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d0aa2777f3e47d4b",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -376,7 +396,7 @@
             }
           }
         ],
-        "currentTab": 27
+        "currentTab": 29
       }
     ],
     "direction": "horizontal",
@@ -397,8 +417,8 @@
   },
   "active": "e2b1b7584f7a474c",
   "lastOpenFiles": [
-    "🦶 Rich Foot.md",
     "releases/v1.7.0 - 📆 Dates Your Way.md",
+    "🦶 Rich Foot.md",
     "backlink test.md",
     "note with table.md",
     "Untitled.canvas",
