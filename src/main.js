@@ -392,12 +392,46 @@ class RichFootPlugin extends Plugin {
             let modifiedDate;
             if (this.settings.customModifiedDateProp && frontmatter && frontmatter[this.settings.customModifiedDateProp]) {
                 modifiedDate = frontmatter[this.settings.customModifiedDateProp];
-                if (!isNaN(Date.parse(modifiedDate))) {
+                let isValidDate = false;
+                let tempDate = modifiedDate;
+
+                // Try original string
+                if (!isNaN(Date.parse(tempDate))) {
+                    isValidDate = true;
+                }
+                // Try replacing periods with hyphens (only first two occurrences)
+                if (!isValidDate) {
+                    let count = 0;
+                    tempDate = modifiedDate.replace(/\./g, (match) => {
+                        count++;
+                        return count <= 2 ? '-' : match;
+                    });
+                    if (!isNaN(Date.parse(tempDate))) {
+                        isValidDate = true;
+                    }
+                }
+                // Try replacing forward slashes with hyphens (only first two occurrences)
+                if (!isValidDate) {
+                    let count = 0;
+                    tempDate = modifiedDate.replace(/\//g, (match) => {
+                        count++;
+                        return count <= 2 ? '-' : match;
+                    });
+                    if (!isNaN(Date.parse(tempDate))) {
+                        isValidDate = true;
+                    }
+                }
+
+                if (isValidDate) {
                     // Split on 'T' to handle timestamps, then split the date part
-                    const datePart = modifiedDate.split('T')[0];
-                    const [year, month, day] = datePart.split('-').map(Number);
+                    const datePart = tempDate.split('T')[0];
+                    // Handle different separators
+                    const parts = datePart.split(/[-./]/);
+                    const [year, month, day] = parts.map(Number);
                     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                     modifiedDate = `${months[month - 1]} ${day}, ${year}`;
+                } else {
+                    modifiedDate = modifiedDate;
                 }
             } else {
                 modifiedDate = new Date(file.stat.mtime);
@@ -412,12 +446,46 @@ class RichFootPlugin extends Plugin {
             let createdDate;
             if (this.settings.customCreatedDateProp && frontmatter && frontmatter[this.settings.customCreatedDateProp]) {
                 createdDate = frontmatter[this.settings.customCreatedDateProp];
-                if (!isNaN(Date.parse(createdDate))) {
+                let isValidDate = false;
+                let tempDate = createdDate;
+
+                // Try original string
+                if (!isNaN(Date.parse(tempDate))) {
+                    isValidDate = true;
+                }
+                // Try replacing periods with hyphens (only first two occurrences)
+                if (!isValidDate) {
+                    let count = 0;
+                    tempDate = createdDate.replace(/\./g, (match) => {
+                        count++;
+                        return count <= 2 ? '-' : match;
+                    });
+                    if (!isNaN(Date.parse(tempDate))) {
+                        isValidDate = true;
+                    }
+                }
+                // Try replacing forward slashes with hyphens (only first two occurrences)
+                if (!isValidDate) {
+                    let count = 0;
+                    tempDate = createdDate.replace(/\//g, (match) => {
+                        count++;
+                        return count <= 2 ? '-' : match;
+                    });
+                    if (!isNaN(Date.parse(tempDate))) {
+                        isValidDate = true;
+                    }
+                }
+
+                if (isValidDate) {
                     // Split on 'T' to handle timestamps, then split the date part
-                    const datePart = createdDate.split('T')[0];
-                    const [year, month, day] = datePart.split('-').map(Number);
+                    const datePart = tempDate.split('T')[0];
+                    // Handle different separators
+                    const parts = datePart.split(/[-./]/);
+                    const [year, month, day] = parts.map(Number);
                     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                     createdDate = `${months[month - 1]} ${day}, ${year}`;
+                } else {
+                    createdDate = createdDate;
                 }
             } else {
                 createdDate = new Date(file.stat.ctime);
