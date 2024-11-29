@@ -2,6 +2,20 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.7.2] - 2024-11-29
+### ✨ Added
+- `Date Display Format` option to allow users to specify their own date format
+
+### 🐛 Fixed
+- Date not formatted correctly if timestamp was included in the Custom Created/Modified Date Property
+
+## [1.7.1] - 2024-11-27
+### 🐛 Fixed
+- Note embeds in canvas now have the correct height
+- Duplicate "show dates" option in settings
+
+### ✨ Added
+- If using custom created/modified date properties, the date now displays in the format of "Month Day, Year" if in proper date format, otherwise it displays the raw frontmatter filed string value.
 
 ## [1.7.0] - 2024-11-26
 ### ✨ Added

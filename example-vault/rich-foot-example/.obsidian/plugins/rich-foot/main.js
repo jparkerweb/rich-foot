@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F4C6} Dates Your Way</h2>\n<h3>v1.7.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><code>Custom Created/Modified Date Property</code> fields to allow users to specify their own frontmatter properties for dates, useful when file system dates are affected by sync processes and you track them separately.</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F4C6} Dates Your Way</h2>\n<h3>v1.7.2</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><code>Date Display Format</code> option to allow users to specify their own date format</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Date not formatted correctly if timestamp was included in the Custom Created/Modified Date Property</li>\n</ul>\n<h3>v1.7.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Note embeds in canvas now have the correct height</li>\n<li>Duplicate &quot;show dates&quot; option in settings</li>\n</ul>\n<h4>\u2728 Added</h4>\n<ul>\n<li>If using custom created/modified date properties, the date now displays in the format of &quot;Month Day, Year&quot; if in proper date format, otherwise it displays the raw frontmatter filed string value.</li>\n</ul>\n<h3>v1.7.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><code>Custom Created/Modified Date Property</code> fields to allow users to specify their own frontmatter properties for dates, useful when file system dates are affected by sync processes and you track them separately.</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 var DEFAULT_SETTINGS = {
@@ -125,7 +125,8 @@ var DEFAULT_SETTINGS = {
   linkBackgroundColor: "var(--tag-background)",
   linkBorderColor: "rgba(255, 255, 255, 0.204)",
   customCreatedDateProp: "",
-  customModifiedDateProp: ""
+  customModifiedDateProp: "",
+  dateDisplayFormat: "mmmm dd, yyyy"
 };
 function rgbToHex(color) {
   if (color.startsWith("hsl")) {
@@ -156,6 +157,42 @@ function blendRgbaWithBackground(rgba, backgroundRgb) {
   const b = Math.round(fb * alpha + bb * (1 - alpha));
   return `rgb(${r}, ${g}, ${b})`;
 }
+function formatDate(date, format) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  const day = d.getDate();
+  const weekday = d.getDay();
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const monthsShort = months.map((m) => m.slice(0, 3));
+  const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const weekdaysShort = weekdays.map((w) => w.slice(0, 3));
+  const pad = (num) => num.toString().padStart(2, "0");
+  const tokens = {
+    "dddd": weekdays[weekday],
+    "ddd": weekdaysShort[weekday],
+    "dd": pad(day),
+    "d": day.toString(),
+    "mmmm": months[month],
+    "mmm": monthsShort[month],
+    "mm": pad(month + 1),
+    "m": (month + 1).toString(),
+    "yyyy": year.toString(),
+    "yy": year.toString().slice(-2)
+  };
+  const sortedTokens = Object.keys(tokens).sort((a, b) => b.length - a.length);
+  let result = format;
+  const replacements = /* @__PURE__ */ new Map();
+  sortedTokens.forEach((token, index) => {
+    const placeholder = `__${index}__`;
+    replacements.set(placeholder, tokens[token]);
+    result = result.replace(new RegExp(token, "g"), placeholder);
+  });
+  replacements.forEach((value, placeholder) => {
+    result = result.replace(new RegExp(placeholder, "g"), value);
+  });
+  return result;
+}
 var RichFootPlugin = class extends import_obsidian2.Plugin {
   async onload() {
     await this.loadSettings();
@@ -168,6 +205,18 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
     await this.checkVersion();
     this.updateRichFoot = (0, import_obsidian2.debounce)(this.updateRichFoot.bind(this), 100, true);
     this.addSettingTab(new RichFootSettingTab(this.app, this));
+    this.registerEvent(
+      this.app.metadataCache.on("changed", (file) => {
+        const cache = this.app.metadataCache.getFileCache(file);
+        if (cache == null ? void 0 : cache.frontmatter) {
+          const customCreatedProp = this.settings.customCreatedDateProp;
+          const customModifiedProp = this.settings.customModifiedDateProp;
+          if (customCreatedProp && customCreatedProp in cache.frontmatter || customModifiedProp && customModifiedProp in cache.frontmatter) {
+            this.updateRichFoot();
+          }
+        }
+      })
+    );
     this.app.workspace.onLayoutReady(() => {
       this.registerEvent(
         this.app.workspace.on("layout-change", this.updateRichFoot)
@@ -342,9 +391,42 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
       let modifiedDate;
       if (this.settings.customModifiedDateProp && frontmatter && frontmatter[this.settings.customModifiedDateProp]) {
         modifiedDate = frontmatter[this.settings.customModifiedDateProp];
+        let isValidDate = false;
+        let tempDate = modifiedDate;
+        if (!isNaN(Date.parse(tempDate))) {
+          isValidDate = true;
+        }
+        if (!isValidDate) {
+          let count = 0;
+          tempDate = modifiedDate.replace(/\./g, (match) => {
+            count++;
+            return count <= 2 ? "-" : match;
+          });
+          if (!isNaN(Date.parse(tempDate))) {
+            isValidDate = true;
+          }
+        }
+        if (!isValidDate) {
+          let count = 0;
+          tempDate = modifiedDate.replace(/\//g, (match) => {
+            count++;
+            return count <= 2 ? "-" : match;
+          });
+          if (!isNaN(Date.parse(tempDate))) {
+            isValidDate = true;
+          }
+        }
+        if (isValidDate) {
+          const datePart = tempDate.split("T")[0];
+          const dateStr = tempDate.includes("T") ? tempDate : `${datePart}T00:00:00`;
+          const dateObj = new Date(dateStr);
+          modifiedDate = formatDate(dateObj, this.settings.dateDisplayFormat);
+        } else {
+          modifiedDate = modifiedDate;
+        }
       } else {
         modifiedDate = new Date(file.stat.mtime);
-        modifiedDate = `${modifiedDate.toLocaleString("default", { month: "long" })} ${modifiedDate.getDate()}, ${modifiedDate.getFullYear()}`;
+        modifiedDate = formatDate(modifiedDate, this.settings.dateDisplayFormat);
       }
       datesWrapper.createDiv({
         cls: "rich-foot--modified-date",
@@ -353,9 +435,42 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
       let createdDate;
       if (this.settings.customCreatedDateProp && frontmatter && frontmatter[this.settings.customCreatedDateProp]) {
         createdDate = frontmatter[this.settings.customCreatedDateProp];
+        let isValidDate = false;
+        let tempDate = createdDate;
+        if (!isNaN(Date.parse(tempDate))) {
+          isValidDate = true;
+        }
+        if (!isValidDate) {
+          let count = 0;
+          tempDate = createdDate.replace(/\./g, (match) => {
+            count++;
+            return count <= 2 ? "-" : match;
+          });
+          if (!isNaN(Date.parse(tempDate))) {
+            isValidDate = true;
+          }
+        }
+        if (!isValidDate) {
+          let count = 0;
+          tempDate = createdDate.replace(/\//g, (match) => {
+            count++;
+            return count <= 2 ? "-" : match;
+          });
+          if (!isNaN(Date.parse(tempDate))) {
+            isValidDate = true;
+          }
+        }
+        if (isValidDate) {
+          const datePart = tempDate.split("T")[0];
+          const dateStr = tempDate.includes("T") ? tempDate : `${datePart}T00:00:00`;
+          const dateObj = new Date(dateStr);
+          createdDate = formatDate(dateObj, this.settings.dateDisplayFormat);
+        } else {
+          createdDate = createdDate;
+        }
       } else {
         createdDate = new Date(file.stat.ctime);
-        createdDate = `${createdDate.toLocaleString("default", { month: "long" })} ${createdDate.getDate()}, ${createdDate.getFullYear()}`;
+        createdDate = formatDate(createdDate, this.settings.dateDisplayFormat);
       }
       datesWrapper.createDiv({
         cls: "rich-foot--created-date",
@@ -500,17 +615,38 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
       await this.plugin.saveSettings();
       this.plugin.updateRichFoot();
     }));
-    new import_obsidian2.Setting(containerEl).setName("Show Dates").setDesc("Show creation and modification dates in the footer").addToggle((toggle) => toggle.setValue(this.plugin.settings.showDates).onChange(async (value) => {
-      this.plugin.settings.showDates = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateRichFoot();
-    }));
     containerEl.createEl("h3", { text: "Date Settings" });
     new import_obsidian2.Setting(containerEl).setName("Show Dates").setDesc("Show creation and modification dates in the footer").addToggle((toggle) => toggle.setValue(this.plugin.settings.showDates).onChange(async (value) => {
       this.plugin.settings.showDates = value;
       await this.plugin.saveSettings();
       this.plugin.updateRichFoot();
     }));
+    new import_obsidian2.Setting(containerEl).setName("Date Display Format").setDesc("Choose how dates should be displayed in the footer").addDropdown((dropdown) => {
+      const today = /* @__PURE__ */ new Date();
+      const formats = [
+        "mm/dd/yyyy",
+        "dd/mm/yyyy",
+        "yyyy-mm-dd",
+        "mmm dd, yyyy",
+        "dd mmm yyyy",
+        "mmmm dd, yyyy",
+        "ddd, mmm dd, yyyy",
+        "dddd, mmmm dd, yyyy",
+        "mm/dd/yy",
+        "dd/mm/yy",
+        "yy-mm-dd",
+        "m/d/yy"
+      ];
+      formats.forEach((format) => {
+        const example = formatDate(today, format);
+        dropdown.addOption(format, `${format} (example: ${example})`);
+      });
+      dropdown.setValue(this.plugin.settings.dateDisplayFormat).onChange(async (value) => {
+        this.plugin.settings.dateDisplayFormat = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateRichFoot();
+      });
+    });
     new import_obsidian2.Setting(containerEl).setName("Custom Created Date Property").setDesc("Specify a frontmatter property to use for creation date (leave empty to use file creation date)").addText((text) => {
       text.setValue(this.plugin.settings.customCreatedDateProp).onChange(async (value) => {
         this.plugin.settings.customCreatedDateProp = value;
