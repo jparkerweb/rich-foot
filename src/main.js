@@ -392,8 +392,10 @@ class RichFootPlugin extends Plugin {
                     const li = backlinksUl.createEl('li');
                     const link = li.createEl('a', {
                         href: linkPath,
-                        text: linkPath.split('/').pop().slice(0, -3)
+                        text: linkPath.split('/').pop().slice(0, -3),
+                        cls: this.isEditMode() ? 'cm-hmd-internal-link' : 'internal-link'
                     });
+                    link.dataset.href = linkPath;
                     link.addEventListener('click', (event) => {
                         event.preventDefault();
                         this.app.workspace.openLinkText(linkPath, file.path);
@@ -423,8 +425,10 @@ class RichFootPlugin extends Plugin {
                     const li = outlinksUl.createEl('li');
                     const link = li.createEl('a', {
                         href: linkPath,
-                        text: displayName
+                        text: displayName,
+                        cls: this.isEditMode() ? 'cm-hmd-internal-link' : 'internal-link'
                     });
+                    link.dataset.href = linkPath;
                     link.addEventListener('click', (event) => {
                         event.preventDefault();
                         this.app.workspace.openLinkText(linkPath, file.path);
@@ -635,6 +639,12 @@ class RichFootPlugin extends Plugin {
             return false;
         }
         return this.settings.excludedFolders.some(folder => filePath.startsWith(folder));
+    }
+
+    isEditMode() {
+        const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!activeView) return false;
+        return (activeView.getMode?.() ?? activeView.mode) === 'source';
     }
 }
 

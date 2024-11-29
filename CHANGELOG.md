@@ -2,6 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.8.0] - 2024-11-29
+### ✨ Added
+- Support for `Page Preview` core plugin for `Outlinks` & `Backlinks`
+
 ## [1.7.2] - 2024-11-29
 ### ✨ Added
 - `Date Display Format` option to allow users to specify their own date format
