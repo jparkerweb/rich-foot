@@ -3,6 +3,9 @@
 All notable changes to Rich Foot will be documented in this file.
 
 ## [1.7.2] - 2024-11-29
+### ✨ Added
+- `Date Display Format` option to allow users to specify their own date format
+
 ### 🐛 Fixed
 - Date not formatted correctly if timestamp was included in the Custom Created/Modified Date Property
 

@@ -1,6 +1,9 @@
 ## 📆 Dates Your Way
 
 ### v1.7.2
+#### ✨ Added
+- `Date Display Format` option to allow users to specify their own date format
+
 #### 🐛 Fixed
 - Date not formatted correctly if timestamp was included in the Custom Created/Modified Date Property
 
