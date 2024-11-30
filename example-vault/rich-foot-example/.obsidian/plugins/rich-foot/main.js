@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1FAE3} Page Preview Support</h2>\n<h3>[1.8.0] - 2024-11-29</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Support for <code>Page Preview</code> core plugin for <code>Outlinks</code> &amp; <code>Backlinks</code></li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1FAE3} Page Preview Support</h2>\n<h3>[1.8.1] - 2024-11-30</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li><code>Page Preview</code> not displaying properly in <code>editing mode</code></li>\n</ul>\n<h3>[1.8.0] - 2024-11-29</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Support for <code>Page Preview</code> core plugin for <code>Outlinks</code> &amp; <code>Backlinks</code></li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -447,33 +447,23 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
           link.dataset.href = linkPath;
           link.dataset.sourcePath = file.path;
           if (this.isEditMode()) {
-            console.log("Rich-foot: Creating link in edit mode", { linkPath, sourcePath: file.path });
             let hoverTimeout = null;
             link.addEventListener("mouseover", (mouseEvent) => {
               var _a;
               const pagePreviewPlugin = this.app.internalPlugins.plugins["page-preview"];
               if (!(pagePreviewPlugin == null ? void 0 : pagePreviewPlugin.enabled)) {
-                console.log("Rich-foot: Page preview plugin is disabled, skipping preview");
                 return;
               }
               if (hoverTimeout) {
                 clearTimeout(hoverTimeout);
                 hoverTimeout = null;
               }
-              console.log("Rich-foot: Mouseover event triggered", {
-                linkPath,
-                sourcePath: file.path,
-                clientX: mouseEvent.clientX,
-                clientY: mouseEvent.clientY
-              });
               const previewPlugin = (_a = this.app.internalPlugins.plugins["page-preview"]) == null ? void 0 : _a.instance;
               if (previewPlugin == null ? void 0 : previewPlugin.onLinkHover) {
-                console.log("Rich-foot: Attempting to trigger preview");
                 previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
               }
             });
             link.addEventListener("mouseout", (mouseEvent) => {
-              console.log("Rich-foot: Mouseout event triggered");
               if (hoverTimeout) {
                 clearTimeout(hoverTimeout);
               }
@@ -514,33 +504,23 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
           link.dataset.href = linkPath;
           link.dataset.sourcePath = file.path;
           if (this.isEditMode()) {
-            console.log("Rich-foot: Creating outlink in edit mode", { linkPath, sourcePath: file.path });
             let hoverTimeout = null;
             link.addEventListener("mouseover", (mouseEvent) => {
               var _a;
               const pagePreviewPlugin = this.app.internalPlugins.plugins["page-preview"];
               if (!(pagePreviewPlugin == null ? void 0 : pagePreviewPlugin.enabled)) {
-                console.log("Rich-foot: Page preview plugin is disabled, skipping preview");
                 return;
               }
               if (hoverTimeout) {
                 clearTimeout(hoverTimeout);
                 hoverTimeout = null;
               }
-              console.log("Rich-foot: Outlink mouseover event triggered", {
-                linkPath,
-                sourcePath: file.path,
-                clientX: mouseEvent.clientX,
-                clientY: mouseEvent.clientY
-              });
               const previewPlugin = (_a = this.app.internalPlugins.plugins["page-preview"]) == null ? void 0 : _a.instance;
               if (previewPlugin == null ? void 0 : previewPlugin.onLinkHover) {
-                console.log("Rich-foot: Attempting to trigger outlink preview");
                 previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
               }
             });
             link.addEventListener("mouseout", (mouseEvent) => {
-              console.log("Rich-foot: Outlink mouseout event triggered");
               if (hoverTimeout) {
                 clearTimeout(hoverTimeout);
               }

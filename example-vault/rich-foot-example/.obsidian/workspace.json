@@ -14,7 +14,7 @@
               "type": "markdown",
               "state": {
                 "file": "backlink test.md",
-                "mode": "source",
+                "mode": "preview",
                 "backlinks": false,
                 "source": true
               },
@@ -739,6 +739,26 @@
             "id": "f4b749e1f0e464a5",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "42cc512dbf24c3a5",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "21098faf426c096a",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -746,7 +766,7 @@
             }
           }
         ],
-        "currentTab": 64
+        "currentTab": 66
       }
     ],
     "direction": "horizontal",

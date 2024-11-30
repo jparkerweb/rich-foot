@@ -380,8 +380,6 @@ class RichFootPlugin extends Plugin {
                     link.dataset.href = linkPath;
                     link.dataset.sourcePath = file.path;
                     if (this.isEditMode()) {
-                        console.log('Rich-foot: Creating link in edit mode', { linkPath, sourcePath: file.path });
-                        
                         let hoverTimeout = null;
                         
                         // Handle mouseover
@@ -389,7 +387,6 @@ class RichFootPlugin extends Plugin {
                             // Check if the page preview plugin is enabled
                             const pagePreviewPlugin = this.app.internalPlugins.plugins['page-preview'];
                             if (!pagePreviewPlugin?.enabled) {
-                                console.log('Rich-foot: Page preview plugin is disabled, skipping preview');
                                 return;
                             }
 
@@ -398,24 +395,14 @@ class RichFootPlugin extends Plugin {
                                 hoverTimeout = null;
                             }
                             
-                            console.log('Rich-foot: Mouseover event triggered', { 
-                                linkPath,
-                                sourcePath: file.path,
-                                clientX: mouseEvent.clientX,
-                                clientY: mouseEvent.clientY
-                            });
-                            
                             const previewPlugin = this.app.internalPlugins.plugins['page-preview']?.instance;
                             if (previewPlugin?.onLinkHover) {
-                                console.log('Rich-foot: Attempting to trigger preview');
                                 previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
                             }
                         });
 
                         // Handle mouseout with debounce
                         link.addEventListener('mouseout', (mouseEvent) => {
-                            console.log('Rich-foot: Mouseout event triggered');
-                            
                             if (hoverTimeout) {
                                 clearTimeout(hoverTimeout);
                             }
@@ -467,8 +454,6 @@ class RichFootPlugin extends Plugin {
                     link.dataset.href = linkPath;
                     link.dataset.sourcePath = file.path;
                     if (this.isEditMode()) {
-                        console.log('Rich-foot: Creating outlink in edit mode', { linkPath, sourcePath: file.path });
-                        
                         let hoverTimeout = null;
                         
                         // Handle mouseover
@@ -476,7 +461,6 @@ class RichFootPlugin extends Plugin {
                             // Check if the page preview plugin is enabled
                             const pagePreviewPlugin = this.app.internalPlugins.plugins['page-preview'];
                             if (!pagePreviewPlugin?.enabled) {
-                                console.log('Rich-foot: Page preview plugin is disabled, skipping preview');
                                 return;
                             }
 
@@ -485,24 +469,14 @@ class RichFootPlugin extends Plugin {
                                 hoverTimeout = null;
                             }
                             
-                            console.log('Rich-foot: Outlink mouseover event triggered', { 
-                                linkPath,
-                                sourcePath: file.path,
-                                clientX: mouseEvent.clientX,
-                                clientY: mouseEvent.clientY
-                            });
-                            
                             const previewPlugin = this.app.internalPlugins.plugins['page-preview']?.instance;
                             if (previewPlugin?.onLinkHover) {
-                                console.log('Rich-foot: Attempting to trigger outlink preview');
                                 previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
                             }
                         });
 
                         // Handle mouseout with debounce
                         link.addEventListener('mouseout', (mouseEvent) => {
-                            console.log('Rich-foot: Outlink mouseout event triggered');
-                            
                             if (hoverTimeout) {
                                 clearTimeout(hoverTimeout);
                             }
