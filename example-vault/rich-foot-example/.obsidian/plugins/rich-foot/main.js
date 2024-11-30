@@ -292,7 +292,12 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     document.documentElement.style.setProperty("--rich-foot-dates-opacity", this.settings.datesOpacity);
     document.documentElement.style.setProperty("--rich-foot-links-opacity", this.settings.linksOpacity);
     await this.checkVersion();
-    this.updateRichFoot = (0, import_obsidian3.debounce)(this.updateRichFoot.bind(this), 100, true);
+    this.debouncedUpdateRichFoot = (0, import_obsidian3.debounce)(async () => {
+      const activeLeaf = this.app.workspace.activeLeaf;
+      if ((activeLeaf == null ? void 0 : activeLeaf.view) instanceof import_obsidian3.MarkdownView) {
+        await this.addRichFoot(activeLeaf.view);
+      }
+    }, 100, true);
     this.addSettingTab(new RichFootSettingTab(this.app, this));
     this.registerEvent(
       this.app.metadataCache.on("changed", (file) => {
@@ -301,27 +306,26 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
           const customCreatedProp = this.settings.customCreatedDateProp;
           const customModifiedProp = this.settings.customModifiedDateProp;
           if (customCreatedProp && customCreatedProp in cache.frontmatter || customModifiedProp && customModifiedProp in cache.frontmatter) {
-            this.updateRichFoot();
+            this.debouncedUpdateRichFoot();
           }
         }
       })
     );
     this.app.workspace.onLayoutReady(() => {
       this.registerEvent(
-        this.app.workspace.on("layout-change", this.updateRichFoot)
+        this.app.workspace.on("layout-change", () => this.debouncedUpdateRichFoot())
       );
       this.registerEvent(
-        this.app.workspace.on("active-leaf-change", this.updateRichFoot)
+        this.app.workspace.on("active-leaf-change", () => this.debouncedUpdateRichFoot())
       );
       this.registerEvent(
-        this.app.workspace.on("file-open", this.updateRichFoot)
+        this.app.workspace.on("file-open", () => this.debouncedUpdateRichFoot())
       );
       this.registerEvent(
-        this.app.workspace.on("editor-change", this.updateRichFoot)
+        this.app.workspace.on("editor-change", () => this.debouncedUpdateRichFoot())
       );
-      this.updateRichFoot();
+      this.debouncedUpdateRichFoot();
     });
-    this.contentObserver = new MutationObserver(this.updateRichFoot);
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -347,7 +351,7 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
   async getReleaseNotes(version) {
     return releaseNotes;
   }
-  updateRichFoot() {
+  async updateRichFoot() {
     document.documentElement.style.setProperty("--rich-foot-border-width", `${this.settings.borderWidth}px`);
     document.documentElement.style.setProperty("--rich-foot-border-style", this.settings.borderStyle);
     document.documentElement.style.setProperty("--rich-foot-border-opacity", this.settings.borderOpacity);
@@ -360,12 +364,12 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     document.documentElement.style.setProperty("--rich-foot-link-background", this.settings.linkBackgroundColor);
     document.documentElement.style.setProperty("--rich-foot-link-border-color", this.settings.linkBorderColor);
     const activeLeaf = this.app.workspace.activeLeaf;
-    if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView) {
-      this.addRichFoot(activeLeaf.view);
+    if ((activeLeaf == null ? void 0 : activeLeaf.view) instanceof import_obsidian3.MarkdownView) {
+      await this.addRichFoot(activeLeaf.view);
     }
   }
-  addRichFoot(view) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
+  async addRichFoot(view) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
     const file = view.file;
     if (!file || !file.path) {
       return;
@@ -394,12 +398,9 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
       return;
     }
     this.removeExistingRichFoot(container);
-    const richFoot = this.createRichFoot(file);
-    if (((_n = (_m = view.getMode) == null ? void 0 : _m.call(view)) != null ? _n : view.mode) === "source" || ((_p = (_o = view.getMode) == null ? void 0 : _o.call(view)) != null ? _p : view.mode) === "live") {
-      container.appendChild(richFoot);
-    } else {
-      container.appendChild(richFoot);
-    }
+    this.disconnectObservers();
+    const richFoot = await this.createRichFoot(file);
+    container.appendChild(richFoot);
     this.observeContainer(container);
   }
   removeExistingRichFoot(container) {
@@ -408,12 +409,30 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     if (existingRichFoot) {
       existingRichFoot.remove();
     }
-    const cmSizer = (_a = container.closest(".cm-editor")) == null ? void 0 : _a.querySelector(".cm-sizer");
-    if (cmSizer) {
-      const richFootInSizer = cmSizer.querySelector(".rich-foot");
-      if (richFootInSizer) {
-        richFootInSizer.remove();
+    const cmEditor = container.closest(".cm-editor");
+    if (cmEditor) {
+      const cmSizer = cmEditor.querySelector(".cm-sizer");
+      if (cmSizer) {
+        const richFootInSizer = cmSizer.querySelector(".rich-foot");
+        if (richFootInSizer) {
+          richFootInSizer.remove();
+        }
       }
+    }
+    const previewSection = (_a = container.closest(".markdown-reading-view")) == null ? void 0 : _a.querySelector(".markdown-preview-section");
+    if (previewSection) {
+      const richFootInPreview = previewSection.querySelector(".rich-foot");
+      if (richFootInPreview) {
+        richFootInPreview.remove();
+      }
+    }
+  }
+  disconnectObservers() {
+    if (this.contentObserver) {
+      this.contentObserver.disconnect();
+    }
+    if (this.containerObserver) {
+      this.containerObserver.disconnect();
     }
   }
   observeContainer(container) {
@@ -421,14 +440,18 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
       this.containerObserver.disconnect();
     }
     this.containerObserver = new MutationObserver((mutations) => {
+      var _a;
       const richFoot = container.querySelector(".rich-foot");
       if (!richFoot) {
-        this.addRichFoot(this.app.workspace.activeLeaf.view);
+        const view = (_a = this.app.workspace.activeLeaf) == null ? void 0 : _a.view;
+        if (view instanceof import_obsidian3.MarkdownView) {
+          this.addRichFoot(view);
+        }
       }
     });
     this.containerObserver.observe(container, { childList: true, subtree: true });
   }
-  createRichFoot(file) {
+  async createRichFoot(file) {
     const richFoot = createDiv({ cls: "rich-foot" });
     const richFootDashedLine = richFoot.createDiv({ cls: "rich-foot--dashed-line" });
     if (this.settings.showBacklinks) {
@@ -488,7 +511,7 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
       }
     }
     if (this.settings.showOutlinks) {
-      const outlinks = this.getOutlinks(file);
+      const outlinks = await this.getOutlinks(file);
       if (outlinks.size > 0) {
         const outlinksDiv = richFoot.createDiv({ cls: "rich-foot--outlinks" });
         const outlinksUl = outlinksDiv.createEl("ul");
@@ -636,8 +659,7 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     }
     return richFoot;
   }
-  getOutlinks(file) {
-    var _a, _b, _c, _d;
+  async getOutlinks(file) {
     const cache = this.app.metadataCache.getFileCache(file);
     const links = /* @__PURE__ */ new Set();
     if (cache == null ? void 0 : cache.links) {
@@ -649,12 +671,13 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
         }
       }
     }
-    if ((_a = cache == null ? void 0 : cache.frontmatter) == null ? void 0 : _a.links) {
-      const frontmatterLinks = cache.frontmatter.links;
-      if (Array.isArray(frontmatterLinks)) {
-        for (const link of frontmatterLinks) {
-          const linkText = (_b = link.match(/\[\[(.*?)\]\]/)) == null ? void 0 : _b[1];
-          if (linkText) {
+    if (cache == null ? void 0 : cache.blocks) {
+      for (const block of Object.values(cache.blocks)) {
+        if (block.type === "footnote") {
+          const wikiLinkRegex = /\[\[(.*?)\]\]/g;
+          let wikiMatch;
+          while ((wikiMatch = wikiLinkRegex.exec(block.text)) !== null) {
+            const linkText = wikiMatch[1];
             const linkPath = linkText.split("#")[0];
             const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
             if (targetFile && targetFile.extension === "md") {
@@ -664,42 +687,39 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
         }
       }
     }
-    if (cache == null ? void 0 : cache.embeds) {
-      for (const embed of cache.embeds) {
-        const filePath = embed.link.split("#")[0];
-        const targetFile = this.app.metadataCache.getFirstLinkpathDest(filePath, file.path);
-        if (targetFile && targetFile.extension === "md") {
-          links.add(targetFile.path);
-        }
-      }
+    const fileContent = await this.app.vault.read(file);
+    const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)\]/g;
+    const refFootnoteRegex = /\[\^[^\]]+\]:\s*((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)/g;
+    let match;
+    while ((match = inlineFootnoteRegex.exec(fileContent)) !== null) {
+      const footnoteContent = match[1];
+      await this.processFootnoteContent(footnoteContent, file, links);
     }
-    if (cache == null ? void 0 : cache.sections) {
-      for (const section of cache.sections) {
-        if (section.type === "paragraph") {
-          const matches = ((_c = section.text) == null ? void 0 : _c.match(/\[.*?\]\((.*?)(?:#.*?)?\)/g)) || [];
-          for (const match of matches) {
-            const linkPath = (_d = match.match(/\[.*?\]\((.*?)(?:#.*?)?\)/)) == null ? void 0 : _d[1];
-            if (linkPath) {
-              const cleanPath = linkPath.split("#")[0];
-              const targetFile = this.app.metadataCache.getFirstLinkpathDest(cleanPath, file.path);
-              if (targetFile && targetFile.extension === "md") {
-                links.add(targetFile.path);
-              }
-            }
-          }
-        }
-      }
+    while ((match = refFootnoteRegex.exec(fileContent)) !== null) {
+      const footnoteContent = match[1];
+      await this.processFootnoteContent(footnoteContent, file, links);
     }
     return links;
   }
+  async processFootnoteContent(content, file, links) {
+    const wikiLinkRegex = /\[\[(.*?)\]\]/g;
+    let wikiMatch;
+    while ((wikiMatch = wikiLinkRegex.exec(content)) !== null) {
+      const linkText = wikiMatch[1].trim();
+      const linkPath = linkText.split("#")[0];
+      const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
+      if (targetFile && targetFile.extension === "md") {
+        links.add(targetFile.path);
+      }
+    }
+  }
   onunload() {
-    this.contentObserver.disconnect();
-    if (this.richFootIntervalId) {
-      clearInterval(this.richFootIntervalId);
-    }
-    if (this.containerObserver) {
-      this.containerObserver.disconnect();
-    }
+    this.disconnectObservers();
+    document.querySelectorAll(".rich-foot").forEach((el) => el.remove());
+    this.app.workspace.off("layout-change", this.updateRichFoot);
+    this.app.workspace.off("active-leaf-change", this.updateRichFoot);
+    this.app.workspace.off("file-open", this.updateRichFoot);
+    this.app.workspace.off("editor-change", this.updateRichFoot);
   }
   // Add this method to check if a file should be excluded
   shouldExcludeFile(filePath) {

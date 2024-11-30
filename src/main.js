@@ -170,7 +170,13 @@ class RichFootPlugin extends Plugin {
         // Check version and show release notes if needed
         await this.checkVersion();
 
-        this.updateRichFoot = debounce(this.updateRichFoot.bind(this), 100, true);
+        // Create a debounced version of updateRichFoot
+        this.debouncedUpdateRichFoot = debounce(async () => {
+            const activeLeaf = this.app.workspace.activeLeaf;
+            if (activeLeaf?.view instanceof MarkdownView) {
+                await this.addRichFoot(activeLeaf.view);
+            }
+        }, 100, true);
 
         this.addSettingTab(new RichFootSettingTab(this.app, this));
 
@@ -184,7 +190,7 @@ class RichFootPlugin extends Plugin {
                     
                     if ((customCreatedProp && customCreatedProp in cache.frontmatter) ||
                         (customModifiedProp && customModifiedProp in cache.frontmatter)) {
-                        this.updateRichFoot();
+                        this.debouncedUpdateRichFoot();
                     }
                 }
             })
@@ -192,27 +198,26 @@ class RichFootPlugin extends Plugin {
 
         // Wait for the layout to be ready before registering events
         this.app.workspace.onLayoutReady(() => {
+            // Register all workspace events with the debounced update
             this.registerEvent(
-                this.app.workspace.on('layout-change', this.updateRichFoot)
+                this.app.workspace.on('layout-change', () => this.debouncedUpdateRichFoot())
             );
 
             this.registerEvent(
-                this.app.workspace.on('active-leaf-change', this.updateRichFoot)
+                this.app.workspace.on('active-leaf-change', () => this.debouncedUpdateRichFoot())
             );
 
             this.registerEvent(
-                this.app.workspace.on('file-open', this.updateRichFoot)
+                this.app.workspace.on('file-open', () => this.debouncedUpdateRichFoot())
             );
 
             this.registerEvent(
-                this.app.workspace.on('editor-change', this.updateRichFoot)
+                this.app.workspace.on('editor-change', () => this.debouncedUpdateRichFoot())
             );
 
             // Initial update
-            this.updateRichFoot();
+            this.debouncedUpdateRichFoot();
         });
-
-        this.contentObserver = new MutationObserver(this.updateRichFoot);
     }
 
     async loadSettings() {
@@ -252,7 +257,7 @@ class RichFootPlugin extends Plugin {
         return releaseNotes;
     }
 
-    updateRichFoot() {
+    async updateRichFoot() {
         // Update CSS custom properties
         document.documentElement.style.setProperty('--rich-foot-border-width', `${this.settings.borderWidth}px`);
         document.documentElement.style.setProperty('--rich-foot-border-style', this.settings.borderStyle);
@@ -267,12 +272,12 @@ class RichFootPlugin extends Plugin {
         document.documentElement.style.setProperty('--rich-foot-link-border-color', this.settings.linkBorderColor);
 
         const activeLeaf = this.app.workspace.activeLeaf;
-        if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
-            this.addRichFoot(activeLeaf.view);
+        if (activeLeaf?.view instanceof MarkdownView) {
+            await this.addRichFoot(activeLeaf.view);
         }
     }
 
-    addRichFoot(view) {
+    async addRichFoot(view) {
         const file = view.file;
         if (!file || !file.path) {
             return;
@@ -307,39 +312,61 @@ class RichFootPlugin extends Plugin {
             return;
         }
 
-        // Remove any existing Rich Foot
+        // Remove any existing Rich Foot and disconnect observers
         this.removeExistingRichFoot(container);
+        this.disconnectObservers();
 
         // Create the Rich Foot
-        const richFoot = this.createRichFoot(file);
+        const richFoot = await this.createRichFoot(file);
 
         // Append the Rich Foot to the container
-        if ((view.getMode?.() ?? view.mode) === 'source' || (view.getMode?.() ?? view.mode) === 'live') {
-            container.appendChild(richFoot);
-        } else {
-            container.appendChild(richFoot);
-        }
+        container.appendChild(richFoot);
 
         // Set up a mutation observer for this specific container
         this.observeContainer(container);
     }
 
     removeExistingRichFoot(container) {
+        // Remove from the current container
         const existingRichFoot = container.querySelector('.rich-foot');
         if (existingRichFoot) {
             existingRichFoot.remove();
         }
+
         // Also check in .cm-sizer for editing mode
-        const cmSizer = container.closest('.cm-editor')?.querySelector('.cm-sizer');
-        if (cmSizer) {
-            const richFootInSizer = cmSizer.querySelector('.rich-foot');
-            if (richFootInSizer) {
-                richFootInSizer.remove();
+        const cmEditor = container.closest('.cm-editor');
+        if (cmEditor) {
+            const cmSizer = cmEditor.querySelector('.cm-sizer');
+            if (cmSizer) {
+                const richFootInSizer = cmSizer.querySelector('.rich-foot');
+                if (richFootInSizer) {
+                    richFootInSizer.remove();
+                }
+            }
+        }
+
+        // Check in preview mode container
+        const previewSection = container.closest('.markdown-reading-view')?.querySelector('.markdown-preview-section');
+        if (previewSection) {
+            const richFootInPreview = previewSection.querySelector('.rich-foot');
+            if (richFootInPreview) {
+                richFootInPreview.remove();
             }
         }
     }
 
+    disconnectObservers() {
+        // Disconnect any existing observers
+        if (this.contentObserver) {
+            this.contentObserver.disconnect();
+        }
+        if (this.containerObserver) {
+            this.containerObserver.disconnect();
+        }
+    }
+
     observeContainer(container) {
+        // Disconnect any existing observer before creating a new one
         if (this.containerObserver) {
             this.containerObserver.disconnect();
         }
@@ -347,14 +374,17 @@ class RichFootPlugin extends Plugin {
         this.containerObserver = new MutationObserver((mutations) => {
             const richFoot = container.querySelector('.rich-foot');
             if (!richFoot) {
-                this.addRichFoot(this.app.workspace.activeLeaf.view);
+                const view = this.app.workspace.activeLeaf?.view;
+                if (view instanceof MarkdownView) {
+                    this.addRichFoot(view);
+                }
             }
         });
 
         this.containerObserver.observe(container, { childList: true, subtree: true });
     }
 
-    createRichFoot(file) {
+    async createRichFoot(file) {
         const richFoot = createDiv({ cls: 'rich-foot' });
         const richFootDashedLine = richFoot.createDiv({ cls: 'rich-foot--dashed-line' });
 
@@ -435,7 +465,7 @@ class RichFootPlugin extends Plugin {
         // -- Outlinks --
         // --------------
         if (this.settings.showOutlinks) {
-            const outlinks = this.getOutlinks(file);
+            const outlinks = await this.getOutlinks(file);
             
             if (outlinks.size > 0) {
                 const outlinksDiv = richFoot.createDiv({ cls: 'rich-foot--outlinks' });
@@ -621,30 +651,30 @@ class RichFootPlugin extends Plugin {
         return richFoot;
     }
 
-    getOutlinks(file) {
+    async getOutlinks(file) {
         const cache = this.app.metadataCache.getFileCache(file);
         const links = new Set();
-        
-        // Check regular links in content
+
+        // Check regular links from the cache
         if (cache?.links) {
             for (const link of cache.links) {
-                // Handle both standard links and links with section references
-                const linkPath = link.link.split('#')[0];  // Remove section reference if present
+                const linkPath = link.link.split('#')[0];
                 const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
                 if (targetFile && targetFile.extension === 'md') {
                     links.add(targetFile.path);
                 }
             }
         }
-        
-        // Check frontmatter links
-        if (cache?.frontmatter?.links) {
-            const frontmatterLinks = cache.frontmatter.links;
-            if (Array.isArray(frontmatterLinks)) {
-                for (const link of frontmatterLinks) {
-                    const linkText = link.match(/\[\[(.*?)\]\]/)?.[1];
-                    if (linkText) {
-                        const linkPath = linkText.split('#')[0];  // Remove section reference if present
+
+        // Process footnotes from the metadata cache first
+        if (cache?.blocks) {
+            for (const block of Object.values(cache.blocks)) {
+                if (block.type === 'footnote') {
+                    const wikiLinkRegex = /\[\[(.*?)\]\]/g;
+                    let wikiMatch;
+                    while ((wikiMatch = wikiLinkRegex.exec(block.text)) !== null) {
+                        const linkText = wikiMatch[1];
+                        const linkPath = linkText.split('#')[0];
                         const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
                         if (targetFile && targetFile.extension === 'md') {
                             links.add(targetFile.path);
@@ -654,47 +684,55 @@ class RichFootPlugin extends Plugin {
             }
         }
 
-        // Check embeds/transclusions
-        if (cache?.embeds) {
-            for (const embed of cache.embeds) {
-                const filePath = embed.link.split('#')[0];
-                const targetFile = this.app.metadataCache.getFirstLinkpathDest(filePath, file.path);
-                if (targetFile && targetFile.extension === 'md') {
-                    links.add(targetFile.path);
-                }
-            }
-        }
-
-        // Check for data-href links in the rendered content
-        if (cache?.sections) {
-            for (const section of cache.sections) {
-                if (section.type === 'paragraph') {
-                    const matches = section.text?.match(/\[.*?\]\((.*?)(?:#.*?)?\)/g) || [];
-                    for (const match of matches) {
-                        const linkPath = match.match(/\[.*?\]\((.*?)(?:#.*?)?\)/)?.[1];
-                        if (linkPath) {
-                            const cleanPath = linkPath.split('#')[0];  // Remove section reference if present
-                            const targetFile = this.app.metadataCache.getFirstLinkpathDest(cleanPath, file.path);
-                            if (targetFile && targetFile.extension === 'md') {
-                                links.add(targetFile.path);
-                            }
-                        }
-                    }
-                }
-            }
+        // Handle inline footnotes by reading the file content
+        const fileContent = await this.app.vault.read(file);
+        
+        // Match inline footnotes with improved regex for nested brackets
+        const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)\]/g;
+        const refFootnoteRegex = /\[\^[^\]]+\]:\s*((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)/g;
+        
+        let match;
+        // Process inline footnotes
+        while ((match = inlineFootnoteRegex.exec(fileContent)) !== null) {
+            const footnoteContent = match[1];
+            await this.processFootnoteContent(footnoteContent, file, links);
         }
         
+        // Process reference footnotes
+        while ((match = refFootnoteRegex.exec(fileContent)) !== null) {
+            const footnoteContent = match[1];
+            await this.processFootnoteContent(footnoteContent, file, links);
+        }
+
         return links;
     }
 
+    async processFootnoteContent(content, file, links) {
+        // Use a non-greedy regex for wiki links to avoid over-matching
+        const wikiLinkRegex = /\[\[(.*?)\]\]/g;
+        let wikiMatch;
+        while ((wikiMatch = wikiLinkRegex.exec(content)) !== null) {
+            const linkText = wikiMatch[1].trim();
+            const linkPath = linkText.split('#')[0];
+            const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
+            if (targetFile && targetFile.extension === 'md') {
+                links.add(targetFile.path);
+            }
+        }
+    }
+
     onunload() {
-        this.contentObserver.disconnect();
-        if (this.richFootIntervalId) {
-            clearInterval(this.richFootIntervalId);
-        }
-        if (this.containerObserver) {
-            this.containerObserver.disconnect();
-        }
+        // Clean up observers
+        this.disconnectObservers();
+        
+        // Remove any existing rich foot elements
+        document.querySelectorAll('.rich-foot').forEach(el => el.remove());
+        
+        // Remove registered events
+        this.app.workspace.off('layout-change', this.updateRichFoot);
+        this.app.workspace.off('active-leaf-change', this.updateRichFoot);
+        this.app.workspace.off('file-open', this.updateRichFoot);
+        this.app.workspace.off('editor-change', this.updateRichFoot);
     }
 
     // Add this method to check if a file should be excluded
