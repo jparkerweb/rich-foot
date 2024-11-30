@@ -2,6 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.8.1] - 2024-11-30
+### 🐛 Fixed
+- `Page Preview` not displaying properly in `editing mode`
+
 ## [1.8.0] - 2024-11-29
 ### ✨ Added
 - Support for `Page Preview` core plugin for `Outlinks` & `Backlinks`
