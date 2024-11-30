@@ -439,6 +439,16 @@
             "id": "6d3996441775543d",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "fe804d4599652d18",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -446,7 +456,7 @@
             }
           }
         ],
-        "currentTab": 34
+        "currentTab": 35
       }
     ],
     "direction": "horizontal",
@@ -465,7 +475,7 @@
       "canvas:Create new canvas": false
     }
   },
-  "active": "e2b1b7584f7a474c",
+  "active": "fe804d4599652d18",
   "lastOpenFiles": [
     "releases/v1.8.0 - 🫣 Page Preview Support.md",
     "Pasted image 20241129154754.png",

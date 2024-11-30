@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1FAE3} Page Preview Support</h2>\n<h3>[1.8.0] - 2024-11-29</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Support for <code>Page Preview</code> core plugin for <code>Outlinks</code> &amp; <code>Backlinks</code></li>\n</ul>\n<p><a href=""><img src="" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1FAE3} Page Preview Support</h2>\n<h3>[1.8.0] - 2024-11-29</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Support for <code>Page Preview</code> core plugin for <code>Outlinks</code> &amp; <code>Backlinks</code></li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 var DEFAULT_SETTINGS = {

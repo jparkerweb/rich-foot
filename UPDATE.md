@@ -4,4 +4,4 @@
 #### ✨ Added
 - Support for `Page Preview` core plugin for `Outlinks` & `Backlinks`
 
-[![screenshot]()]()
+[![screenshot](https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg)](https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg)
