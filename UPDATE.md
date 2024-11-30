@@ -1,6 +1,9 @@
 ## 🫣 Page Preview Support
 
 ### [1.8.1] - 2024-11-30
+#### ✨ Added
+- Outlinks for `footnote` internal links
+
 #### 🐛 Fixed
 - `Page Preview` not displaying properly in `editing mode`
 

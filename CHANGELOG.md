@@ -3,6 +3,9 @@
 All notable changes to Rich Foot will be documented in this file.
 
 ## [1.8.1] - 2024-11-30
+### ✨ Added
+- Outlinks for `footnote` internal links
+
 ### 🐛 Fixed
 - `Page Preview` not displaying properly in `editing mode`
 
