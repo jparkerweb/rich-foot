@@ -13,13 +13,13 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "releases/v1.7.0 - 📆 Dates Your Way.md",
+                "file": "🦶 Rich Foot.md",
                 "mode": "preview",
                 "backlinks": false,
-                "source": false
+                "source": true
               },
               "icon": "lucide-file",
-              "title": "v1.7.0 - 📆 Dates Your Way"
+              "title": "🦶 Rich Foot"
             }
           }
         ]
@@ -369,6 +369,76 @@
             "id": "2c847f2d16aaf127",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "14652de8e6a18ccc",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d0aa2777f3e47d4b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "690df41322286ad3",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "02dd71aa8a7ce50a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "6efac1d0721e85b9",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "95d825311d85a3e9",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "6d3996441775543d",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -376,7 +446,7 @@
             }
           }
         ],
-        "currentTab": 27
+        "currentTab": 34
       }
     ],
     "direction": "horizontal",
@@ -397,13 +467,16 @@
   },
   "active": "e2b1b7584f7a474c",
   "lastOpenFiles": [
-    "🦶 Rich Foot.md",
+    "releases/v1.8.0 - 🫣 Page Preview Support.md",
+    "Pasted image 20241129154754.png",
+    "pixel-banner-images/feet-dreaming.png",
     "releases/v1.7.0 - 📆 Dates Your Way.md",
+    "🦶 Rich Foot.md",
+    "exclude/me too/no rich-feet here either.md",
+    "exclude/no rich-feet here.md",
     "backlink test.md",
     "note with table.md",
     "Untitled.canvas",
-    "exclude/no rich-feet here.md",
-    "exclude/me too/no rich-feet here either.md",
     "pixel-banner-images/calendar-feet.png",
     "images/rich-feet-3.jpg",
     "images/rich-feet-2.jpg",
