@@ -20,15 +20,14 @@ Rich Foot is an Obsidian plugin that enhances the footer of your notes by adding
 - Highly customizable appearance with opacity and border controls
 - Option to exclude folder(s) from displaying 🦶 Rich Foot
 
+![example](rich-foot.jpg)
+
 ## Installation
 
 1. Open Obsidian and go to Settings
 2. Navigate to Community Plugins and disable Safe Mode
 3. Click on Browse and search for "Rich Foot"
 4. Install the plugin and enable it
-
-### Manual Installation
-- Unzip the [latest release](https://github.com/jparkerweb/rich-foot/releases/latest) into your `<vault>/.obsidian/plugins/` folder.
 
 ## Usage
 
@@ -99,10 +98,6 @@ Notes:
 - Excluding a folder will hide Rich Foot completely from notes in that folder
 - Excluded folders also affect all subfolders
 - Links from notes in excluded folders will still appear in the backlinks of other notes
-
-## Example Screenshot
-
-![example](rich-foot.jpg)
 
 ![settings](rich-foot-settings.jpg)
 
