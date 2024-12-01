@@ -1,7 +1,7 @@
 ---
 banner: images/rich-feet-3.jpg
 links:
-  - "[[backlink test]]"
+  - "[[link test]]"
 ---
 
 # 🦶 Rich Foot

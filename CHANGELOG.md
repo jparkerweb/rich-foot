@@ -2,6 +2,15 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.9.0] - 2024-11-30
+### ✨ Added
+- Option to combine `Outlinks` / `Backlinks` in one view called `Links`
+- Directional arrows for `Links`
+- Outlinks for `footnote` internal links
+
+### 🐛 Fixed
+- `Page Preview` not displaying properly in `editing mode`
+
 ## [1.8.0] - 2024-11-29
 ### ✨ Added
 - Support for `Page Preview` core plugin for `Outlinks` & `Backlinks`

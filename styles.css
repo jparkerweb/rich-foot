@@ -15,14 +15,17 @@
 /* -- Backlinks Styles -- */
 /* ---------------------- */
 .rich-foot--backlinks,
-.rich-foot--outlinks {
+.rich-foot--outlinks,
+.rich-foot--links {
     opacity: var(--rich-foot-links-opacity, 1);
 }
 
 .rich-foot--backlinks::before { content: 'Backlinks';}
 .rich-foot--outlinks::before { content: 'Outlinks';}
+.rich-foot--links::before { content: 'Links';}
 .rich-foot--backlinks::before,
-.rich-foot--outlinks::before {
+.rich-foot--outlinks::before,
+.rich-foot--links::before {
     text-transform: uppercase;
     filter: brightness(150%);
     position: relative;
@@ -32,7 +35,8 @@
 }
 
 .rich-foot--backlinks ul,
-.rich-foot--outlinks ul {
+.rich-foot--outlinks ul,
+.rich-foot--links ul {
     list-style: none;
     display: flex;
     flex-direction: row;
@@ -42,12 +46,14 @@
 }
 
 .rich-foot--backlinks ul li,
-.rich-foot--outlinks ul li {
+.rich-foot--outlinks ul li,
+.rich-foot--links ul li {
     margin-inline-start: 0 !important;
 }
 
 .rich-foot--backlinks ul li a,
-.rich-foot--outlinks ul li a {
+.rich-foot--outlinks ul li a,
+.rich-foot--links ul li a {
     filter: brightness(120%);
     text-decoration: none !important;
     font-size: 12px;
@@ -65,13 +71,20 @@
 }
 
 .rich-foot--backlinks ul li a::before,
-.rich-foot--outlinks ul li a::before {
-    content: "← ";
+.rich-foot--links ul li a[data-is-backlink="true"]::before {
+    content: "⇠ ";
+    opacity: .5;
+}
+
+.rich-foot--outlinks ul li a::after,
+.rich-foot--links ul li a[data-is-outlink="true"]::after {
+    content: " ⇢";
     opacity: .5;
 }
 
 .rich-foot--backlinks ul li a:hover,
-.rich-foot--outlinks ul li a:hover {
+.rich-foot--outlinks ul li a:hover,
+.rich-foot--links ul li a:hover {
     filter: brightness(170%);
     border: 1px solid transparent !important;
     text-decoration: none;
