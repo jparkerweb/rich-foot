@@ -1,14 +1,12 @@
-## 🫣 Page Preview Support
+## 🥙 Stuffed Links
 
-### [1.8.1] - 2024-11-30
+### [1.9.0] - 2024-11-30
 #### ✨ Added
+- Option to combine `Outlinks` / `Backlinks` in one view called `Links`
+- Directional arrows for `Links`
 - Outlinks for `footnote` internal links
 
 #### 🐛 Fixed
 - `Page Preview` not displaying properly in `editing mode`
 
-### [1.8.0] - 2024-11-29
-#### ✨ Added
-- Support for `Page Preview` core plugin for `Outlinks` & `Backlinks`
-
-[![screenshot](https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg)](https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg)
+[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg)

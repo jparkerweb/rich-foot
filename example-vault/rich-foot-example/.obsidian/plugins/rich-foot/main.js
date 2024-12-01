@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1FAE3} Page Preview Support</h2>\n<h3>[1.8.1] - 2024-11-30</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li><code>Page Preview</code> not displaying properly in <code>editing mode</code></li>\n</ul>\n<h3>[1.8.0] - 2024-11-29</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Support for <code>Page Preview</code> core plugin for <code>Outlinks</code> &amp; <code>Backlinks</code></li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F959} Stuffed Links</h2>\n<h3>[1.9.0] - 2024-11-30</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Option to combine <code>Outlinks</code> / <code>Backlinks</code> in one view called <code>Links</code></li>\n<li>Directional arrows for <code>Links</code></li>\n<li>Outlinks for <code>footnote</code> internal links</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li><code>Page Preview</code> not displaying properly in <code>editing mode</code></li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -127,7 +127,417 @@ var DEFAULT_SETTINGS = {
   linkBorderColor: "rgba(255, 255, 255, 0.204)",
   customCreatedDateProp: "",
   customModifiedDateProp: "",
-  dateDisplayFormat: "mmmm dd, yyyy"
+  dateDisplayFormat: "mmmm dd, yyyy",
+  showBacklinks: true,
+  showOutlinks: true,
+  showDates: true,
+  combineLinks: false
+};
+function rgbToHex(color) {
+  if (color.startsWith("hsl")) {
+    const temp = document.createElement("div");
+    temp.style.color = color;
+    document.body.appendChild(temp);
+    color = getComputedStyle(temp).color;
+    document.body.removeChild(temp);
+  }
+  const rgb = color.match(/\d+/g);
+  if (!rgb || rgb.length < 3) return "#000000";
+  const [r, g, b] = rgb.slice(0, 3).map((x) => {
+    const val = Math.min(255, Math.max(0, Math.round(parseFloat(x))));
+    return val.toString(16).padStart(2, "0");
+  });
+  return `#${r}${g}${b}`;
+}
+function formatDate(date, format) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  const day = d.getDate();
+  const weekday = d.getDay();
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const monthsShort = months.map((m) => m.slice(0, 3));
+  const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const weekdaysShort = weekdays.map((w) => w.slice(0, 3));
+  const pad = (num) => num.toString().padStart(2, "0");
+  const tokens = {
+    "dddd": weekdays[weekday],
+    "ddd": weekdaysShort[weekday],
+    "dd": pad(day),
+    "d": day.toString(),
+    "mmmm": months[month],
+    "mmm": monthsShort[month],
+    "mm": pad(month + 1),
+    "m": (month + 1).toString(),
+    "yyyy": year.toString(),
+    "yy": year.toString().slice(-2)
+  };
+  const sortedTokens = Object.keys(tokens).sort((a, b) => b.length - a.length);
+  let result = format.toLowerCase();
+  const replacements = /* @__PURE__ */ new Map();
+  sortedTokens.forEach((token, index) => {
+    const placeholder = `__${index}__`;
+    replacements.set(placeholder, tokens[token]);
+    result = result.replace(new RegExp(token, "gi"), placeholder);
+  });
+  replacements.forEach((value, placeholder) => {
+    result = result.replace(new RegExp(placeholder, "g"), value);
+  });
+  return result;
+}
+var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
+  constructor(app, plugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+    this.createdDateInput = null;
+    this.modifiedDateInput = null;
+  }
+  display() {
+    var _a;
+    let { containerEl } = this;
+    containerEl.empty();
+    containerEl.addClass("rich-foot-settings");
+    containerEl.createEl("div", { cls: "rich-foot-info", text: "\u{1F9B6} Rich Foot adds a footer to your notes with useful information such as backlinks, creation date, and last modified date. Use the settings below to customize the appearance." });
+    containerEl.createEl("h3", { text: "Excluded Folders" });
+    containerEl.createEl("p", {
+      text: "Notes in excluded folders (and their subfolders) will not display the Rich Foot footer. This is useful for system folders or areas where you don't want footer information to appear.",
+      cls: "setting-item-description"
+    });
+    const excludedFoldersContainer = containerEl.createDiv("excluded-folders-container");
+    if ((_a = this.plugin.settings) == null ? void 0 : _a.excludedFolders) {
+      this.plugin.settings.excludedFolders.forEach((folder, index) => {
+        const folderDiv = excludedFoldersContainer.createDiv("excluded-folder-item");
+        folderDiv.createSpan({ text: folder });
+        const deleteButton = folderDiv.createEl("button", {
+          text: "Delete",
+          cls: "excluded-folder-delete"
+        });
+        deleteButton.addEventListener("click", async () => {
+          this.plugin.settings.excludedFolders.splice(index, 1);
+          await this.plugin.saveSettings();
+          this.display();
+        });
+      });
+    }
+    const newFolderSetting = new import_obsidian2.Setting(containerEl).setName("Add excluded folder").setDesc("Enter a folder path or browse to select").addText((text) => text.setPlaceholder("folder/subfolder")).addButton((button) => button.setButtonText("Browse").onClick(async () => {
+      const folder = await this.browseForFolder();
+      if (folder) {
+        const textComponent = newFolderSetting.components[0];
+        textComponent.setValue(folder);
+      }
+    })).addButton((button) => button.setButtonText("Add").onClick(async () => {
+      const textComponent = newFolderSetting.components[0];
+      const newFolder = textComponent.getValue().trim();
+      if (newFolder && !this.plugin.settings.excludedFolders.includes(newFolder)) {
+        this.plugin.settings.excludedFolders.push(newFolder);
+        await this.plugin.saveSettings();
+        textComponent.setValue("");
+        this.display();
+      }
+    }));
+    containerEl.createEl("h3", { text: "Visibility Settings" });
+    new import_obsidian2.Setting(containerEl).setName("Show Backlinks").setDesc("Show backlinks in the footer").addToggle((toggle) => toggle.setValue(this.plugin.settings.showBacklinks).onChange(async (value) => {
+      this.plugin.settings.showBacklinks = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Show Outlinks").setDesc("Show outgoing links in the footer").addToggle((toggle) => toggle.setValue(this.plugin.settings.showOutlinks).onChange(async (value) => {
+      this.plugin.settings.showOutlinks = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Show Combine Links").setDesc("Show backlinks and outlinks in a single combined section (overrides show backlinks and show outlinks settings)").addToggle((toggle) => toggle.setValue(this.plugin.settings.combineLinks).onChange(async (value) => {
+      this.plugin.settings.combineLinks = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    }));
+    containerEl.createEl("h3", { text: "Date Settings" });
+    new import_obsidian2.Setting(containerEl).setName("Show Dates").setDesc("Show creation and modification dates in the footer").addToggle((toggle) => toggle.setValue(this.plugin.settings.showDates).onChange(async (value) => {
+      this.plugin.settings.showDates = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Date Display Format").setDesc("Choose how dates should be displayed in the footer").addDropdown((dropdown) => {
+      const today = /* @__PURE__ */ new Date();
+      const formats = [
+        "mm/dd/yyyy",
+        "dd/mm/yyyy",
+        "yyyy-mm-dd",
+        "mmm dd, yyyy",
+        "dd mmm yyyy",
+        "mmmm dd, yyyy",
+        "ddd, mmm dd, yyyy",
+        "dddd, mmmm dd, yyyy",
+        "mm/dd/yy",
+        "dd/mm/yy",
+        "yy-mm-dd",
+        "m/d/yy"
+      ];
+      formats.forEach((format) => {
+        const example = formatDate(today, format);
+        dropdown.addOption(format, `${format} (${example})`);
+      });
+      dropdown.setValue(this.plugin.settings.dateDisplayFormat).onChange(async (value) => {
+        this.plugin.settings.dateDisplayFormat = value;
+        await this.plugin.saveSettings();
+        await this.plugin.updateRichFoot();
+      });
+    });
+    new import_obsidian2.Setting(containerEl).setName("Custom Created Date Property").setDesc("Specify a frontmatter property to use for creation date (leave empty to use file creation date)").addText((text) => {
+      text.setValue(this.plugin.settings.customCreatedDateProp).onChange(async (value) => {
+        this.plugin.settings.customCreatedDateProp = value;
+        await this.plugin.saveSettings();
+        await this.plugin.updateRichFoot();
+      });
+      this.createdDateInput = text;
+      return text;
+    }).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.customCreatedDateProp = "";
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      this.createdDateInput.setValue("");
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Custom Modified Date Property").setDesc("Specify a frontmatter property to use for modification date (leave empty to use file modification date)").addText((text) => {
+      text.setValue(this.plugin.settings.customModifiedDateProp).onChange(async (value) => {
+        this.plugin.settings.customModifiedDateProp = value;
+        await this.plugin.saveSettings();
+        await this.plugin.updateRichFoot();
+      });
+      this.modifiedDateInput = text;
+      return text;
+    }).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.customModifiedDateProp = "";
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      this.modifiedDateInput.setValue("");
+    }));
+    containerEl.createEl("h3", { text: "Style Settings" });
+    new import_obsidian2.Setting(containerEl).setName("Border Width").setDesc("Adjust the width of the footer border (1-10px)").addSlider((slider) => slider.setLimits(1, 10, 1).setValue(this.plugin.settings.borderWidth).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.borderWidth = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.borderWidth = DEFAULT_SETTINGS.borderWidth;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const slider = this.containerEl.querySelector('input[type="range"]');
+      if (slider) slider.value = DEFAULT_SETTINGS.borderWidth;
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Border Style").setDesc("Choose the style of the footer border").addDropdown((dropdown) => dropdown.addOptions({
+      "solid": "Solid",
+      "dashed": "Dashed",
+      "dotted": "Dotted",
+      "double": "Double",
+      "groove": "Groove",
+      "ridge": "Ridge",
+      "inset": "Inset",
+      "outset": "Outset"
+    }).setValue(this.plugin.settings.borderStyle).onChange(async (value) => {
+      this.plugin.settings.borderStyle = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.borderStyle = DEFAULT_SETTINGS.borderStyle;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const dropdown = this.containerEl.querySelector("select");
+      if (dropdown) dropdown.value = DEFAULT_SETTINGS.borderStyle;
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Border Opacity").setDesc("Adjust the opacity of the footer border (0-1)").addSlider((slider) => slider.setLimits(0, 1, 0.1).setValue(this.plugin.settings.borderOpacity).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.borderOpacity = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.borderOpacity = DEFAULT_SETTINGS.borderOpacity;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
+      if (slider) slider.value = DEFAULT_SETTINGS.borderOpacity;
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Border Color").setDesc("Choose the color for the footer border").addColorPicker((color) => color.setValue(this.plugin.settings.borderColor.startsWith("var(--") ? (() => {
+      const temp = document.createElement("div");
+      temp.style.borderColor = "var(--text-accent)";
+      document.body.appendChild(temp);
+      const color2 = getComputedStyle(temp).borderColor;
+      document.body.removeChild(temp);
+      return rgbToHex(color2);
+    })() : this.plugin.settings.borderColor).onChange(async (value) => {
+      this.plugin.settings.borderColor = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.borderColor = DEFAULT_SETTINGS.borderColor;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+      if (colorPicker) {
+        const temp = document.createElement("div");
+        temp.style.borderColor = "var(--text-accent)";
+        document.body.appendChild(temp);
+        const color = getComputedStyle(temp).borderColor;
+        document.body.removeChild(temp);
+        colorPicker.value = rgbToHex(color);
+      }
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Link Border Radius").setDesc("Adjust the border radius of Backlinks and Outlinks (0-15px)").addSlider((slider) => slider.setLimits(0, 15, 1).setValue(this.plugin.settings.borderRadius).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.borderRadius = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
+      if (slider) slider.value = DEFAULT_SETTINGS.borderRadius;
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Links Opacity").setDesc("Adjust the opacity of Backlinks and Outlinks (0-1)").addSlider((slider) => slider.setLimits(0, 1, 0.1).setValue(this.plugin.settings.linksOpacity).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.linksOpacity = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.linksOpacity = DEFAULT_SETTINGS.linksOpacity;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
+      if (slider) slider.value = DEFAULT_SETTINGS.linksOpacity;
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Link Text Color").setDesc("Choose the color for link text").addColorPicker((color) => color.setValue(this.plugin.settings.linkColor.startsWith("var(--") ? (() => {
+      const temp = document.createElement("div");
+      temp.style.color = "var(--link-color)";
+      document.body.appendChild(temp);
+      const color2 = getComputedStyle(temp).color;
+      document.body.removeChild(temp);
+      return rgbToHex(color2);
+    })() : this.plugin.settings.linkColor).onChange(async (value) => {
+      this.plugin.settings.linkColor = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.linkColor = DEFAULT_SETTINGS.linkColor;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+      if (colorPicker) {
+        const temp = document.createElement("div");
+        temp.style.color = "var(--link-color)";
+        document.body.appendChild(temp);
+        const color = getComputedStyle(temp).color;
+        document.body.removeChild(temp);
+        colorPicker.value = rgbToHex(color);
+      }
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Link Background Color").setDesc("Choose the background color for links").addColorPicker((color) => color.setValue(this.plugin.settings.linkBackgroundColor.startsWith("var(--") ? (() => {
+      const temp = document.createElement("div");
+      temp.style.backgroundColor = "var(--tag-background)";
+      document.body.appendChild(temp);
+      const color2 = getComputedStyle(temp).backgroundColor;
+      document.body.removeChild(temp);
+      return rgbToHex(color2);
+    })() : this.plugin.settings.linkBackgroundColor).onChange(async (value) => {
+      this.plugin.settings.linkBackgroundColor = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.linkBackgroundColor = DEFAULT_SETTINGS.linkBackgroundColor;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+      if (colorPicker) {
+        const temp = document.createElement("div");
+        temp.style.backgroundColor = "var(--tag-background)";
+        document.body.appendChild(temp);
+        const color = getComputedStyle(temp).backgroundColor;
+        document.body.removeChild(temp);
+        colorPicker.value = rgbToHex(color);
+      }
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Link Border Color").setDesc("Choose the border color for links").addColorPicker((color) => color.setValue(this.plugin.settings.linkBorderColor.startsWith("rgba(") ? (() => {
+      const temp = document.createElement("div");
+      temp.style.borderColor = this.plugin.settings.linkBorderColor;
+      document.body.appendChild(temp);
+      const color2 = getComputedStyle(temp).borderColor;
+      document.body.removeChild(temp);
+      return rgbToHex(color2);
+    })() : this.plugin.settings.linkBorderColor).onChange(async (value) => {
+      this.plugin.settings.linkBorderColor = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.linkBorderColor = DEFAULT_SETTINGS.linkBorderColor;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+      if (colorPicker) {
+        const temp = document.createElement("div");
+        temp.style.borderColor = DEFAULT_SETTINGS.linkBorderColor;
+        document.body.appendChild(temp);
+        const color = getComputedStyle(temp).borderColor;
+        document.body.removeChild(temp);
+        colorPicker.value = rgbToHex(color);
+      }
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Dates Opacity").setDesc("Adjust the opacity of the Created / Modified Dates (0-1)").addSlider((slider) => slider.setLimits(0, 1, 0.1).setValue(this.plugin.settings.datesOpacity).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.datesOpacity = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.datesOpacity = DEFAULT_SETTINGS.datesOpacity;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
+      if (slider) slider.value = DEFAULT_SETTINGS.datesOpacity;
+    }));
+    new import_obsidian2.Setting(containerEl).setName("Date Color").setDesc("Choose the color for Created / Modified Dates").addColorPicker((color) => color.setValue(this.plugin.settings.dateColor.startsWith("var(--") ? (() => {
+      const temp = document.createElement("div");
+      temp.style.color = "var(--text-accent)";
+      document.body.appendChild(temp);
+      const color2 = getComputedStyle(temp).color;
+      document.body.removeChild(temp);
+      return rgbToHex(color2);
+    })() : this.plugin.settings.dateColor).onChange(async (value) => {
+      this.plugin.settings.dateColor = value;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.dateColor = DEFAULT_SETTINGS.dateColor;
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
+      if (colorPicker) {
+        const temp = document.createElement("div");
+        temp.style.color = "var(--text-accent)";
+        document.body.appendChild(temp);
+        const color = getComputedStyle(temp).color;
+        document.body.removeChild(temp);
+        colorPicker.value = rgbToHex(color);
+      }
+    }));
+    containerEl.createEl("h3", { text: "Example Screenshot", cls: "rich-foot-example-title" });
+    const exampleDiv = containerEl.createDiv({ cls: "rich-foot-example" });
+    exampleDiv.createEl("img", {
+      attr: {
+        src: "https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/rich-foot.jpg",
+        alt: "Rich Foot Example"
+      }
+    });
+    new import_obsidian2.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(this.plugin.settings.showReleaseNotes).onChange(async (value) => {
+      this.plugin.settings.showReleaseNotes = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian2.Setting(containerEl).setName("View Release Notes").setDesc("View release notes for the current version").addButton((button) => button.setButtonText("View Release Notes").onClick(async () => {
+      const notes = await this.plugin.getReleaseNotes(this.plugin.manifest.version);
+      new ReleaseNotesModal(this.app, this.plugin, this.plugin.manifest.version, notes).open();
+    }));
+  }
+  async browseForFolder() {
+    const folders = this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path);
+    return new Promise((resolve) => {
+      const modal = new FolderSuggestModal(this.app, folders, (result) => {
+        resolve(result);
+      });
+      modal.open();
+    });
+  }
 };
 var FolderSuggestModal = class extends import_obsidian2.FuzzySuggestModal {
   constructor(app, folders, onChoose) {
@@ -145,108 +555,9 @@ var FolderSuggestModal = class extends import_obsidian2.FuzzySuggestModal {
     this.onChoose(item);
   }
 };
-var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
-  constructor(app, plugin) {
-    super(app, plugin);
-    this.plugin = plugin;
-    this.createdDateInput = null;
-    this.modifiedDateInput = null;
-  }
-  async browseForFolder() {
-    const folders = [];
-    const files = this.app.vault.getAllLoadedFiles();
-    files.forEach((file) => {
-      if (file.children) {
-        folders.push(file.path);
-      }
-    });
-    const modal = new FolderSuggestModal(this.app, folders, (folder) => {
-      if (this.createdDateInput) {
-        this.createdDateInput.setValue(folder);
-      }
-      if (this.modifiedDateInput) {
-        this.modifiedDateInput.setValue(folder);
-      }
-    });
-    modal.open();
-  }
-  display() {
-    const { containerEl } = this;
-    containerEl.empty();
-    containerEl.createEl("h2", { text: "Rich Foot Settings" });
-    new import_obsidian2.Setting(containerEl).setName("Border Width").setDesc("Width of the footer border in pixels").addSlider((slider) => slider.setLimits(0, 5, 1).setValue(this.plugin.settings.borderWidth).setDynamicTooltip().onChange(async (value) => {
-      this.plugin.settings.borderWidth = value;
-      document.documentElement.style.setProperty("--rich-foot-border-width", `${value}px`);
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Border Style").setDesc("Style of the footer border").addDropdown((dropdown) => dropdown.addOption("solid", "Solid").addOption("dashed", "Dashed").addOption("dotted", "Dotted").setValue(this.plugin.settings.borderStyle).onChange(async (value) => {
-      this.plugin.settings.borderStyle = value;
-      document.documentElement.style.setProperty("--rich-foot-border-style", value);
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Border Opacity").setDesc("Opacity of the footer border").addSlider((slider) => slider.setLimits(0, 1, 0.1).setValue(this.plugin.settings.borderOpacity).setDynamicTooltip().onChange(async (value) => {
-      this.plugin.settings.borderOpacity = value;
-      document.documentElement.style.setProperty("--rich-foot-border-opacity", value);
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Border Radius").setDesc("Border radius of the footer in pixels").addSlider((slider) => slider.setLimits(0, 30, 1).setValue(this.plugin.settings.borderRadius).setDynamicTooltip().onChange(async (value) => {
-      this.plugin.settings.borderRadius = value;
-      document.documentElement.style.setProperty("--rich-foot-border-radius", `${value}px`);
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Dates Opacity").setDesc("Opacity of the dates in the footer").addSlider((slider) => slider.setLimits(0, 1, 0.1).setValue(this.plugin.settings.datesOpacity).setDynamicTooltip().onChange(async (value) => {
-      this.plugin.settings.datesOpacity = value;
-      document.documentElement.style.setProperty("--rich-foot-dates-opacity", value);
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Links Opacity").setDesc("Opacity of the links in the footer").addSlider((slider) => slider.setLimits(0, 1, 0.1).setValue(this.plugin.settings.linksOpacity).setDynamicTooltip().onChange(async (value) => {
-      this.plugin.settings.linksOpacity = value;
-      document.documentElement.style.setProperty("--rich-foot-links-opacity", value);
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Border Color").setDesc("Color of the footer border").addText((text) => text.setValue(this.plugin.settings.borderColor).onChange(async (value) => {
-      this.plugin.settings.borderColor = value;
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Link Color").setDesc("Color of the links in the footer").addText((text) => text.setValue(this.plugin.settings.linkColor).onChange(async (value) => {
-      this.plugin.settings.linkColor = value;
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Link Background Color").setDesc("Background color of the links in the footer").addText((text) => text.setValue(this.plugin.settings.linkBackgroundColor).onChange(async (value) => {
-      this.plugin.settings.linkBackgroundColor = value;
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Link Border Color").setDesc("Border color of the links in the footer").addText((text) => text.setValue(this.plugin.settings.linkBorderColor).onChange(async (value) => {
-      this.plugin.settings.linkBorderColor = value;
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Custom Created Date Property").setDesc("Custom frontmatter property for created date").addText((text) => {
-      this.createdDateInput = text;
-      text.setValue(this.plugin.settings.customCreatedDateProp).onChange(async (value) => {
-        this.plugin.settings.customCreatedDateProp = value;
-        await this.plugin.saveSettings();
-      });
-    });
-    new import_obsidian2.Setting(containerEl).setName("Custom Modified Date Property").setDesc("Custom frontmatter property for modified date").addText((text) => {
-      this.modifiedDateInput = text;
-      text.setValue(this.plugin.settings.customModifiedDateProp).onChange(async (value) => {
-        this.plugin.settings.customModifiedDateProp = value;
-        await this.plugin.saveSettings();
-      });
-    });
-    new import_obsidian2.Setting(containerEl).setName("Date Display Format").setDesc('Format for displaying dates (e.g., "mmmm dd, yyyy" for "January 01, 2024")').addText((text) => text.setValue(this.plugin.settings.dateDisplayFormat).onChange(async (value) => {
-      this.plugin.settings.dateDisplayFormat = value;
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian2.Setting(containerEl).setName("Excluded Folders").setDesc("Folders to exclude from footer display").addTextArea((text) => text.setValue(this.plugin.settings.excludedFolders.join("\n")).onChange(async (value) => {
-      this.plugin.settings.excludedFolders = value.split("\n").filter((folder) => folder.trim() !== "");
-      await this.plugin.saveSettings();
-    }));
-  }
-};
 
 // src/main.js
-function formatDate(date, format) {
+function formatDate2(date, format) {
   const d = new Date(date);
   const year = d.getFullYear();
   const month = d.getMonth();
@@ -454,9 +765,51 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
   async createRichFoot(file) {
     const richFoot = createDiv({ cls: "rich-foot" });
     const richFootDashedLine = richFoot.createDiv({ cls: "rich-foot--dashed-line" });
-    if (this.settings.showBacklinks) {
-      const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
-      if ((backlinksData == null ? void 0 : backlinksData.data) && backlinksData.data.size > 0) {
+    const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
+    const outlinks = await this.getOutlinks(file);
+    if (this.settings.combineLinks) {
+      if ((backlinksData == null ? void 0 : backlinksData.data) && backlinksData.data.size > 0 || outlinks.size > 0) {
+        const linksDiv = richFoot.createDiv({ cls: "rich-foot--links" });
+        const linksUl = linksDiv.createEl("ul");
+        const processedLinks = /* @__PURE__ */ new Set();
+        if (backlinksData == null ? void 0 : backlinksData.data) {
+          for (const [linkPath, linkData] of backlinksData.data) {
+            if (!linkPath.endsWith(".md")) continue;
+            processedLinks.add(linkPath);
+            const li = linksUl.createEl("li");
+            const link = li.createEl("a", {
+              href: linkPath,
+              text: linkPath.split("/").pop().slice(0, -3),
+              cls: this.isEditMode() ? "cm-hmd-internal-link cm-underline" : "internal-link"
+            });
+            link.dataset.href = linkPath;
+            link.dataset.sourcePath = file.path;
+            link.dataset.isBacklink = "true";
+            if (outlinks.has(linkPath)) {
+              link.dataset.isOutlink = "true";
+            }
+            this.setupLinkBehavior(link, linkPath, file);
+          }
+        }
+        for (const linkPath of outlinks) {
+          if (processedLinks.has(linkPath)) continue;
+          const li = linksUl.createEl("li");
+          const link = li.createEl("a", {
+            href: linkPath,
+            text: linkPath.split("/").pop().slice(0, -3),
+            cls: this.isEditMode() ? "cm-hmd-internal-link cm-underline" : "internal-link"
+          });
+          link.dataset.href = linkPath;
+          link.dataset.sourcePath = file.path;
+          link.dataset.isOutlink = "true";
+          this.setupLinkBehavior(link, linkPath, file);
+        }
+        if (linksUl.childElementCount === 0) {
+          linksDiv.remove();
+        }
+      }
+    } else {
+      if (this.settings.showBacklinks && (backlinksData == null ? void 0 : backlinksData.data) && backlinksData.data.size > 0) {
         const backlinksDiv = richFoot.createDiv({ cls: "rich-foot--backlinks" });
         const backlinksUl = backlinksDiv.createEl("ul");
         for (const [linkPath, linkData] of backlinksData.data) {
@@ -469,98 +822,28 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
           });
           link.dataset.href = linkPath;
           link.dataset.sourcePath = file.path;
-          if (this.isEditMode()) {
-            let hoverTimeout = null;
-            link.addEventListener("mouseover", (mouseEvent) => {
-              var _a;
-              const pagePreviewPlugin = this.app.internalPlugins.plugins["page-preview"];
-              if (!(pagePreviewPlugin == null ? void 0 : pagePreviewPlugin.enabled)) {
-                return;
-              }
-              if (hoverTimeout) {
-                clearTimeout(hoverTimeout);
-                hoverTimeout = null;
-              }
-              const previewPlugin = (_a = this.app.internalPlugins.plugins["page-preview"]) == null ? void 0 : _a.instance;
-              if (previewPlugin == null ? void 0 : previewPlugin.onLinkHover) {
-                previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
-              }
-            });
-            link.addEventListener("mouseout", (mouseEvent) => {
-              if (hoverTimeout) {
-                clearTimeout(hoverTimeout);
-              }
-              hoverTimeout = setTimeout(() => {
-                var _a;
-                const previewPlugin = (_a = this.app.internalPlugins.plugins["page-preview"]) == null ? void 0 : _a.instance;
-                const hoverParent = (previewPlugin == null ? void 0 : previewPlugin.hoverParent) || document.body;
-                const previews = hoverParent.querySelectorAll(".hover-popup");
-                previews.forEach((preview) => preview.remove());
-                hoverTimeout = null;
-              }, 50);
-            });
-          }
-          link.addEventListener("click", (event) => {
-            event.preventDefault();
-            this.app.workspace.openLinkText(linkPath, file.path);
-          });
+          this.setupLinkBehavior(link, linkPath, file);
         }
         if (backlinksUl.childElementCount === 0) {
           backlinksDiv.remove();
         }
       }
-    }
-    if (this.settings.showOutlinks) {
-      const outlinks = await this.getOutlinks(file);
-      if (outlinks.size > 0) {
+      if (this.settings.showOutlinks && outlinks.size > 0) {
         const outlinksDiv = richFoot.createDiv({ cls: "rich-foot--outlinks" });
         const outlinksUl = outlinksDiv.createEl("ul");
         for (const linkPath of outlinks) {
-          const parts = linkPath.split("/");
-          const displayName = parts[parts.length - 1].slice(0, -3);
           const li = outlinksUl.createEl("li");
           const link = li.createEl("a", {
             href: linkPath,
-            text: displayName,
+            text: linkPath.split("/").pop().slice(0, -3),
             cls: this.isEditMode() ? "cm-hmd-internal-link cm-underline" : "internal-link"
           });
           link.dataset.href = linkPath;
           link.dataset.sourcePath = file.path;
-          if (this.isEditMode()) {
-            let hoverTimeout = null;
-            link.addEventListener("mouseover", (mouseEvent) => {
-              var _a;
-              const pagePreviewPlugin = this.app.internalPlugins.plugins["page-preview"];
-              if (!(pagePreviewPlugin == null ? void 0 : pagePreviewPlugin.enabled)) {
-                return;
-              }
-              if (hoverTimeout) {
-                clearTimeout(hoverTimeout);
-                hoverTimeout = null;
-              }
-              const previewPlugin = (_a = this.app.internalPlugins.plugins["page-preview"]) == null ? void 0 : _a.instance;
-              if (previewPlugin == null ? void 0 : previewPlugin.onLinkHover) {
-                previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
-              }
-            });
-            link.addEventListener("mouseout", (mouseEvent) => {
-              if (hoverTimeout) {
-                clearTimeout(hoverTimeout);
-              }
-              hoverTimeout = setTimeout(() => {
-                var _a;
-                const previewPlugin = (_a = this.app.internalPlugins.plugins["page-preview"]) == null ? void 0 : _a.instance;
-                const hoverParent = (previewPlugin == null ? void 0 : previewPlugin.hoverParent) || document.body;
-                const previews = hoverParent.querySelectorAll(".hover-popup");
-                previews.forEach((preview) => preview.remove());
-                hoverTimeout = null;
-              }, 50);
-            });
-          }
-          link.addEventListener("click", (event) => {
-            event.preventDefault();
-            this.app.workspace.openLinkText(linkPath, file.path);
-          });
+          this.setupLinkBehavior(link, linkPath, file);
+        }
+        if (outlinksUl.childElementCount === 0) {
+          outlinksDiv.remove();
         }
       }
     }
@@ -600,13 +883,13 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
           const datePart = tempDate.split("T")[0];
           const dateStr = tempDate.includes("T") ? tempDate : `${datePart}T00:00:00`;
           const dateObj = new Date(dateStr);
-          modifiedDate = formatDate(dateObj, this.settings.dateDisplayFormat);
+          modifiedDate = formatDate2(dateObj, this.settings.dateDisplayFormat);
         } else {
           modifiedDate = modifiedDate;
         }
       } else {
         modifiedDate = new Date(file.stat.mtime);
-        modifiedDate = formatDate(modifiedDate, this.settings.dateDisplayFormat);
+        modifiedDate = formatDate2(modifiedDate, this.settings.dateDisplayFormat);
       }
       datesWrapper.createDiv({
         cls: "rich-foot--modified-date",
@@ -644,13 +927,13 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
           const datePart = tempDate.split("T")[0];
           const dateStr = tempDate.includes("T") ? tempDate : `${datePart}T00:00:00`;
           const dateObj = new Date(dateStr);
-          createdDate = formatDate(dateObj, this.settings.dateDisplayFormat);
+          createdDate = formatDate2(dateObj, this.settings.dateDisplayFormat);
         } else {
           createdDate = createdDate;
         }
       } else {
         createdDate = new Date(file.stat.ctime);
-        createdDate = formatDate(createdDate, this.settings.dateDisplayFormat);
+        createdDate = formatDate2(createdDate, this.settings.dateDisplayFormat);
       }
       datesWrapper.createDiv({
         cls: "rich-foot--created-date",
@@ -712,6 +995,43 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
         links.add(targetFile.path);
       }
     }
+  }
+  setupLinkBehavior(link, linkPath, file) {
+    if (this.isEditMode()) {
+      let hoverTimeout = null;
+      link.addEventListener("mouseover", (mouseEvent) => {
+        var _a;
+        const pagePreviewPlugin = this.app.internalPlugins.plugins["page-preview"];
+        if (!(pagePreviewPlugin == null ? void 0 : pagePreviewPlugin.enabled)) {
+          return;
+        }
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout);
+          hoverTimeout = null;
+        }
+        const previewPlugin = (_a = this.app.internalPlugins.plugins["page-preview"]) == null ? void 0 : _a.instance;
+        if (previewPlugin == null ? void 0 : previewPlugin.onLinkHover) {
+          previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
+        }
+      });
+      link.addEventListener("mouseout", (mouseEvent) => {
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout);
+        }
+        hoverTimeout = setTimeout(() => {
+          var _a;
+          const previewPlugin = (_a = this.app.internalPlugins.plugins["page-preview"]) == null ? void 0 : _a.instance;
+          const hoverParent = (previewPlugin == null ? void 0 : previewPlugin.hoverParent) || document.body;
+          const previews = hoverParent.querySelectorAll(".hover-popup");
+          previews.forEach((preview) => preview.remove());
+          hoverTimeout = null;
+        }, 50);
+      });
+    }
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      this.app.workspace.openLinkText(linkPath, file.path);
+    });
   }
   onunload() {
     this.disconnectObservers();

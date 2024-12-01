@@ -7,7 +7,8 @@
   "linksOpacity": 1,
   "showReleaseNotes": true,
   "excludedFolders": [
-    "exclude"
+    "exclude",
+    "misc-notes"
   ],
   "dateColor": "var(--text-accent)",
   "borderColor": "var(--text-accent)",
@@ -17,8 +18,9 @@
   "customCreatedDateProp": "created",
   "customModifiedDateProp": "modified",
   "dateDisplayFormat": "mmmm dd, yyyy",
-  "showBacklinks": true,
-  "showOutlinks": true,
+  "showBacklinks": false,
+  "showOutlinks": false,
   "showDates": true,
+  "combineLinks": true,
   "lastVersion": "1.8.0"
 }

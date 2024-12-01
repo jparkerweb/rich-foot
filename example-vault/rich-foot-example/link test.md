@@ -7,8 +7,4 @@ one, two, three
 I wonder where this goes: [[no rich-feet here#This some some section that I want an outlink to go to]]
 
 some text^[ more text [[three]].]
-
-## hmmm
-
-[[two]]
 	

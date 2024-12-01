@@ -2,8 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
-## [1.8.1] - 2024-11-30
+## [1.9.0] - 2024-11-30
 ### ✨ Added
+- Option to combine `Outlinks` / `Backlinks` in one view called `Links`
+- Directional arrows for `Links`
 - Outlinks for `footnote` internal links
 
 ### 🐛 Fixed

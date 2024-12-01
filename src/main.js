@@ -24,6 +24,7 @@ class RichFootSettings {
         this.customCreatedDateProp = DEFAULT_SETTINGS.customCreatedDateProp;
         this.customModifiedDateProp = DEFAULT_SETTINGS.customModifiedDateProp;
         this.dateDisplayFormat = DEFAULT_SETTINGS.dateDisplayFormat;
+        this.combineLinks = DEFAULT_SETTINGS.combineLinks;
     }
 }
 
@@ -388,13 +389,64 @@ class RichFootPlugin extends Plugin {
         const richFoot = createDiv({ cls: 'rich-foot' });
         const richFootDashedLine = richFoot.createDiv({ cls: 'rich-foot--dashed-line' });
 
-        // ---------------
-        // -- Backlinks --
-        // ---------------
-        if (this.settings.showBacklinks) {
-            const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
+        // Get both backlinks and outlinks data
+        const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
+        const outlinks = await this.getOutlinks(file);
 
-            if (backlinksData?.data && backlinksData.data.size > 0) {
+        if (this.settings.combineLinks) {
+            // Combined Links View
+            if ((backlinksData?.data && backlinksData.data.size > 0) || outlinks.size > 0) {
+                const linksDiv = richFoot.createDiv({ cls: 'rich-foot--links' });
+                const linksUl = linksDiv.createEl('ul');
+
+                // Create a Set to track all unique links
+                const processedLinks = new Set();
+
+                // Process backlinks
+                if (backlinksData?.data) {
+                    for (const [linkPath, linkData] of backlinksData.data) {
+                        if (!linkPath.endsWith('.md')) continue;
+                        processedLinks.add(linkPath);
+
+                        const li = linksUl.createEl('li');
+                        const link = li.createEl('a', {
+                            href: linkPath,
+                            text: linkPath.split('/').pop().slice(0, -3),
+                            cls: this.isEditMode() ? 'cm-hmd-internal-link cm-underline' : 'internal-link'
+                        });
+                        link.dataset.href = linkPath;
+                        link.dataset.sourcePath = file.path;
+                        link.dataset.isBacklink = 'true';
+                        if (outlinks.has(linkPath)) {
+                            link.dataset.isOutlink = 'true';
+                        }
+                        this.setupLinkBehavior(link, linkPath, file);
+                    }
+                }
+
+                // Process outlinks
+                for (const linkPath of outlinks) {
+                    if (processedLinks.has(linkPath)) continue;
+
+                    const li = linksUl.createEl('li');
+                    const link = li.createEl('a', {
+                        href: linkPath,
+                        text: linkPath.split('/').pop().slice(0, -3),
+                        cls: this.isEditMode() ? 'cm-hmd-internal-link cm-underline' : 'internal-link'
+                    });
+                    link.dataset.href = linkPath;
+                    link.dataset.sourcePath = file.path;
+                    link.dataset.isOutlink = 'true';
+                    this.setupLinkBehavior(link, linkPath, file);
+                }
+
+                if (linksUl.childElementCount === 0) {
+                    linksDiv.remove();
+                }
+            }
+        } else {
+            // Separate Backlinks and Outlinks Views
+            if (this.settings.showBacklinks && backlinksData?.data && backlinksData.data.size > 0) {
                 const backlinksDiv = richFoot.createDiv({ cls: 'rich-foot--backlinks' });
                 const backlinksUl = backlinksDiv.createEl('ul');
 
@@ -409,124 +461,32 @@ class RichFootPlugin extends Plugin {
                     });
                     link.dataset.href = linkPath;
                     link.dataset.sourcePath = file.path;
-                    if (this.isEditMode()) {
-                        let hoverTimeout = null;
-                        
-                        // Handle mouseover
-                        link.addEventListener('mouseover', (mouseEvent) => {
-                            // Check if the page preview plugin is enabled
-                            const pagePreviewPlugin = this.app.internalPlugins.plugins['page-preview'];
-                            if (!pagePreviewPlugin?.enabled) {
-                                return;
-                            }
-
-                            if (hoverTimeout) {
-                                clearTimeout(hoverTimeout);
-                                hoverTimeout = null;
-                            }
-                            
-                            const previewPlugin = this.app.internalPlugins.plugins['page-preview']?.instance;
-                            if (previewPlugin?.onLinkHover) {
-                                previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
-                            }
-                        });
-
-                        // Handle mouseout with debounce
-                        link.addEventListener('mouseout', (mouseEvent) => {
-                            if (hoverTimeout) {
-                                clearTimeout(hoverTimeout);
-                            }
-                            
-                            hoverTimeout = setTimeout(() => {
-                                const previewPlugin = this.app.internalPlugins.plugins['page-preview']?.instance;
-                                const hoverParent = previewPlugin?.hoverParent || document.body;
-                                
-                                // Try to find and remove any existing previews
-                                const previews = hoverParent.querySelectorAll('.hover-popup');
-                                previews.forEach(preview => preview.remove());
-                                
-                                hoverTimeout = null;
-                            }, 50);
-                        });
-                    }
-                    link.addEventListener('click', (event) => {
-                        event.preventDefault();
-                        this.app.workspace.openLinkText(linkPath, file.path);
-                    });
+                    this.setupLinkBehavior(link, linkPath, file);
                 }
 
                 if (backlinksUl.childElementCount === 0) {
                     backlinksDiv.remove();
                 }
             }
-        }
 
-        // --------------
-        // -- Outlinks --
-        // --------------
-        if (this.settings.showOutlinks) {
-            const outlinks = await this.getOutlinks(file);
-            
-            if (outlinks.size > 0) {
+            if (this.settings.showOutlinks && outlinks.size > 0) {
                 const outlinksDiv = richFoot.createDiv({ cls: 'rich-foot--outlinks' });
                 const outlinksUl = outlinksDiv.createEl('ul');
 
                 for (const linkPath of outlinks) {
-                    const parts = linkPath.split('/');
-                    const displayName = parts[parts.length - 1].slice(0, -3);
-                    
                     const li = outlinksUl.createEl('li');
                     const link = li.createEl('a', {
                         href: linkPath,
-                        text: displayName,
+                        text: linkPath.split('/').pop().slice(0, -3),
                         cls: this.isEditMode() ? 'cm-hmd-internal-link cm-underline' : 'internal-link'
                     });
                     link.dataset.href = linkPath;
                     link.dataset.sourcePath = file.path;
-                    if (this.isEditMode()) {
-                        let hoverTimeout = null;
-                        
-                        // Handle mouseover
-                        link.addEventListener('mouseover', (mouseEvent) => {
-                            // Check if the page preview plugin is enabled
-                            const pagePreviewPlugin = this.app.internalPlugins.plugins['page-preview'];
-                            if (!pagePreviewPlugin?.enabled) {
-                                return;
-                            }
+                    this.setupLinkBehavior(link, linkPath, file);
+                }
 
-                            if (hoverTimeout) {
-                                clearTimeout(hoverTimeout);
-                                hoverTimeout = null;
-                            }
-                            
-                            const previewPlugin = this.app.internalPlugins.plugins['page-preview']?.instance;
-                            if (previewPlugin?.onLinkHover) {
-                                previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
-                            }
-                        });
-
-                        // Handle mouseout with debounce
-                        link.addEventListener('mouseout', (mouseEvent) => {
-                            if (hoverTimeout) {
-                                clearTimeout(hoverTimeout);
-                            }
-                            
-                            hoverTimeout = setTimeout(() => {
-                                const previewPlugin = this.app.internalPlugins.plugins['page-preview']?.instance;
-                                const hoverParent = previewPlugin?.hoverParent || document.body;
-                                
-                                // Try to find and remove any existing previews
-                                const previews = hoverParent.querySelectorAll('.hover-popup');
-                                previews.forEach(preview => preview.remove());
-                                
-                                hoverTimeout = null;
-                            }, 50);
-                        });
-                    }
-                    link.addEventListener('click', (event) => {
-                        event.preventDefault();
-                        this.app.workspace.openLinkText(linkPath, file.path);
-                    });
+                if (outlinksUl.childElementCount === 0) {
+                    outlinksDiv.remove();
                 }
             }
         }
@@ -719,6 +679,53 @@ class RichFootPlugin extends Plugin {
                 links.add(targetFile.path);
             }
         }
+    }
+
+    setupLinkBehavior(link, linkPath, file) {
+        if (this.isEditMode()) {
+            let hoverTimeout = null;
+            
+            // Handle mouseover
+            link.addEventListener('mouseover', (mouseEvent) => {
+                // Check if the page preview plugin is enabled
+                const pagePreviewPlugin = this.app.internalPlugins.plugins['page-preview'];
+                if (!pagePreviewPlugin?.enabled) {
+                    return;
+                }
+
+                if (hoverTimeout) {
+                    clearTimeout(hoverTimeout);
+                    hoverTimeout = null;
+                }
+                
+                const previewPlugin = this.app.internalPlugins.plugins['page-preview']?.instance;
+                if (previewPlugin?.onLinkHover) {
+                    previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
+                }
+            });
+
+            // Handle mouseout with debounce
+            link.addEventListener('mouseout', (mouseEvent) => {
+                if (hoverTimeout) {
+                    clearTimeout(hoverTimeout);
+                }
+                
+                hoverTimeout = setTimeout(() => {
+                    const previewPlugin = this.app.internalPlugins.plugins['page-preview']?.instance;
+                    const hoverParent = previewPlugin?.hoverParent || document.body;
+                    
+                    // Try to find and remove any existing previews
+                    const previews = hoverParent.querySelectorAll('.hover-popup');
+                    previews.forEach(preview => preview.remove());
+                    
+                    hoverTimeout = null;
+                }, 50);
+            });
+        }
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            this.app.workspace.openLinkText(linkPath, file.path);
+        });
     }
 
     onunload() {
