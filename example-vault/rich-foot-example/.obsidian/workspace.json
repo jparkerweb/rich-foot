@@ -13,27 +13,16 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "releases/v1.9.0 - 🥙 Stuffed Links.md",
-                "mode": "preview",
+                "file": "misc-notes/one.md",
+                "mode": "source",
                 "backlinks": false,
-                "source": true
+                "source": false
               },
               "icon": "lucide-file",
-              "title": "v1.9.0 - 🥙 Stuffed Links"
-            }
-          },
-          {
-            "id": "e385dd1e9f266919",
-            "type": "leaf",
-            "state": {
-              "type": "custom-frames-📄-release-notes",
-              "state": {},
-              "icon": "lucide-notebook-pen",
-              "title": "📄 release notes"
+              "title": "one"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -1290,6 +1279,96 @@
             "id": "36f4123a77c01f32",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a16830fead36bb23",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "cfebcb26848675d4",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "87de1bbecae686df",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "11bd4f089185efbf",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8cc8ef3f19bd5b39",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b5d5879e0b92a67b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1f72074fdbe3a034",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "dae152f9da841838",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "61fc8d74dba4ad3f",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -1297,7 +1376,7 @@
             }
           }
         ],
-        "currentTab": 118
+        "currentTab": 127
       }
     ],
     "direction": "horizontal",
@@ -1316,21 +1395,21 @@
       "canvas:Create new canvas": false
     }
   },
-  "active": "e385dd1e9f266919",
+  "active": "e2b1b7584f7a474c",
   "lastOpenFiles": [
+    "misc-notes/two.md",
+    "misc-notes/one.md",
+    "misc-notes/three.md",
+    "link test.md",
     "releases/v1.9.0 - 🥙 Stuffed Links.md",
-    "pixel-banner-images/stuffed-links.png",
     "releases/v1.8.0 - 🫣 Page Preview Support.md",
     "releases/v1.7.0 - 📆 Dates Your Way.md",
     "🦶 Rich Foot.md",
-    "link test.md",
-    "exclude/me too/no rich-feet here either.md",
-    "exclude/no rich-feet here.md",
+    "pixel-banner-images/stuffed-links.png",
     "pixel-banner-images/feet-dreaming.png",
     "pixel-banner-images/calendar-feet.png",
-    "misc-notes/two.md",
-    "misc-notes/three.md",
-    "misc-notes/one.md",
+    "exclude/me too/no rich-feet here either.md",
+    "exclude/no rich-feet here.md",
     "misc-notes",
     "Pasted image 20241129154754.png",
     "note with table.md",
