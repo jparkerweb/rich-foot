@@ -626,6 +626,17 @@ class RichFootPlugin extends Plugin {
             }
         }
 
+        // Add frontmatter links
+        if (cache?.frontmatterLinks) {
+            for (const link of cache.frontmatterLinks) {
+                const linkPath = link.link.split('#')[0];
+                const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
+                if (targetFile && targetFile.extension === 'md') {
+                    links.add(targetFile.path);
+                }
+            }
+        }
+
         // Process footnotes from the metadata cache first
         if (cache?.blocks) {
             for (const block of Object.values(cache.blocks)) {

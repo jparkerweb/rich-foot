@@ -2,6 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.9.1] - 2024-12-01
+### 🐛 Fixed
+- `Links` defined in frontmatter were not being displayed
+
 ## [1.9.0] - 2024-11-30
 ### ✨ Added
 - Option to combine `Outlinks` / `Backlinks` in one view called `Links`

@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F959} Stuffed Links</h2>\n<h3>[1.9.0] - 2024-11-30</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Option to combine <code>Outlinks</code> / <code>Backlinks</code> in one view called <code>Links</code></li>\n<li>Directional arrows for <code>Links</code></li>\n<li>Outlinks for <code>footnote</code> internal links</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li><code>Page Preview</code> not displaying properly in <code>editing mode</code></li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F959} Stuffed Links</h2>\n<h3>[1.9.1] - 2024-12-01</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li><code>Links</code> defined in frontmatter were not being displayed</li>\n</ul>\n<h3>[1.9.0] - 2024-11-30</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Option to combine <code>Outlinks</code> / <code>Backlinks</code> in one view called <code>Links</code></li>\n<li>Directional arrows for <code>Links</code></li>\n<li>Outlinks for <code>footnote</code> internal links</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li><code>Page Preview</code> not displaying properly in <code>editing mode</code></li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -947,6 +947,15 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     const links = /* @__PURE__ */ new Set();
     if (cache == null ? void 0 : cache.links) {
       for (const link of cache.links) {
+        const linkPath = link.link.split("#")[0];
+        const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
+        if (targetFile && targetFile.extension === "md") {
+          links.add(targetFile.path);
+        }
+      }
+    }
+    if (cache == null ? void 0 : cache.frontmatterLinks) {
+      for (const link of cache.frontmatterLinks) {
         const linkPath = link.link.split("#")[0];
         const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
         if (targetFile && targetFile.extension === "md") {
