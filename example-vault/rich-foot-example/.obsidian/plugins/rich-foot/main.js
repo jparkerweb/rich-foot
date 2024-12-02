@@ -1051,7 +1051,7 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
       }
     }
     const fileContent = await this.app.vault.read(file);
-    const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*)*)\]/g;
+    const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)\]/g;
     const refFootnoteRegex = /\[\^[^\]]+\]:\s*((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)/g;
     let match;
     while ((match = inlineFootnoteRegex.exec(fileContent)) !== null) {

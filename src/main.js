@@ -714,8 +714,8 @@ class RichFootPlugin extends Plugin {
         // Handle inline footnotes by reading the file content
         const fileContent = await this.app.vault.read(file);
         
-        // Match inline footnotes with improved regex for nested brackets
-        const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*)*)\]/g;
+        // Match inline footnotes (nested brackets)
+        const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)\]/g; // altering this will break link detection
         const refFootnoteRegex = /\[\^[^\]]+\]:\s*((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)/g;
         
         let match;
