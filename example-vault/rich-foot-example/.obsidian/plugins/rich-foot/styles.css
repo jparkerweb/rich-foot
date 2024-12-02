@@ -9,6 +9,12 @@
     margin-top: 30px !important;
     margin-bottom: 20px !important;
     padding-top: 10px !important;
+    opacity: 1;
+    transition: opacity 600ms ease-in-out; /* fade in rich-foot */
+}
+
+.rich-foot--hidden {
+    opacity: 0;
 }
 
 /* ---------------------- */
@@ -139,6 +145,19 @@ body.theme-light .rich-foot--backlinks ul li a {
 /* ---------------------------- */
 /* -- Editor-specific Styles -- */
 /* ---------------------------- */
+.cm-sizer {
+    width: 100%;
+    padding-bottom: 0 !important;
+}
+
+.cm-sizer > .rich-foot {
+    margin-top: 15px !important;
+}
+
+.cm-sizer .rich-foot--backlinks {
+    margin-top: 0;
+}
+
 .cm-scroller .cm-contentContainer > .cm-content,
 .markdown-source-view .cm-contentContainer > .cm-content {
     padding-bottom: 30px !important;
@@ -159,36 +178,33 @@ body.theme-light .rich-foot--backlinks ul li a {
     margin-right: 20px;
 }
 
-.cm-sizer,
+/* ---------------------------- */
+/* -- Preview-specific Styles -- */
+/* ---------------------------- */
 .markdown-preview-sizer {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
     width: 100%;
-    min-height: 100% !important;
     padding-bottom: 0 !important;
 }
+
+.markdown-reading-view .markdown-preview-sizer {
+    width: 100%;
+}
+
+/* Update the rich foot positioning */
+.markdown-reading-view .markdown-preview-sizer > .rich-foot {
+    padding-top: var(--rich-foot-top-padding, 10px) !important;
+    padding-bottom: 0 !important;
+    margin-bottom: var(--rich-foot-margin-bottom, 0) !important;
+}
+
+/* ----------- */
+/* -- other -- */
+/* ----------- */
 
 /* fix note embed height scroll in canvas */
 .canvas-node-content.markdown-embed div.cm-sizer,
 .canvas-node-content.markdown-embed div.markdown-preview-sizer {
 	min-height: unset !important;
-}
-
-
-.cm-sizer .rich-foot--backlinks {
-    margin-top: 0;
-}
-
-.markdown-preview-sizer > div {
-    flex: 0 auto;
-}
-
-.markdown-preview-sizer > .rich-foot {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
 }
 
 .rich-foot > .rich-foot--dashed-line {
@@ -206,6 +222,11 @@ body.theme-light .rich-foot--backlinks ul li a {
     color: var(--rich-foot-date-color);
 }
 
+/* Settings styles */
+.rich-foot-settings input[type='text'],
+.rich-foot-settings input[type='number'] {
+    text-align: right;
+}
 
 /* --------------------- */
 /* -- Settings Styles -- */
