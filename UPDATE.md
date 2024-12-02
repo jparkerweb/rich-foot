@@ -1,5 +1,10 @@
 ## 🥙 Stuffed Links
 
+### [1.9.2] - 2024-12-01
+#### 🐛 Fixed
+- dynamic `css` in `reading` mode disrupting document flow of floated elements (e.g. ITS callouts)
+- debounced `updateRichFoot` in `editing` mode (new settings option that allows delay in milliseconds)
+
 ### [1.9.1] - 2024-12-01
 #### 🐛 Fixed
 - `Links` defined in frontmatter were not being displayed

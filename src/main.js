@@ -25,6 +25,7 @@ class RichFootSettings {
         this.customModifiedDateProp = DEFAULT_SETTINGS.customModifiedDateProp;
         this.dateDisplayFormat = DEFAULT_SETTINGS.dateDisplayFormat;
         this.combineLinks = DEFAULT_SETTINGS.combineLinks;
+        this.updateDelay = DEFAULT_SETTINGS.updateDelay;
     }
 }
 
@@ -171,13 +172,30 @@ class RichFootPlugin extends Plugin {
         // Check version and show release notes if needed
         await this.checkVersion();
 
-        // Create a debounced version of updateRichFoot
-        this.debouncedUpdateRichFoot = debounce(async () => {
+        // Create a debounced version of updateRichFoot for edit mode
+        const updateRichFootCallback = async () => {
             const activeLeaf = this.app.workspace.activeLeaf;
-            if (activeLeaf?.view instanceof MarkdownView) {
+            try {
                 await this.addRichFoot(activeLeaf.view);
+                this.adjustFooterPadding();
+            } catch (error) {
+                console.error('Error in debouncedUpdateRichFoot:', error);
             }
-        }, 100, true);
+        };
+        this.debouncedUpdateRichFoot = debounce(updateRichFootCallback, this.settings.updateDelay, true);
+        // Store the callback for later use when updating debounce timing
+        this.debouncedUpdateRichFoot.callback = updateRichFootCallback;
+
+        // Non-debounced version for reading mode
+        this.immediateUpdateRichFoot = async () => {
+            const activeLeaf = this.app.workspace.activeLeaf;
+            try {
+                await this.addRichFoot(activeLeaf.view);
+                this.adjustFooterPadding();
+            } catch (error) {
+                console.error('Error in immediateUpdateRichFoot:', error);
+            }
+        };
 
         this.addSettingTab(new RichFootSettingTab(this.app, this));
 
@@ -191,7 +209,11 @@ class RichFootPlugin extends Plugin {
                     
                     if ((customCreatedProp && customCreatedProp in cache.frontmatter) ||
                         (customModifiedProp && customModifiedProp in cache.frontmatter)) {
-                        this.debouncedUpdateRichFoot();
+                        if (this.isEditMode()) {
+                            this.debouncedUpdateRichFoot();
+                        } else {
+                            this.immediateUpdateRichFoot();
+                        }
                     }
                 }
             })
@@ -199,25 +221,47 @@ class RichFootPlugin extends Plugin {
 
         // Wait for the layout to be ready before registering events
         this.app.workspace.onLayoutReady(() => {
-            // Register all workspace events with the debounced update
             this.registerEvent(
-                this.app.workspace.on('layout-change', () => this.debouncedUpdateRichFoot())
+                this.app.workspace.on('layout-change', async () => {
+                    await this.immediateUpdateRichFoot();
+                })
             );
 
             this.registerEvent(
-                this.app.workspace.on('active-leaf-change', () => this.debouncedUpdateRichFoot())
+                this.app.workspace.on('active-leaf-change', async () => {
+                    if (this.isEditMode()) {
+                        await this.debouncedUpdateRichFoot();
+                    } else {
+                        await this.immediateUpdateRichFoot();
+                    }
+                })
             );
 
             this.registerEvent(
-                this.app.workspace.on('file-open', () => this.debouncedUpdateRichFoot())
+                this.app.workspace.on('file-open', async () => {
+                    await this.immediateUpdateRichFoot();
+                })
+            );
+
+            // Add mode change handler
+            this.registerEvent(
+                this.app.workspace.on('mode-change', async (event) => {
+                    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                    if (activeView) {
+                        // Immediately update on mode change
+                        await this.immediateUpdateRichFoot();
+                    }
+                })
             );
 
             this.registerEvent(
-                this.app.workspace.on('editor-change', () => this.debouncedUpdateRichFoot())
+                this.app.workspace.on('editor-change', async () => {
+                    await this.debouncedUpdateRichFoot();
+                })
             );
 
             // Initial update
-            this.debouncedUpdateRichFoot();
+            this.immediateUpdateRichFoot();
         });
     }
 
@@ -279,52 +323,55 @@ class RichFootPlugin extends Plugin {
     }
 
     async addRichFoot(view) {
-        const file = view.file;
-        if (!file || !file.path) {
-            return;
-        }
+        try {
+            const file = view.file;
+            if (!file || !file.path) {
+                return;
+            }
 
-        // Check if the current file is in an excluded folder
-        if (this.shouldExcludeFile(file.path)) {
-            // Remove any existing Rich Foot if the file is now excluded
+            // Check if the current file is in an excluded folder
+            if (this.shouldExcludeFile(file.path)) {
+                const existingRichFoots = document.querySelectorAll('.rich-foot');
+                existingRichFoots.forEach(el => el.remove());
+                return;
+            }
+
             const content = view.contentEl;
             let container;
+
             if ((view.getMode?.() ?? view.mode) === 'preview') {
                 container = content.querySelector('.markdown-preview-section');
             } else if ((view.getMode?.() ?? view.mode) === 'source' || (view.getMode?.() ?? view.mode) === 'live') {
                 container = content.querySelector('.cm-sizer');
             }
-            if (container) {
-                this.removeExistingRichFoot(container);
+
+            if (!container) {
+                return;
             }
-            return;
+
+            // Remove ALL existing Rich Foot elements from the document BEFORE creating new one
+            const existingRichFoots = document.querySelectorAll('.rich-foot');
+            existingRichFoots.forEach(el => el.remove());
+
+            // Disconnect observers
+            this.disconnectObservers();
+
+            // Create and append the Rich Foot
+            const richFoot = await this.createRichFoot(file);
+            
+            // Double check no rich-foot was added while we were creating this one
+            const newCheck = document.querySelectorAll('.rich-foot');
+            if (newCheck.length > 0) {
+                newCheck.forEach(el => el.remove());
+            }
+            
+            container.appendChild(richFoot);
+
+            // Set up a mutation observer for this specific container
+            this.observeContainer(container);
+        } catch (error) {
+            console.error('Error in addRichFoot:', error);
         }
-
-        const content = view.contentEl;
-        let container;
-
-        if ((view.getMode?.() ?? view.mode) === 'preview') {
-            container = content.querySelector('.markdown-preview-section');
-        } else if ((view.getMode?.() ?? view.mode) === 'source' || (view.getMode?.() ?? view.mode) === 'live') {
-            container = content.querySelector('.cm-sizer');
-        }
-
-        if (!container) {
-            return;
-        }
-
-        // Remove any existing Rich Foot and disconnect observers
-        this.removeExistingRichFoot(container);
-        this.disconnectObservers();
-
-        // Create the Rich Foot
-        const richFoot = await this.createRichFoot(file);
-
-        // Append the Rich Foot to the container
-        container.appendChild(richFoot);
-
-        // Set up a mutation observer for this specific container
-        this.observeContainer(container);
     }
 
     removeExistingRichFoot(container) {
@@ -367,17 +414,20 @@ class RichFootPlugin extends Plugin {
     }
 
     observeContainer(container) {
-        // Disconnect any existing observer before creating a new one
         if (this.containerObserver) {
             this.containerObserver.disconnect();
         }
 
-        this.containerObserver = new MutationObserver((mutations) => {
+        this.containerObserver = new MutationObserver(async (mutations) => {
             const richFoot = container.querySelector('.rich-foot');
             if (!richFoot) {
                 const view = this.app.workspace.activeLeaf?.view;
                 if (view instanceof MarkdownView) {
-                    this.addRichFoot(view);
+                    try {
+                        await this.addRichFoot(view);
+                    } catch (error) {
+                        console.error('Error in mutation observer:', error);
+                    }
                 }
             }
         });
@@ -386,7 +436,8 @@ class RichFootPlugin extends Plugin {
     }
 
     async createRichFoot(file) {
-        const richFoot = createDiv({ cls: 'rich-foot' });
+        // Remove the duplicate removal here since we're handling it in addRichFoot
+        const richFoot = createDiv({ cls: 'rich-foot rich-foot--hidden' });
         const richFootDashedLine = richFoot.createDiv({ cls: 'rich-foot--dashed-line' });
 
         // Get both backlinks and outlinks data
@@ -608,6 +659,11 @@ class RichFootPlugin extends Plugin {
             });
         }
 
+        // Trigger fade in after a brief delay to ensure DOM is ready
+        setTimeout(() => {
+            richFoot.removeClass('rich-foot--hidden');
+        }, 10);
+
         return richFoot;
     }
 
@@ -659,7 +715,7 @@ class RichFootPlugin extends Plugin {
         const fileContent = await this.app.vault.read(file);
         
         // Match inline footnotes with improved regex for nested brackets
-        const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)\]/g;
+        const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*)*)\]/g;
         const refFootnoteRegex = /\[\^[^\]]+\]:\s*((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)/g;
         
         let match;
@@ -753,7 +809,7 @@ class RichFootPlugin extends Plugin {
         this.app.workspace.off('editor-change', this.updateRichFoot);
     }
 
-    // Add this method to check if a file should be excluded
+    // check if a file should be excluded
     shouldExcludeFile(filePath) {
         if (!this.settings?.excludedFolders) {
             return false;
@@ -765,6 +821,41 @@ class RichFootPlugin extends Plugin {
         const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (!activeView) return false;
         return (activeView.getMode?.() ?? activeView.mode) === 'source';
+    }
+
+    // adjust footer padding
+    adjustFooterPadding() {
+        setTimeout(() => {
+            const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (!activeView) return;
+
+            const readingView = activeView.contentEl.querySelector('.markdown-reading-view');
+            if (!readingView) return;
+
+            const preview = readingView.querySelector('.markdown-preview-view');
+            const previewSizer = readingView.querySelector('.markdown-preview-sizer');
+            const footer = readingView.querySelector('.markdown-preview-sizer > .rich-foot');
+            
+            if (!preview || !previewSizer || !footer) return;
+
+            // Reset any existing padding first
+            readingView.style.setProperty('--rich-foot-top-padding', '0px');
+            
+            // Get the content height excluding the footer
+            const contentHeight = previewSizer.offsetHeight - footer.offsetHeight;
+            
+            // Calculate available space
+            const availableSpace = preview.offsetHeight - contentHeight - footer.offsetHeight - 85;
+            
+            // Only add padding if there's significant space available (more than 20px)
+            if (availableSpace > 20) {
+                readingView.style.setProperty('--rich-foot-top-padding', `${availableSpace}px`);
+                readingView.style.setProperty('--rich-foot-margin-bottom', '0');
+            } else {
+                readingView.style.setProperty('--rich-foot-top-padding', '10px');
+                readingView.style.setProperty('--rich-foot-margin-bottom', '20px');
+            }
+        }, 100);
     }
 }
 

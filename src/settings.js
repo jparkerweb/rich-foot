@@ -1,4 +1,4 @@
-import { PluginSettingTab, Setting, FuzzySuggestModal } from 'obsidian';
+import { App, PluginSettingTab, Setting, debounce, FuzzySuggestModal } from 'obsidian';
 import { ReleaseNotesModal } from './modals';
 import { releaseNotes } from 'virtual:release-notes';
 
@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS = {
     showOutlinks: true,
     showDates: true,
     combineLinks: false,
+    updateDelay: 3000,
 };
 
 // Helper function to convert HSL to Hex
@@ -156,15 +157,14 @@ export class RichFootSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
         super(app, plugin);
         this.plugin = plugin;
-        this.createdDateInput = null;
-        this.modifiedDateInput = null;
     }
 
     display() {
-        let { containerEl } = this;
+        const { containerEl } = this;
         containerEl.empty();
         containerEl.addClass('rich-foot-settings');
 
+        containerEl.createEl('h2', { text: 'Rich Foot Settings' });
         containerEl.createEl('div', { cls: 'rich-foot-info', text: '🦶 Rich Foot adds a footer to your notes with useful information such as backlinks, creation date, and last modified date. Use the settings below to customize the appearance.' });
 
         // Excluded Folders Section
@@ -259,6 +259,47 @@ export class RichFootSettingTab extends PluginSettingTab {
                     this.plugin.settings.combineLinks = value;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
+                }));
+
+        new Setting(containerEl)
+            .setName('Rich-foot update delay')
+            .setDesc('Delay in milliseconds before updating the rich-foot in edit mode (lower values may impact performance)')
+            .addText(text => text
+                .setPlaceholder('3000')
+                .setValue(String(this.plugin.settings.updateDelay))
+                .onChange(async (value) => {
+                    const numValue = Math.floor(Number(value));
+                    if (!isNaN(numValue) && numValue > 0) {
+                        this.plugin.settings.updateDelay = numValue;
+                        await this.plugin.saveSettings();
+                        
+                        // Update the debounce timing
+                        const updateRichFootCallback = this.plugin.debouncedUpdateRichFoot.callback;
+                        if (updateRichFootCallback) {
+                            this.plugin.debouncedUpdateRichFoot = debounce(updateRichFootCallback, numValue, true);
+                            this.plugin.debouncedUpdateRichFoot.callback = updateRichFootCallback;
+                        }
+                    }
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    const defaultDelay = DEFAULT_SETTINGS.updateDelay;
+                    this.plugin.settings.updateDelay = defaultDelay;
+                    await this.plugin.saveSettings();
+                    
+                    // Update the text field
+                    const textComponent = containerEl.querySelector('.setting-item:last-child input[type="text"]');
+                    if (textComponent) {
+                        textComponent.value = String(defaultDelay);
+                    }
+                    
+                    // Update the debounce timing
+                    const updateRichFootCallback = this.plugin.debouncedUpdateRichFoot.callback;
+                    if (updateRichFootCallback) {
+                        this.plugin.debouncedUpdateRichFoot = debounce(updateRichFootCallback, defaultDelay, true);
+                        this.plugin.debouncedUpdateRichFoot.callback = updateRichFootCallback;
+                    }
                 }));
 
         // Date Settings
