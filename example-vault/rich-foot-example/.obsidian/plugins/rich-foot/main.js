@@ -972,9 +972,22 @@ var RichFootPlugin = class extends import_obsidian4.Plugin {
     }
     this.richFootComponents.clear();
   }
+  updateCssVariables() {
+    document.documentElement.style.setProperty("--rich-foot-border-width", `${this.settings.borderWidth}px`);
+    document.documentElement.style.setProperty("--rich-foot-border-style", this.settings.borderStyle);
+    document.documentElement.style.setProperty("--rich-foot-border-opacity", this.settings.borderOpacity);
+    document.documentElement.style.setProperty("--rich-foot-border-radius", `${this.settings.borderRadius}px`);
+    document.documentElement.style.setProperty("--rich-foot-dates-opacity", this.settings.datesOpacity);
+    document.documentElement.style.setProperty("--rich-foot-links-opacity", this.settings.linksOpacity);
+    document.documentElement.style.setProperty("--rich-foot-date-color", this.settings.dateColor);
+    document.documentElement.style.setProperty("--rich-foot-border-color", this.settings.borderColor);
+    document.documentElement.style.setProperty("--rich-foot-link-color", this.settings.linkColor);
+    document.documentElement.style.setProperty("--rich-foot-link-background", this.settings.linkBackgroundColor);
+    document.documentElement.style.setProperty("--rich-foot-link-border-color", this.settings.linkBorderColor);
+  }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-    document.documentElement.style.setProperty("--rich-foot-date-color", this.settings.dateColor);
+    this.updateCssVariables();
     if (!Array.isArray(this.settings.excludedFolders)) {
       this.settings.excludedFolders = [];
     }
@@ -997,17 +1010,7 @@ var RichFootPlugin = class extends import_obsidian4.Plugin {
     return releaseNotes;
   }
   async updateRichFoot() {
-    document.documentElement.style.setProperty("--rich-foot-border-width", `${this.settings.borderWidth}px`);
-    document.documentElement.style.setProperty("--rich-foot-border-style", this.settings.borderStyle);
-    document.documentElement.style.setProperty("--rich-foot-border-opacity", this.settings.borderOpacity);
-    document.documentElement.style.setProperty("--rich-foot-border-radius", `${this.settings.borderRadius}px`);
-    document.documentElement.style.setProperty("--rich-foot-dates-opacity", this.settings.datesOpacity);
-    document.documentElement.style.setProperty("--rich-foot-links-opacity", this.settings.linksOpacity);
-    document.documentElement.style.setProperty("--rich-foot-date-color", this.settings.dateColor);
-    document.documentElement.style.setProperty("--rich-foot-border-color", this.settings.borderColor);
-    document.documentElement.style.setProperty("--rich-foot-link-color", this.settings.linkColor);
-    document.documentElement.style.setProperty("--rich-foot-link-background", this.settings.linkBackgroundColor);
-    document.documentElement.style.setProperty("--rich-foot-link-border-color", this.settings.linkBorderColor);
+    this.updateCssVariables();
     const activeLeaf = this.app.workspace.activeLeaf;
     if ((activeLeaf == null ? void 0 : activeLeaf.view) instanceof import_obsidian4.MarkdownView) {
       await this.addRichFoot(activeLeaf.view);

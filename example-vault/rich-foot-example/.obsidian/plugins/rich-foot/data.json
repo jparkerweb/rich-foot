@@ -1,5 +1,5 @@
 {
-  "borderWidth": 10,
+  "borderWidth": 1,
   "borderStyle": "dashed",
   "borderOpacity": 1,
   "borderRadius": 15,
@@ -22,5 +22,5 @@
   "showDates": true,
   "combineLinks": true,
   "updateDelay": 3000,
-  "lastVersion": "1.9.2"
+  "lastVersion": "2.0.0"
 }

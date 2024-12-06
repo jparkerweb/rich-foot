@@ -72,7 +72,7 @@
     border-radius: var(--rich-foot-border-radius, 15px);
     border: 1px solid var(--rich-foot-link-border-color, rgba(255, 255, 255, 0.204));
     transition: 150ms ease-in-out all;
-    color: var(--rich-foot-link-color, var(--link-color));
+    color: var(--rich-foot-link-color, var(--link-color)) !important;
     background-color: var(--rich-foot-link-background, var(--tag-background));
 }
 

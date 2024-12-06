@@ -3909,6 +3909,66 @@
             "id": "bbdb6993d37e5a1d",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1137fab19a2fb36e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9a1286d3f3574d9b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5e23a12821132769",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f251cf83db3d5580",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "32c55f014ca58c20",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "47c89b1369644a8e",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -3916,7 +3976,7 @@
             }
           }
         ],
-        "currentTab": 381
+        "currentTab": 387
       }
     ],
     "direction": "horizontal",
@@ -3935,21 +3995,21 @@
       "canvas:Create new canvas": false
     }
   },
-  "active": "5173ce34fa31fa9f",
+  "active": "47c89b1369644a8e",
   "lastOpenFiles": [
-    "releases/v2.0.0 - 🏃‍♂️ Faster, 🛀 Cleaner, 🧠 Smarter.md",
     "🦶 Rich Foot.md",
+    "releases/v2.0.0 - 🏃‍♂️ Faster, 🛀 Cleaner, 🧠 Smarter.md",
+    "misc-notes/three.md",
+    "misc-notes/one.md",
+    "releases/v1.9.0 - 🥙 Stuffed Links.md",
+    "releases/v1.7.0 - 📆 Dates Your Way.md",
     "releases/v1.8.0 - 🫣 Page Preview Support.md",
     "misc-notes/link test 2.md",
     "misc-notes/link test.md",
     "exclude/no rich-feet here.md",
     "exclude/me too/no rich-feet here either.md",
     "pixel-banner-images/fast-foot.png",
-    "releases/v1.9.0 - 🥙 Stuffed Links.md",
-    "releases/v1.7.0 - 📆 Dates Your Way.md",
     "misc-notes/two.md",
-    "misc-notes/three.md",
-    "misc-notes/one.md",
     "pixel-banner-images/stuffed-links.png",
     "pixel-banner-images/feet-dreaming.png",
     "pixel-banner-images/calendar-feet.png",
