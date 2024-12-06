@@ -263,43 +263,53 @@ export class RichFootSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Rich-foot update delay')
-            .setDesc('Delay in milliseconds before updating the rich-foot in edit mode (lower values may impact performance)')
-            .addText(text => text
-                .setPlaceholder('3000')
-                .setValue(String(this.plugin.settings.updateDelay))
-                .onChange(async (value) => {
-                    const numValue = Math.floor(Number(value));
-                    if (!isNaN(numValue) && numValue > 0) {
-                        this.plugin.settings.updateDelay = numValue;
-                        await this.plugin.saveSettings();
-                        
-                        // Update the debounce timing
-                        const updateRichFootCallback = this.plugin.debouncedUpdateRichFoot.callback;
-                        if (updateRichFootCallback) {
-                            this.plugin.debouncedUpdateRichFoot = debounce(updateRichFootCallback, numValue, true);
-                            this.plugin.debouncedUpdateRichFoot.callback = updateRichFootCallback;
+            .setDesc('Delay in milliseconds before updating the rich-foot in edit mode (10-100000ms)')
+            .addText(text => {
+                text.setPlaceholder('3000')
+                    .setValue(String(this.plugin.settings.updateDelay))
+                    .onChange(async (value) => {
+                        const numValue = Math.floor(Number(value));
+                        if (!isNaN(numValue) && numValue >= 10 && numValue <= 100000) {
+                            this.plugin.settings.updateDelay = numValue;
+                            await this.plugin.saveSettings();
+                            this.plugin.updateRichFootCallback = debounce(
+                                () => this.plugin.updateRichFoot(),
+                                numValue
+                            );
                         }
+                    });
+
+                // Add blur event handler for validation
+                text.inputEl.addEventListener('blur', async () => {
+                    const value = text.getValue();
+                    const numValue = Math.floor(Number(value));
+                    
+                    // If invalid or out of range, reset to current setting or default
+                    if (isNaN(numValue) || numValue < 10 || numValue > 100000) {
+                        const validValue = this.plugin.settings.updateDelay || DEFAULT_SETTINGS.updateDelay;
+                        text.setValue(String(validValue));
+                        this.plugin.settings.updateDelay = validValue;
+                        await this.plugin.saveSettings();
                     }
-                }))
+                });
+
+                return text;
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
-                    const defaultDelay = DEFAULT_SETTINGS.updateDelay;
-                    this.plugin.settings.updateDelay = defaultDelay;
+                    this.plugin.settings.updateDelay = DEFAULT_SETTINGS.updateDelay;
                     await this.plugin.saveSettings();
                     
-                    // Update the text field
-                    const textComponent = containerEl.querySelector('.setting-item:last-child input[type="text"]');
+                    const textComponent = button.buttonEl.parentElement.parentElement.querySelector('input[type="text"]');
                     if (textComponent) {
-                        textComponent.value = String(defaultDelay);
+                        textComponent.value = String(DEFAULT_SETTINGS.updateDelay);
                     }
                     
-                    // Update the debounce timing
-                    const updateRichFootCallback = this.plugin.debouncedUpdateRichFoot.callback;
-                    if (updateRichFootCallback) {
-                        this.plugin.debouncedUpdateRichFoot = debounce(updateRichFootCallback, defaultDelay, true);
-                        this.plugin.debouncedUpdateRichFoot.callback = updateRichFootCallback;
-                    }
+                    this.plugin.updateRichFootCallback = debounce(
+                        () => this.plugin.updateRichFoot(),
+                        DEFAULT_SETTINGS.updateDelay
+                    );
                 }));
 
         // Date Settings
@@ -424,31 +434,33 @@ export class RichFootSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Border Style')
             .setDesc('Choose the style of the footer border')
-            .addDropdown(dropdown => dropdown
-                .addOptions({
-                    'solid': 'Solid',
-                    'dashed': 'Dashed',
-                    'dotted': 'Dotted',
-                    'double': 'Double',
-                    'groove': 'Groove',
-                    'ridge': 'Ridge',
-                    'inset': 'Inset',
-                    'outset': 'Outset'
-                })
-                .setValue(this.plugin.settings.borderStyle)
-                .onChange(async (value) => {
-                    this.plugin.settings.borderStyle = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addDropdown(dropdown => {
+                this.borderStyleDropdown = dropdown; // Store reference to dropdown
+                return dropdown
+                    .addOptions({
+                        'solid': 'Solid',
+                        'dashed': 'Dashed',
+                        'dotted': 'Dotted',
+                        'double': 'Double',
+                        'groove': 'Groove',
+                        'ridge': 'Ridge',
+                        'inset': 'Inset',
+                        'outset': 'Outset'
+                    })
+                    .setValue(this.plugin.settings.borderStyle)
+                    .onChange(async (value) => {
+                        this.plugin.settings.borderStyle = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.borderStyle = DEFAULT_SETTINGS.borderStyle;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const dropdown = this.containerEl.querySelector('select');
-                    if (dropdown) dropdown.value = DEFAULT_SETTINGS.borderStyle;
+                    this.borderStyleDropdown.setValue(DEFAULT_SETTINGS.borderStyle); // Use stored reference
                 }));
 
         // Border Opacity

@@ -1,21 +1,14 @@
-## 🥙 Stuffed Links
+## 🏃‍♂️ Faster, 🛀 Cleaner, 🧠 Smarter
 
-### [1.9.2] - 2024-12-01
-#### 🐛 Fixed
-- dynamic `css` in `reading` mode disrupting document flow of floated elements (e.g. ITS callouts)
-- debounced `updateRichFoot` in `editing` mode (new settings option that allows delay in milliseconds)
-
-### [1.9.1] - 2024-12-01
-#### 🐛 Fixed
-- `Links` defined in frontmatter were not being displayed
-
-### [1.9.0] - 2024-11-30
+### [2.0.0] - 2024-12-06
 #### ✨ Added
-- Option to combine `Outlinks` / `Backlinks` in one view called `Links`
-- Directional arrows for `Links`
-- Outlinks for `footnote` internal links
+- Introduced `RichFootComponent` for improved modularity and maintainability
 
 #### 🐛 Fixed
-- `Page Preview` not displaying properly in `editing mode`
+- Optimized memory usage and event handling to prevent leaks
+- Improved compatibility with Obsidian v1.7.2+
 
-[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg)
+#### 📦 Updated
+- Refactored codebase for cleaner architecture and better separation of concerns
+
+[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v2.0.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v2.0.0.jpg)

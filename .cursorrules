@@ -15,6 +15,7 @@ Naming Conventions:
 JavaScript Usage:
 - Avoid Global Variables: Minimize the use of global variables to prevent unintended side effects where possible.
 - Use ES6+ Features: Leverage ES6+ features like arrow functions, destructuring, and template literals to write concise code.
+- When adding debug statements they should always be `console.log` statements (not `console.debug` or `console.error`).
 
 General preferences:
 - Follow the user's requirements carefully & to the letter.
@@ -26,8 +27,6 @@ General preferences:
 - Be concise. Minimize any other prose.
 - If you think there might not be a correct answer, you say so. If you do not know the answer, say so instead of guessing.
 
-
-
-always obey the patterns defined here:
-@https://docs.obsidian.md/Plugins/Guides/
-
+Miscellanious:
+- After making code changes run `npm run test-build`
+- NEVER edit this line: `const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)\]/g;` in @src/main.js

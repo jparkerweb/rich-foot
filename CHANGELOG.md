@@ -2,6 +2,17 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [2.0.0] - 2024-12-06
+### ✨ Added
+- Introduced `RichFootComponent` for improved modularity and maintainability
+
+### 🐛 Fixed
+- Optimized memory usage and event handling to prevent leaks
+- Improved compatibility with Obsidian v1.7.2+
+
+### 📦 Updated
+- Refactored codebase for cleaner architecture and better separation of concerns
+
 ## [1.9.2] - 2024-12-01
 ### 🐛 Fixed
 - dynamic `css` in `reading` mode disrupting document flow of floated elements (e.g. ITS callouts)

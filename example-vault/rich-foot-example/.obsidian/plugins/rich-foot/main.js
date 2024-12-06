@@ -7,6 +7,7 @@ var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -20,6 +21,7 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/main.js
 var main_exports = {};
@@ -27,7 +29,7 @@ __export(main_exports, {
   default: () => main_default
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 
 // src/modals.js
 var import_obsidian = require("obsidian");
@@ -107,7 +109,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F959} Stuffed Links</h2>\n<h3>[1.9.2] - 2024-12-01</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>dynamic <code>css</code> in <code>reading</code> mode disrupting document flow of floated elements (e.g. ITS callouts)</li>\n<li>debounced <code>updateRichFoot</code> in <code>editing</code> mode (new settings option that allows delay in milliseconds)</li>\n</ul>\n<h3>[1.9.1] - 2024-12-01</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li><code>Links</code> defined in frontmatter were not being displayed</li>\n</ul>\n<h3>[1.9.0] - 2024-11-30</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Option to combine <code>Outlinks</code> / <code>Backlinks</code> in one view called <code>Links</code></li>\n<li>Directional arrows for <code>Links</code></li>\n<li>Outlinks for <code>footnote</code> internal links</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li><code>Page Preview</code> not displaying properly in <code>editing mode</code></li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F3C3}\u200D\u2642\uFE0F Faster, \u{1F6C0} Cleaner, \u{1F9E0} Smarter</h2>\n<h3>[2.0.0] - 2024-12-06</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Introduced <code>RichFootComponent</code> for improved modularity and maintainability</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Optimized memory usage and event handling to prevent leaks</li>\n<li>Improved compatibility with Obsidian v1.7.2+</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Refactored codebase for cleaner architecture and better separation of concerns</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v2.0.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v2.0.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -251,30 +253,40 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
       await this.plugin.saveSettings();
       await this.plugin.updateRichFoot();
     }));
-    new import_obsidian2.Setting(containerEl).setName("Rich-foot update delay").setDesc("Delay in milliseconds before updating the rich-foot in edit mode (lower values may impact performance)").addText((text) => text.setPlaceholder("3000").setValue(String(this.plugin.settings.updateDelay)).onChange(async (value) => {
-      const numValue = Math.floor(Number(value));
-      if (!isNaN(numValue) && numValue > 0) {
-        this.plugin.settings.updateDelay = numValue;
-        await this.plugin.saveSettings();
-        const updateRichFootCallback = this.plugin.debouncedUpdateRichFoot.callback;
-        if (updateRichFootCallback) {
-          this.plugin.debouncedUpdateRichFoot = (0, import_obsidian2.debounce)(updateRichFootCallback, numValue, true);
-          this.plugin.debouncedUpdateRichFoot.callback = updateRichFootCallback;
+    new import_obsidian2.Setting(containerEl).setName("Rich-foot update delay").setDesc("Delay in milliseconds before updating the rich-foot in edit mode (10-100000ms)").addText((text) => {
+      text.setPlaceholder("3000").setValue(String(this.plugin.settings.updateDelay)).onChange(async (value) => {
+        const numValue = Math.floor(Number(value));
+        if (!isNaN(numValue) && numValue >= 10 && numValue <= 1e5) {
+          this.plugin.settings.updateDelay = numValue;
+          await this.plugin.saveSettings();
+          this.plugin.updateRichFootCallback = (0, import_obsidian2.debounce)(
+            () => this.plugin.updateRichFoot(),
+            numValue
+          );
         }
-      }
-    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
-      const defaultDelay = DEFAULT_SETTINGS.updateDelay;
-      this.plugin.settings.updateDelay = defaultDelay;
+      });
+      text.inputEl.addEventListener("blur", async () => {
+        const value = text.getValue();
+        const numValue = Math.floor(Number(value));
+        if (isNaN(numValue) || numValue < 10 || numValue > 1e5) {
+          const validValue = this.plugin.settings.updateDelay || DEFAULT_SETTINGS.updateDelay;
+          text.setValue(String(validValue));
+          this.plugin.settings.updateDelay = validValue;
+          await this.plugin.saveSettings();
+        }
+      });
+      return text;
+    }).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.updateDelay = DEFAULT_SETTINGS.updateDelay;
       await this.plugin.saveSettings();
-      const textComponent = containerEl.querySelector('.setting-item:last-child input[type="text"]');
+      const textComponent = button.buttonEl.parentElement.parentElement.querySelector('input[type="text"]');
       if (textComponent) {
-        textComponent.value = String(defaultDelay);
+        textComponent.value = String(DEFAULT_SETTINGS.updateDelay);
       }
-      const updateRichFootCallback = this.plugin.debouncedUpdateRichFoot.callback;
-      if (updateRichFootCallback) {
-        this.plugin.debouncedUpdateRichFoot = (0, import_obsidian2.debounce)(updateRichFootCallback, defaultDelay, true);
-        this.plugin.debouncedUpdateRichFoot.callback = updateRichFootCallback;
-      }
+      this.plugin.updateRichFootCallback = (0, import_obsidian2.debounce)(
+        () => this.plugin.updateRichFoot(),
+        DEFAULT_SETTINGS.updateDelay
+      );
     }));
     containerEl.createEl("h3", { text: "Date Settings" });
     new import_obsidian2.Setting(containerEl).setName("Show Dates").setDesc("Show creation and modification dates in the footer").addToggle((toggle) => toggle.setValue(this.plugin.settings.showDates).onChange(async (value) => {
@@ -348,25 +360,27 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
       const slider = this.containerEl.querySelector('input[type="range"]');
       if (slider) slider.value = DEFAULT_SETTINGS.borderWidth;
     }));
-    new import_obsidian2.Setting(containerEl).setName("Border Style").setDesc("Choose the style of the footer border").addDropdown((dropdown) => dropdown.addOptions({
-      "solid": "Solid",
-      "dashed": "Dashed",
-      "dotted": "Dotted",
-      "double": "Double",
-      "groove": "Groove",
-      "ridge": "Ridge",
-      "inset": "Inset",
-      "outset": "Outset"
-    }).setValue(this.plugin.settings.borderStyle).onChange(async (value) => {
-      this.plugin.settings.borderStyle = value;
-      await this.plugin.saveSettings();
-      await this.plugin.updateRichFoot();
-    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+    new import_obsidian2.Setting(containerEl).setName("Border Style").setDesc("Choose the style of the footer border").addDropdown((dropdown) => {
+      this.borderStyleDropdown = dropdown;
+      return dropdown.addOptions({
+        "solid": "Solid",
+        "dashed": "Dashed",
+        "dotted": "Dotted",
+        "double": "Double",
+        "groove": "Groove",
+        "ridge": "Ridge",
+        "inset": "Inset",
+        "outset": "Outset"
+      }).setValue(this.plugin.settings.borderStyle).onChange(async (value) => {
+        this.plugin.settings.borderStyle = value;
+        await this.plugin.saveSettings();
+        await this.plugin.updateRichFoot();
+      });
+    }).addButton((button) => button.setButtonText("Reset").onClick(async () => {
       this.plugin.settings.borderStyle = DEFAULT_SETTINGS.borderStyle;
       await this.plugin.saveSettings();
       await this.plugin.updateRichFoot();
-      const dropdown = this.containerEl.querySelector("select");
-      if (dropdown) dropdown.value = DEFAULT_SETTINGS.borderStyle;
+      this.borderStyleDropdown.setValue(DEFAULT_SETTINGS.borderStyle);
     }));
     new import_obsidian2.Setting(containerEl).setName("Border Opacity").setDesc("Adjust the opacity of the footer border (0-1)").addSlider((slider) => slider.setLimits(0, 1, 0.1).setValue(this.plugin.settings.borderOpacity).setDynamicTooltip().onChange(async (value) => {
       this.plugin.settings.borderOpacity = value;
@@ -581,125 +595,382 @@ var FolderSuggestModal = class extends import_obsidian2.FuzzySuggestModal {
   }
 };
 
-// src/main.js
-function formatDate2(date, format) {
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = d.getMonth();
-  const day = d.getDate();
-  const weekday = d.getDay();
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const monthsShort = months.map((m) => m.slice(0, 3));
-  const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const weekdaysShort = weekdays.map((w) => w.slice(0, 3));
-  const pad = (num) => num.toString().padStart(2, "0");
-  const tokens = {
-    "dddd": weekdays[weekday],
-    "ddd": weekdaysShort[weekday],
-    "dd": pad(day),
-    "d": day.toString(),
-    "mmmm": months[month],
-    "mmm": monthsShort[month],
-    "mm": pad(month + 1),
-    "m": (month + 1).toString(),
-    "yyyy": year.toString(),
-    "yy": year.toString().slice(-2)
-  };
-  const sortedTokens = Object.keys(tokens).sort((a, b) => b.length - a.length);
-  let result = format;
-  const replacements = /* @__PURE__ */ new Map();
-  sortedTokens.forEach((token, index) => {
-    const placeholder = `__${index}__`;
-    replacements.set(placeholder, tokens[token]);
-    result = result.replace(new RegExp(token, "g"), placeholder);
-  });
-  replacements.forEach((value, placeholder) => {
-    result = result.replace(new RegExp(placeholder, "g"), value);
-  });
-  return result;
-}
-var RichFootPlugin = class extends import_obsidian3.Plugin {
+// src/components/rich-foot.js
+var import_obsidian3 = require("obsidian");
+var RichFootComponent = class extends import_obsidian3.Component {
+  constructor(view, plugin) {
+    super();
+    this.view = view;
+    this.plugin = plugin;
+    this.container = null;
+    this.debouncedEditRender = (0, import_obsidian3.debounce)(
+      () => this.render(),
+      this.plugin.settings.updateDelay,
+      { maxWait: this.plugin.settings.updateDelay }
+    );
+    this.quickRender = (0, import_obsidian3.debounce)(
+      () => this.render(),
+      150
+    );
+  }
   async onload() {
-    await this.loadSettings();
-    document.documentElement.style.setProperty("--rich-foot-border-width", `${this.settings.borderWidth}px`);
-    document.documentElement.style.setProperty("--rich-foot-border-style", this.settings.borderStyle);
-    document.documentElement.style.setProperty("--rich-foot-border-opacity", this.settings.borderOpacity);
-    document.documentElement.style.setProperty("--rich-foot-border-radius", `${this.settings.borderRadius}px`);
-    document.documentElement.style.setProperty("--rich-foot-dates-opacity", this.settings.datesOpacity);
-    document.documentElement.style.setProperty("--rich-foot-links-opacity", this.settings.linksOpacity);
-    await this.checkVersion();
-    const updateRichFootCallback = async () => {
-      const activeLeaf = this.app.workspace.activeLeaf;
-      try {
-        await this.addRichFoot(activeLeaf.view);
-        this.adjustFooterPadding();
-      } catch (error) {
-        console.error("Error in debouncedUpdateRichFoot:", error);
+    var _a;
+    try {
+      if (this.plugin.shouldExcludeFile(this.view.file.path)) {
+        return;
       }
-    };
-    this.debouncedUpdateRichFoot = (0, import_obsidian3.debounce)(updateRichFootCallback, this.settings.updateDelay, true);
-    this.debouncedUpdateRichFoot.callback = updateRichFootCallback;
-    this.immediateUpdateRichFoot = async () => {
-      const activeLeaf = this.app.workspace.activeLeaf;
-      try {
-        await this.addRichFoot(activeLeaf.view);
-        this.adjustFooterPadding();
-      } catch (error) {
-        console.error("Error in immediateUpdateRichFoot:", error);
+      const contentEl = this.view.contentEl;
+      const isEditMode = this.view.getMode() === "source";
+      let targetEl;
+      if (isEditMode) {
+        const cmSizer = contentEl.querySelector(".cm-sizer");
+        if (cmSizer) {
+          targetEl = cmSizer;
+        } else {
+          targetEl = contentEl;
+        }
+      } else {
+        targetEl = contentEl.querySelector(".markdown-preview-sizer") || contentEl;
       }
-    };
-    this.addSettingTab(new RichFootSettingTab(this.app, this));
-    this.registerEvent(
-      this.app.metadataCache.on("changed", (file) => {
-        const cache = this.app.metadataCache.getFileCache(file);
-        if (cache == null ? void 0 : cache.frontmatter) {
-          const customCreatedProp = this.settings.customCreatedDateProp;
-          const customModifiedProp = this.settings.customModifiedDateProp;
-          if (customCreatedProp && customCreatedProp in cache.frontmatter || customModifiedProp && customModifiedProp in cache.frontmatter) {
-            if (this.isEditMode()) {
-              this.debouncedUpdateRichFoot();
-            } else {
-              this.immediateUpdateRichFoot();
+      if (!targetEl) {
+        console.error("Could not find target element for footer");
+        return;
+      }
+      const existingFooter = targetEl.querySelector(".rich-foot");
+      if (existingFooter) {
+        existingFooter.remove();
+      }
+      this.container = document.createElement("div");
+      this.container.addClass("rich-foot", "rich-foot--hidden");
+      targetEl.appendChild(this.container);
+      if (this.view.getMode() === "source") {
+        const editorView = this.view.editor.cm;
+        const listener = () => {
+          this.debouncedEditRender.cancel();
+          this.debouncedEditRender();
+        };
+        this.registerEvent(
+          editorView.dom.addEventListener("keyup", listener)
+        );
+      }
+      await this.quickRender();
+    } catch (error) {
+      console.error("Error loading RichFoot component:", error);
+      (_a = this.container) == null ? void 0 : _a.remove();
+    }
+  }
+  onunload() {
+    var _a;
+    (_a = this.container) == null ? void 0 : _a.remove();
+    this.container = null;
+  }
+  async render() {
+    var _a, _b, _c, _d;
+    try {
+      if (this.plugin.shouldExcludeFile(this.view.file.path)) {
+        (_a = this.container) == null ? void 0 : _a.remove();
+        return;
+      }
+      if (!this.container) {
+        console.error("No container element found");
+        return;
+      }
+      if (this.view.getMode() !== "source") {
+        this.debouncedEditRender.cancel();
+      }
+      this.hide();
+      this.container.empty();
+      this.container.createDiv({ cls: "rich-foot--dashed-line" });
+      const { backlinksData, outlinks } = await this.getLinksData();
+      if (this.plugin.settings.combineLinks) {
+        if ((backlinksData == null ? void 0 : backlinksData.data) && backlinksData.data.size > 0 || outlinks.size > 0) {
+          const linksDiv = this.container.createDiv({ cls: "rich-foot--links" });
+          const linksList = linksDiv.createEl("ul");
+          if (backlinksData == null ? void 0 : backlinksData.data) {
+            for (const [linkPath] of backlinksData.data) {
+              if (!linkPath.endsWith(".md")) continue;
+              const li = linksList.createEl("li");
+              const link = li.createEl("a", {
+                cls: "internal-link",
+                href: linkPath,
+                text: linkPath.split("/").pop().replace(".md", "")
+              });
+              link.dataset.href = linkPath;
+              link.dataset.sourcePath = this.view.file.path;
+              link.dataset.isBacklink = "true";
+              if (outlinks.has(linkPath)) {
+                link.dataset.isOutlink = "true";
+              }
+              this.setupLinkBehavior(link, linkPath);
+            }
+          }
+          for (const linkPath of outlinks) {
+            if (!((_b = backlinksData == null ? void 0 : backlinksData.data) == null ? void 0 : _b.has(linkPath))) {
+              const li = linksList.createEl("li");
+              const link = li.createEl("a", {
+                cls: "internal-link",
+                href: linkPath,
+                text: linkPath.split("/").pop().replace(".md", "")
+              });
+              link.dataset.href = linkPath;
+              link.dataset.sourcePath = this.view.file.path;
+              link.dataset.isOutlink = "true";
+              this.setupLinkBehavior(link, linkPath);
             }
           }
         }
-      })
-    );
-    this.app.workspace.onLayoutReady(() => {
-      this.registerEvent(
-        this.app.workspace.on("layout-change", async () => {
-          await this.immediateUpdateRichFoot();
-        })
-      );
-      this.registerEvent(
-        this.app.workspace.on("active-leaf-change", async () => {
-          if (this.isEditMode()) {
-            await this.debouncedUpdateRichFoot();
-          } else {
-            await this.immediateUpdateRichFoot();
+      } else {
+        if (this.plugin.settings.showBacklinks && (backlinksData == null ? void 0 : backlinksData.data) && backlinksData.data.size > 0) {
+          const backlinksDiv = this.container.createDiv({ cls: "rich-foot--backlinks" });
+          const backlinksUl = backlinksDiv.createEl("ul");
+          for (const [linkPath] of backlinksData.data) {
+            if (!linkPath.endsWith(".md")) continue;
+            const li = backlinksUl.createEl("li");
+            const link = li.createEl("a", {
+              cls: "internal-link",
+              href: linkPath,
+              text: linkPath.split("/").pop().replace(".md", "")
+            });
+            link.dataset.href = linkPath;
+            link.dataset.sourcePath = this.view.file.path;
+            this.setupLinkBehavior(link, linkPath);
           }
-        })
-      );
-      this.registerEvent(
-        this.app.workspace.on("file-open", async () => {
-          await this.immediateUpdateRichFoot();
-        })
-      );
-      this.registerEvent(
-        this.app.workspace.on("mode-change", async (event) => {
-          const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
-          if (activeView) {
-            await this.immediateUpdateRichFoot();
+        }
+        if (this.plugin.settings.showOutlinks && outlinks && outlinks.size > 0) {
+          const outlinksDiv = this.container.createDiv({ cls: "rich-foot--outlinks" });
+          const outlinksUl = outlinksDiv.createEl("ul");
+          for (const linkPath of outlinks) {
+            const li = outlinksUl.createEl("li");
+            const link = li.createEl("a", {
+              cls: "internal-link",
+              href: linkPath,
+              text: linkPath.split("/").pop().replace(".md", "")
+            });
+            link.dataset.href = linkPath;
+            link.dataset.sourcePath = this.view.file.path;
+            this.setupLinkBehavior(link, linkPath);
           }
-        })
-      );
-      this.registerEvent(
-        this.app.workspace.on("editor-change", async () => {
-          await this.debouncedUpdateRichFoot();
-        })
-      );
-      this.immediateUpdateRichFoot();
+        }
+      }
+      if (this.plugin.settings.showDates) {
+        const datesWrapper = this.container.createDiv({ cls: "rich-foot--dates-wrapper" });
+        const modifiedDate = this.getFormattedDate(
+          this.view.file.stat.mtime,
+          this.plugin.settings.customModifiedDateProp
+        );
+        const createdDate = this.getFormattedDate(
+          this.view.file.stat.ctime,
+          this.plugin.settings.customCreatedDateProp
+        );
+        datesWrapper.createDiv({
+          cls: "rich-foot--modified-date",
+          text: modifiedDate
+        });
+        datesWrapper.createDiv({
+          cls: "rich-foot--created-date",
+          text: createdDate
+        });
+      }
+      this.show();
+      if (this.view.getMode() !== "source") {
+        this.plugin.adjustFooterPadding();
+      }
+    } catch (error) {
+      console.error("Error rendering RichFoot component:", error);
+      (_c = this.container) == null ? void 0 : _c.empty();
+      (_d = this.container) == null ? void 0 : _d.createEl("div", {
+        cls: "rich-foot-error",
+        text: "Error rendering footer"
+      });
+    }
+  }
+  async getLinksData() {
+    const file = this.view.file;
+    if (!file) {
+      return;
+    }
+    const backlinksData = this.plugin.app.metadataCache.getBacklinksForFile(file);
+    const outlinks = await this.plugin.getOutlinks(file);
+    return { backlinksData, outlinks };
+  }
+  setupLinkBehavior(link, linkPath) {
+    if (this.view.getMode() === "source") {
+      let hoverTimeout = null;
+      link.addEventListener("mouseover", (mouseEvent) => {
+        if (hoverTimeout) clearTimeout(hoverTimeout);
+        hoverTimeout = setTimeout(() => {
+          this.plugin.app.workspace.trigger("hover-link", {
+            event: mouseEvent,
+            source: "rich-foot",
+            hoverParent: link,
+            targetEl: link,
+            linktext: linkPath
+          });
+        }, 300);
+      });
+      link.addEventListener("mouseout", () => {
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout);
+          hoverTimeout = null;
+        }
+      });
+    }
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      this.plugin.app.workspace.openLinkText(linkPath, this.view.file.path);
     });
+  }
+  getFormattedDate(defaultDate, customProp) {
+    if (customProp) {
+      const cache = this.plugin.app.metadataCache.getFileCache(this.view.file);
+      const frontmatter = cache == null ? void 0 : cache.frontmatter;
+      if (frontmatter && frontmatter[customProp]) {
+        const customDate = frontmatter[customProp];
+        const d = new Date(customDate);
+        if (!isNaN(d.getTime())) {
+          return this.formatDate(d, this.plugin.settings.dateDisplayFormat);
+        }
+        return customDate;
+      }
+    }
+    return this.formatDate(new Date(defaultDate), this.plugin.settings.dateDisplayFormat);
+  }
+  formatDate(date, format) {
+    const d = date;
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const day = d.getDate();
+    const weekday = d.getDay();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthsShort = months.map((m) => m.slice(0, 3));
+    const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const weekdaysShort = weekdays.map((w) => w.slice(0, 3));
+    const pad = (num) => num.toString().padStart(2, "0");
+    const tokens = {
+      "dddd": weekdays[weekday],
+      "ddd": weekdaysShort[weekday],
+      "dd": pad(day),
+      "d": day.toString(),
+      "mmmm": months[month],
+      "mmm": monthsShort[month],
+      "mm": pad(month + 1),
+      "m": (month + 1).toString(),
+      "yyyy": year.toString(),
+      "yy": year.toString().slice(-2)
+    };
+    const sortedTokens = Object.keys(tokens).sort((a, b) => b.length - a.length);
+    let result = format.toLowerCase();
+    const replacements = /* @__PURE__ */ new Map();
+    sortedTokens.forEach((token, index) => {
+      const placeholder = `__${index}__`;
+      replacements.set(placeholder, tokens[token]);
+      result = result.replace(new RegExp(token, "gi"), placeholder);
+    });
+    replacements.forEach((value, placeholder) => {
+      result = result.replace(new RegExp(placeholder, "g"), value);
+    });
+    return result;
+  }
+  show() {
+    if (this.container) {
+      requestAnimationFrame(() => {
+        this.container.removeClass("rich-foot--hidden");
+        this.container.style.removeProperty("display");
+        this.container.style.opacity = "0";
+        requestAnimationFrame(() => {
+          this.container.style.opacity = "1";
+        });
+      });
+    }
+  }
+  hide() {
+    if (this.container) {
+      this.container.addClass("rich-foot--hidden");
+      this.container.style.display = "none";
+    }
+  }
+};
+
+// src/main.js
+var RichFootPlugin = class extends import_obsidian4.Plugin {
+  constructor() {
+    super(...arguments);
+    __publicField(this, "richFootComponents", /* @__PURE__ */ new Map());
+    __publicField(this, "adjustFooterPadding", (0, import_obsidian4.debounce)(() => {
+      const activeView = this.app.workspace.getActiveViewOfType(import_obsidian4.MarkdownView);
+      if (!activeView) return;
+      const readingView = activeView.contentEl.querySelector(".markdown-reading-view");
+      if (!readingView) return;
+      const preview = readingView.querySelector(".markdown-preview-view");
+      const previewSizer = readingView.querySelector(".markdown-preview-sizer");
+      const footer = readingView.querySelector(".markdown-preview-sizer > .rich-foot");
+      if (!preview || !previewSizer || !footer) return;
+      readingView.style.setProperty("--rich-foot-top-padding", "0px");
+      const contentHeight = previewSizer.offsetHeight - footer.offsetHeight;
+      const availableSpace = preview.offsetHeight - contentHeight - footer.offsetHeight - 85;
+      if (availableSpace > 20) {
+        readingView.style.setProperty("--rich-foot-top-padding", `${availableSpace}px`);
+        readingView.style.setProperty("--rich-foot-margin-bottom", "0");
+      } else {
+        readingView.style.setProperty("--rich-foot-top-padding", "10px");
+        readingView.style.setProperty("--rich-foot-margin-bottom", "20px");
+      }
+    }, 100));
+  }
+  // Track components for each view
+  async onload() {
+    var _a;
+    await this.loadSettings();
+    this.quickUpdateCallback = (0, import_obsidian4.debounce)(async () => {
+      const activeLeaf = this.app.workspace.activeLeaf;
+      if (!activeLeaf) return;
+      const view = activeLeaf.view;
+      if (!view || !(view instanceof import_obsidian4.MarkdownView)) return;
+      await this.addRichFoot(view);
+    }, 300);
+    this.editUpdateCallback = (0, import_obsidian4.debounce)(async () => {
+      const activeLeaf = this.app.workspace.activeLeaf;
+      if (!activeLeaf) return;
+      const view = activeLeaf.view;
+      if (!view || !(view instanceof import_obsidian4.MarkdownView)) return;
+      await this.addRichFoot(view);
+    }, ((_a = this.settings) == null ? void 0 : _a.updateDelay) || 1e3);
+    this.registerEvents();
+    this.addSettingTab(new RichFootSettingTab(this.app, this));
+    await this.checkVersion();
+    await this.quickUpdateCallback();
+  }
+  async addRichFoot(view) {
+    if (!view || !(view instanceof import_obsidian4.MarkdownView)) {
+      return;
+    }
+    if (this.shouldExcludeFile(view.file.path)) {
+      this.removeExistingRichFoot(view);
+      return;
+    }
+    const contentEl = view.contentEl;
+    const cmEditor = view.editor;
+    const isEditMode = view.getMode() === "source";
+    const component = new RichFootComponent(view, this);
+    this.richFootComponents.set(view, component);
+    await component.onload();
+  }
+  isEditMode(view) {
+    if (!view || !(view instanceof import_obsidian4.MarkdownView)) return false;
+    return view.getMode() === "source";
+  }
+  removeExistingRichFoot(view) {
+    const existingComponent = this.richFootComponents.get(view);
+    if (existingComponent) {
+      existingComponent.unload();
+      this.richFootComponents.delete(view);
+    }
+  }
+  onunload() {
+    for (const component of this.richFootComponents.values()) {
+      component.unload();
+    }
+    this.richFootComponents.clear();
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -738,280 +1009,18 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     document.documentElement.style.setProperty("--rich-foot-link-background", this.settings.linkBackgroundColor);
     document.documentElement.style.setProperty("--rich-foot-link-border-color", this.settings.linkBorderColor);
     const activeLeaf = this.app.workspace.activeLeaf;
-    if ((activeLeaf == null ? void 0 : activeLeaf.view) instanceof import_obsidian3.MarkdownView) {
+    if ((activeLeaf == null ? void 0 : activeLeaf.view) instanceof import_obsidian4.MarkdownView) {
       await this.addRichFoot(activeLeaf.view);
+      this.adjustFooterPadding();
     }
   }
-  async addRichFoot(view) {
-    var _a, _b, _c, _d, _e, _f;
-    try {
-      const file = view.file;
-      if (!file || !file.path) {
-        return;
-      }
-      if (this.shouldExcludeFile(file.path)) {
-        const existingRichFoots2 = document.querySelectorAll(".rich-foot");
-        existingRichFoots2.forEach((el) => el.remove());
-        return;
-      }
-      const content = view.contentEl;
-      let container;
-      if (((_b = (_a = view.getMode) == null ? void 0 : _a.call(view)) != null ? _b : view.mode) === "preview") {
-        container = content.querySelector(".markdown-preview-section");
-      } else if (((_d = (_c = view.getMode) == null ? void 0 : _c.call(view)) != null ? _d : view.mode) === "source" || ((_f = (_e = view.getMode) == null ? void 0 : _e.call(view)) != null ? _f : view.mode) === "live") {
-        container = content.querySelector(".cm-sizer");
-      }
-      if (!container) {
-        return;
-      }
-      const existingRichFoots = document.querySelectorAll(".rich-foot");
-      existingRichFoots.forEach((el) => el.remove());
-      this.disconnectObservers();
-      const richFoot = await this.createRichFoot(file);
-      const newCheck = document.querySelectorAll(".rich-foot");
-      if (newCheck.length > 0) {
-        newCheck.forEach((el) => el.remove());
-      }
-      container.appendChild(richFoot);
-      this.observeContainer(container);
-    } catch (error) {
-      console.error("Error in addRichFoot:", error);
-    }
-  }
-  removeExistingRichFoot(container) {
+  // check if a file should be excluded
+  shouldExcludeFile(filePath) {
     var _a;
-    const existingRichFoot = container.querySelector(".rich-foot");
-    if (existingRichFoot) {
-      existingRichFoot.remove();
+    if (!((_a = this.settings) == null ? void 0 : _a.excludedFolders)) {
+      return false;
     }
-    const cmEditor = container.closest(".cm-editor");
-    if (cmEditor) {
-      const cmSizer = cmEditor.querySelector(".cm-sizer");
-      if (cmSizer) {
-        const richFootInSizer = cmSizer.querySelector(".rich-foot");
-        if (richFootInSizer) {
-          richFootInSizer.remove();
-        }
-      }
-    }
-    const previewSection = (_a = container.closest(".markdown-reading-view")) == null ? void 0 : _a.querySelector(".markdown-preview-section");
-    if (previewSection) {
-      const richFootInPreview = previewSection.querySelector(".rich-foot");
-      if (richFootInPreview) {
-        richFootInPreview.remove();
-      }
-    }
-  }
-  disconnectObservers() {
-    if (this.contentObserver) {
-      this.contentObserver.disconnect();
-    }
-    if (this.containerObserver) {
-      this.containerObserver.disconnect();
-    }
-  }
-  observeContainer(container) {
-    if (this.containerObserver) {
-      this.containerObserver.disconnect();
-    }
-    this.containerObserver = new MutationObserver(async (mutations) => {
-      var _a;
-      const richFoot = container.querySelector(".rich-foot");
-      if (!richFoot) {
-        const view = (_a = this.app.workspace.activeLeaf) == null ? void 0 : _a.view;
-        if (view instanceof import_obsidian3.MarkdownView) {
-          try {
-            await this.addRichFoot(view);
-          } catch (error) {
-            console.error("Error in mutation observer:", error);
-          }
-        }
-      }
-    });
-    this.containerObserver.observe(container, { childList: true, subtree: true });
-  }
-  async createRichFoot(file) {
-    const richFoot = createDiv({ cls: "rich-foot rich-foot--hidden" });
-    const richFootDashedLine = richFoot.createDiv({ cls: "rich-foot--dashed-line" });
-    const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
-    const outlinks = await this.getOutlinks(file);
-    if (this.settings.combineLinks) {
-      if ((backlinksData == null ? void 0 : backlinksData.data) && backlinksData.data.size > 0 || outlinks.size > 0) {
-        const linksDiv = richFoot.createDiv({ cls: "rich-foot--links" });
-        const linksUl = linksDiv.createEl("ul");
-        const processedLinks = /* @__PURE__ */ new Set();
-        if (backlinksData == null ? void 0 : backlinksData.data) {
-          for (const [linkPath, linkData] of backlinksData.data) {
-            if (!linkPath.endsWith(".md")) continue;
-            processedLinks.add(linkPath);
-            const li = linksUl.createEl("li");
-            const link = li.createEl("a", {
-              href: linkPath,
-              text: linkPath.split("/").pop().slice(0, -3),
-              cls: this.isEditMode() ? "cm-hmd-internal-link cm-underline" : "internal-link"
-            });
-            link.dataset.href = linkPath;
-            link.dataset.sourcePath = file.path;
-            link.dataset.isBacklink = "true";
-            if (outlinks.has(linkPath)) {
-              link.dataset.isOutlink = "true";
-            }
-            this.setupLinkBehavior(link, linkPath, file);
-          }
-        }
-        for (const linkPath of outlinks) {
-          if (processedLinks.has(linkPath)) continue;
-          const li = linksUl.createEl("li");
-          const link = li.createEl("a", {
-            href: linkPath,
-            text: linkPath.split("/").pop().slice(0, -3),
-            cls: this.isEditMode() ? "cm-hmd-internal-link cm-underline" : "internal-link"
-          });
-          link.dataset.href = linkPath;
-          link.dataset.sourcePath = file.path;
-          link.dataset.isOutlink = "true";
-          this.setupLinkBehavior(link, linkPath, file);
-        }
-        if (linksUl.childElementCount === 0) {
-          linksDiv.remove();
-        }
-      }
-    } else {
-      if (this.settings.showBacklinks && (backlinksData == null ? void 0 : backlinksData.data) && backlinksData.data.size > 0) {
-        const backlinksDiv = richFoot.createDiv({ cls: "rich-foot--backlinks" });
-        const backlinksUl = backlinksDiv.createEl("ul");
-        for (const [linkPath, linkData] of backlinksData.data) {
-          if (!linkPath.endsWith(".md")) continue;
-          const li = backlinksUl.createEl("li");
-          const link = li.createEl("a", {
-            href: linkPath,
-            text: linkPath.split("/").pop().slice(0, -3),
-            cls: this.isEditMode() ? "cm-hmd-internal-link cm-underline" : "internal-link"
-          });
-          link.dataset.href = linkPath;
-          link.dataset.sourcePath = file.path;
-          this.setupLinkBehavior(link, linkPath, file);
-        }
-        if (backlinksUl.childElementCount === 0) {
-          backlinksDiv.remove();
-        }
-      }
-      if (this.settings.showOutlinks && outlinks.size > 0) {
-        const outlinksDiv = richFoot.createDiv({ cls: "rich-foot--outlinks" });
-        const outlinksUl = outlinksDiv.createEl("ul");
-        for (const linkPath of outlinks) {
-          const li = outlinksUl.createEl("li");
-          const link = li.createEl("a", {
-            href: linkPath,
-            text: linkPath.split("/").pop().slice(0, -3),
-            cls: this.isEditMode() ? "cm-hmd-internal-link cm-underline" : "internal-link"
-          });
-          link.dataset.href = linkPath;
-          link.dataset.sourcePath = file.path;
-          this.setupLinkBehavior(link, linkPath, file);
-        }
-        if (outlinksUl.childElementCount === 0) {
-          outlinksDiv.remove();
-        }
-      }
-    }
-    if (this.settings.showDates) {
-      const datesWrapper = richFoot.createDiv({ cls: "rich-foot--dates-wrapper" });
-      const cache = this.app.metadataCache.getFileCache(file);
-      const frontmatter = cache == null ? void 0 : cache.frontmatter;
-      let modifiedDate;
-      if (this.settings.customModifiedDateProp && frontmatter && frontmatter[this.settings.customModifiedDateProp]) {
-        modifiedDate = frontmatter[this.settings.customModifiedDateProp];
-        let isValidDate = false;
-        let tempDate = modifiedDate;
-        if (!isNaN(Date.parse(tempDate))) {
-          isValidDate = true;
-        }
-        if (!isValidDate) {
-          let count = 0;
-          tempDate = modifiedDate.replace(/\./g, (match) => {
-            count++;
-            return count <= 2 ? "-" : match;
-          });
-          if (!isNaN(Date.parse(tempDate))) {
-            isValidDate = true;
-          }
-        }
-        if (!isValidDate) {
-          let count = 0;
-          tempDate = modifiedDate.replace(/\//g, (match) => {
-            count++;
-            return count <= 2 ? "-" : match;
-          });
-          if (!isNaN(Date.parse(tempDate))) {
-            isValidDate = true;
-          }
-        }
-        if (isValidDate) {
-          const datePart = tempDate.split("T")[0];
-          const dateStr = tempDate.includes("T") ? tempDate : `${datePart}T00:00:00`;
-          const dateObj = new Date(dateStr);
-          modifiedDate = formatDate2(dateObj, this.settings.dateDisplayFormat);
-        } else {
-          modifiedDate = modifiedDate;
-        }
-      } else {
-        modifiedDate = new Date(file.stat.mtime);
-        modifiedDate = formatDate2(modifiedDate, this.settings.dateDisplayFormat);
-      }
-      datesWrapper.createDiv({
-        cls: "rich-foot--modified-date",
-        text: `${modifiedDate}`
-      });
-      let createdDate;
-      if (this.settings.customCreatedDateProp && frontmatter && frontmatter[this.settings.customCreatedDateProp]) {
-        createdDate = frontmatter[this.settings.customCreatedDateProp];
-        let isValidDate = false;
-        let tempDate = createdDate;
-        if (!isNaN(Date.parse(tempDate))) {
-          isValidDate = true;
-        }
-        if (!isValidDate) {
-          let count = 0;
-          tempDate = createdDate.replace(/\./g, (match) => {
-            count++;
-            return count <= 2 ? "-" : match;
-          });
-          if (!isNaN(Date.parse(tempDate))) {
-            isValidDate = true;
-          }
-        }
-        if (!isValidDate) {
-          let count = 0;
-          tempDate = createdDate.replace(/\//g, (match) => {
-            count++;
-            return count <= 2 ? "-" : match;
-          });
-          if (!isNaN(Date.parse(tempDate))) {
-            isValidDate = true;
-          }
-        }
-        if (isValidDate) {
-          const datePart = tempDate.split("T")[0];
-          const dateStr = tempDate.includes("T") ? tempDate : `${datePart}T00:00:00`;
-          const dateObj = new Date(dateStr);
-          createdDate = formatDate2(dateObj, this.settings.dateDisplayFormat);
-        } else {
-          createdDate = createdDate;
-        }
-      } else {
-        createdDate = new Date(file.stat.ctime);
-        createdDate = formatDate2(createdDate, this.settings.dateDisplayFormat);
-      }
-      datesWrapper.createDiv({
-        cls: "rich-foot--created-date",
-        text: `${createdDate}`
-      });
-    }
-    setTimeout(() => {
-      richFoot.removeClass("rich-foot--hidden");
-    }, 10);
-    return richFoot;
+    return this.settings.excludedFolders.some((folder) => filePath.startsWith(folder));
   }
   async getOutlinks(file) {
     const cache = this.app.metadataCache.getFileCache(file);
@@ -1076,87 +1085,33 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
       }
     }
   }
-  setupLinkBehavior(link, linkPath, file) {
-    if (this.isEditMode()) {
-      let hoverTimeout = null;
-      link.addEventListener("mouseover", (mouseEvent) => {
-        var _a;
-        const pagePreviewPlugin = this.app.internalPlugins.plugins["page-preview"];
-        if (!(pagePreviewPlugin == null ? void 0 : pagePreviewPlugin.enabled)) {
-          return;
-        }
-        if (hoverTimeout) {
-          clearTimeout(hoverTimeout);
-          hoverTimeout = null;
-        }
-        const previewPlugin = (_a = this.app.internalPlugins.plugins["page-preview"]) == null ? void 0 : _a.instance;
-        if (previewPlugin == null ? void 0 : previewPlugin.onLinkHover) {
-          previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
-        }
-      });
-      link.addEventListener("mouseout", (mouseEvent) => {
-        if (hoverTimeout) {
-          clearTimeout(hoverTimeout);
-        }
-        hoverTimeout = setTimeout(() => {
-          var _a;
-          const previewPlugin = (_a = this.app.internalPlugins.plugins["page-preview"]) == null ? void 0 : _a.instance;
-          const hoverParent = (previewPlugin == null ? void 0 : previewPlugin.hoverParent) || document.body;
-          const previews = hoverParent.querySelectorAll(".hover-popup");
-          previews.forEach((preview) => preview.remove());
-          hoverTimeout = null;
-        }, 50);
-      });
-    }
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      this.app.workspace.openLinkText(linkPath, file.path);
-    });
+  formatDate(date, format) {
+    if (!date || !format) return "";
+    return window.moment(date).format(format);
   }
-  onunload() {
-    this.disconnectObservers();
-    document.querySelectorAll(".rich-foot").forEach((el) => el.remove());
-    this.app.workspace.off("layout-change", this.updateRichFoot);
-    this.app.workspace.off("active-leaf-change", this.updateRichFoot);
-    this.app.workspace.off("file-open", this.updateRichFoot);
-    this.app.workspace.off("editor-change", this.updateRichFoot);
+  // Helper function to format a timestamp with a custom format
+  formatTimestamp(timestamp, format) {
+    if (!timestamp) return "";
+    return this.formatDate(new Date(timestamp), format);
   }
-  // check if a file should be excluded
-  shouldExcludeFile(filePath) {
-    var _a;
-    if (!((_a = this.settings) == null ? void 0 : _a.excludedFolders)) {
-      return false;
-    }
-    return this.settings.excludedFolders.some((folder) => filePath.startsWith(folder));
-  }
-  isEditMode() {
-    var _a, _b;
-    const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
-    if (!activeView) return false;
-    return ((_b = (_a = activeView.getMode) == null ? void 0 : _a.call(activeView)) != null ? _b : activeView.mode) === "source";
-  }
-  // adjust footer padding
-  adjustFooterPadding() {
-    setTimeout(() => {
-      const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
-      if (!activeView) return;
-      const readingView = activeView.contentEl.querySelector(".markdown-reading-view");
-      if (!readingView) return;
-      const preview = readingView.querySelector(".markdown-preview-view");
-      const previewSizer = readingView.querySelector(".markdown-preview-sizer");
-      const footer = readingView.querySelector(".markdown-preview-sizer > .rich-foot");
-      if (!preview || !previewSizer || !footer) return;
-      readingView.style.setProperty("--rich-foot-top-padding", "0px");
-      const contentHeight = previewSizer.offsetHeight - footer.offsetHeight;
-      const availableSpace = preview.offsetHeight - contentHeight - footer.offsetHeight - 85;
-      if (availableSpace > 20) {
-        readingView.style.setProperty("--rich-foot-top-padding", `${availableSpace}px`);
-        readingView.style.setProperty("--rich-foot-margin-bottom", "0");
-      } else {
-        readingView.style.setProperty("--rich-foot-top-padding", "10px");
-        readingView.style.setProperty("--rich-foot-margin-bottom", "20px");
-      }
-    }, 100);
+  registerEvents() {
+    this.registerEvent(
+      this.app.workspace.on("file-open", async (file) => {
+        if (!file) return;
+        document.querySelectorAll(".rich-foot").forEach((el) => el.remove());
+        await this.quickUpdateCallback();
+      })
+    );
+    this.registerEvent(
+      this.app.workspace.on("layout-change", async () => {
+        await this.quickUpdateCallback();
+      })
+    );
+    this.registerEvent(
+      this.app.workspace.on("active-leaf-change", async (leaf) => {
+        await this.quickUpdateCallback();
+      })
+    );
   }
 };
 var main_default = RichFootPlugin;
