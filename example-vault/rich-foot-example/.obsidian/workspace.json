@@ -3879,6 +3879,36 @@
             "id": "8a0b261f23a66ffd",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e580892cd10031c0",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "dee4c822d8b008c3",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "bbdb6993d37e5a1d",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -3886,7 +3916,7 @@
             }
           }
         ],
-        "currentTab": 378
+        "currentTab": 381
       }
     ],
     "direction": "horizontal",
@@ -3908,18 +3938,18 @@
   "active": "5173ce34fa31fa9f",
   "lastOpenFiles": [
     "releases/v2.0.0 - 🏃‍♂️ Faster, 🛀 Cleaner, 🧠 Smarter.md",
-    "pixel-banner-images/fast-foot.png",
-    "releases/v1.9.0 - 🥙 Stuffed Links.md",
     "🦶 Rich Foot.md",
     "releases/v1.8.0 - 🫣 Page Preview Support.md",
+    "misc-notes/link test 2.md",
+    "misc-notes/link test.md",
+    "exclude/no rich-feet here.md",
+    "exclude/me too/no rich-feet here either.md",
+    "pixel-banner-images/fast-foot.png",
+    "releases/v1.9.0 - 🥙 Stuffed Links.md",
     "releases/v1.7.0 - 📆 Dates Your Way.md",
     "misc-notes/two.md",
     "misc-notes/three.md",
     "misc-notes/one.md",
-    "misc-notes/link test 2.md",
-    "misc-notes/link test.md",
-    "exclude/me too/no rich-feet here either.md",
-    "exclude/no rich-feet here.md",
     "pixel-banner-images/stuffed-links.png",
     "pixel-banner-images/feet-dreaming.png",
     "pixel-banner-images/calendar-feet.png",

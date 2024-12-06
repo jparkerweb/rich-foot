@@ -1112,6 +1112,14 @@ var RichFootPlugin = class extends import_obsidian4.Plugin {
         await this.quickUpdateCallback();
       })
     );
+    const debouncedResize = (0, import_obsidian4.debounce)(async () => {
+      const activeLeaf = this.app.workspace.activeLeaf;
+      if (!activeLeaf) return;
+      const view = activeLeaf.view;
+      if (!view || !(view instanceof import_obsidian4.MarkdownView)) return;
+      await this.addRichFoot(view);
+    }, 1e3);
+    this.registerDomEvent(window, "resize", debouncedResize);
   }
 };
 var main_default = RichFootPlugin;

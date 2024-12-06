@@ -369,6 +369,20 @@ class RichFootPlugin extends Plugin {
                 await this.quickUpdateCallback(); // Make sure to await
             })
         );
+
+        // Add resize event listener with 1 second debounce
+        const debouncedResize = debounce(async () => {
+            const activeLeaf = this.app.workspace.activeLeaf;
+            if (!activeLeaf) return;
+
+            const view = activeLeaf.view;
+            if (!view || !(view instanceof MarkdownView)) return;
+
+            await this.addRichFoot(view);
+        }, 1000);
+
+        // Register the resize event
+        this.registerDomEvent(window, 'resize', debouncedResize);
     }
 
     adjustFooterPadding = debounce(() => {
