@@ -1,6 +1,6 @@
 ## 🏃‍♂️ Faster, 🛀 Cleaner, 🧠 Smarter
 
-### [2.0.0] - 2024-12-06
+### [2.0.1] - 2024-12-06
 #### ✨ Added
 - Introduced `RichFootComponent` for improved modularity and maintainability
 

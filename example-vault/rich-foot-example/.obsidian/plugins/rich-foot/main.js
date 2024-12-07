@@ -109,7 +109,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F3C3}\u200D\u2642\uFE0F Faster, \u{1F6C0} Cleaner, \u{1F9E0} Smarter</h2>\n<h3>[2.0.0] - 2024-12-06</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Introduced <code>RichFootComponent</code> for improved modularity and maintainability</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Optimized memory usage and event handling to prevent leaks</li>\n<li>Improved compatibility with Obsidian v1.7.2+</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Refactored codebase for cleaner architecture and better separation of concerns</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v2.0.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v2.0.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F3C3}\u200D\u2642\uFE0F Faster, \u{1F6C0} Cleaner, \u{1F9E0} Smarter</h2>\n<h3>[2.0.1] - 2024-12-06</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Introduced <code>RichFootComponent</code> for improved modularity and maintainability</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Optimized memory usage and event handling to prevent leaks</li>\n<li>Improved compatibility with Obsidian v1.7.2+</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Refactored codebase for cleaner architecture and better separation of concerns</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v2.0.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v2.0.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -904,7 +904,13 @@ var RichFootPlugin = class extends import_obsidian4.Plugin {
       const preview = readingView.querySelector(".markdown-preview-view");
       const previewSizer = readingView.querySelector(".markdown-preview-sizer");
       const footer = readingView.querySelector(".markdown-preview-sizer > .rich-foot");
-      if (!preview || !previewSizer || !footer) return;
+      if (!preview || !previewSizer || !footer) {
+        const view = activeView;
+        if (view && !this.shouldExcludeFile(view.file.path)) {
+          this.addRichFoot(view);
+        }
+        return;
+      }
       readingView.style.setProperty("--rich-foot-top-padding", "0px");
       const contentHeight = previewSizer.offsetHeight - footer.offsetHeight;
       const availableSpace = preview.offsetHeight - contentHeight - footer.offsetHeight - 85;
@@ -1123,6 +1129,20 @@ var RichFootPlugin = class extends import_obsidian4.Plugin {
       await this.addRichFoot(view);
     }, 1e3);
     this.registerDomEvent(window, "resize", debouncedResize);
+    const debouncedScroll = (0, import_obsidian4.debounce)(async () => {
+      const activeLeaf = this.app.workspace.activeLeaf;
+      if (!activeLeaf) return;
+      const view = activeLeaf.view;
+      if (!view || !(view instanceof import_obsidian4.MarkdownView)) return;
+      const contentEl = view.contentEl;
+      const richFoot = contentEl.querySelector(".rich-foot");
+      if (!richFoot) {
+        await this.addRichFoot(view);
+      } else {
+        this.adjustFooterPadding();
+      }
+    }, 400);
+    this.registerDomEvent(window, "scroll", debouncedScroll, { capture: true });
   }
 };
 var main_default = RichFootPlugin;

@@ -14,9 +14,9 @@
               "type": "markdown",
               "state": {
                 "file": "🦶 Rich Foot.md",
-                "mode": "preview",
+                "mode": "source",
                 "backlinks": false,
-                "source": true
+                "source": false
               },
               "icon": "lucide-file",
               "title": "🦶 Rich Foot"
@@ -3969,6 +3969,136 @@
             "id": "47c89b1369644a8e",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "74d1da2093f9c861",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "49210ea68e6df907",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c31732a3f8d0e94c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "69c8cbb03b4cf633",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "089489aa3943f9b0",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e3faaa64acbddf37",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "ffa29224dd76f05d",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "dffb57d636e3aa35",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1e2c7f6a26688ed3",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c7af5bd727be7169",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "88804d6a04451e1b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "cc9edf279364d30f",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "6cb2fbafeedd869d",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -3976,7 +4106,7 @@
             }
           }
         ],
-        "currentTab": 387
+        "currentTab": 400
       }
     ],
     "direction": "horizontal",
@@ -3995,21 +4125,22 @@
       "canvas:Create new canvas": false
     }
   },
-  "active": "47c89b1369644a8e",
+  "active": "5173ce34fa31fa9f",
   "lastOpenFiles": [
+    "misc-notes/link test.md",
+    "misc-notes/link test 2.md",
     "🦶 Rich Foot.md",
+    "releases/v1.8.0 - 🫣 Page Preview Support.md",
     "releases/v2.0.0 - 🏃‍♂️ Faster, 🛀 Cleaner, 🧠 Smarter.md",
-    "misc-notes/three.md",
-    "misc-notes/one.md",
     "releases/v1.9.0 - 🥙 Stuffed Links.md",
     "releases/v1.7.0 - 📆 Dates Your Way.md",
-    "releases/v1.8.0 - 🫣 Page Preview Support.md",
-    "misc-notes/link test 2.md",
-    "misc-notes/link test.md",
+    "misc-notes/one.md",
+    "misc-notes/three.md",
     "exclude/no rich-feet here.md",
     "exclude/me too/no rich-feet here either.md",
-    "pixel-banner-images/fast-foot.png",
+    "images/rich-feet.jpg",
     "misc-notes/two.md",
+    "pixel-banner-images/fast-foot.png",
     "pixel-banner-images/stuffed-links.png",
     "pixel-banner-images/feet-dreaming.png",
     "pixel-banner-images/calendar-feet.png",
@@ -4020,7 +4151,6 @@
     "Pasted image 20241129154754.png",
     "note with table.md",
     "Untitled.canvas",
-    "images/rich-feet.jpg",
     "images",
     "exclude/me too",
     "exclude",

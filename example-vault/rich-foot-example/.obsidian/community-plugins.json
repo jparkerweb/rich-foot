@@ -1,5 +1,4 @@
 [
-  "rich-foot",
   "cmdr",
   "pexels-banner",
   "open-plugin-settings",
@@ -8,5 +7,6 @@
   "advanced-cursors",
   "css-editor",
   "obsidian-custom-frames",
-  "markdown-attributes"
+  "markdown-attributes",
+  "rich-foot"
 ]

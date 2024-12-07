@@ -10,7 +10,7 @@
     margin-bottom: 20px !important;
     padding-top: 10px !important;
     opacity: 1;
-    transition: opacity 600ms ease-in-out; /* fade in rich-foot */
+    transition: opacity 400ms ease-in-out; /* fade in rich-foot */
 }
 
 .rich-foot--hidden {

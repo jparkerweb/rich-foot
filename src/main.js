@@ -388,6 +388,27 @@ class RichFootPlugin extends Plugin {
 
         // Register the resize event
         this.registerDomEvent(window, 'resize', debouncedResize);
+
+        // Add scroll event listener with 100ms debounce
+        const debouncedScroll = debounce(async () => {
+            const activeLeaf = this.app.workspace.activeLeaf;
+            if (!activeLeaf) return;
+
+            const view = activeLeaf.view;
+            if (!view || !(view instanceof MarkdownView)) return;
+
+            // Check if rich-foot exists, if not add it back
+            const contentEl = view.contentEl;
+            const richFoot = contentEl.querySelector('.rich-foot');
+            if (!richFoot) {
+                await this.addRichFoot(view);
+            } else {
+                this.adjustFooterPadding();
+            }
+        }, 400);
+
+        // Register scroll event for both preview and source mode
+        this.registerDomEvent(window, 'scroll', debouncedScroll, { capture: true });
     }
 
     adjustFooterPadding = debounce(() => {
@@ -401,7 +422,14 @@ class RichFootPlugin extends Plugin {
         const previewSizer = readingView.querySelector('.markdown-preview-sizer');
         const footer = readingView.querySelector('.markdown-preview-sizer > .rich-foot');
         
-        if (!preview || !previewSizer || !footer) return;
+        if (!preview || !previewSizer || !footer) {
+            // If footer is missing, try to restore it
+            const view = activeView;
+            if (view && !this.shouldExcludeFile(view.file.path)) {
+                this.addRichFoot(view);
+            }
+            return;
+        }
 
         // Reset any existing padding first
         readingView.style.setProperty('--rich-foot-top-padding', '0px');

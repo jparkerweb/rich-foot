@@ -16,11 +16,11 @@
   "linkBorderColor": "rgba(255, 255, 255, 0.204)",
   "customCreatedDateProp": "",
   "customModifiedDateProp": "",
-  "dateDisplayFormat": "mmm dd, yyyy",
-  "showBacklinks": false,
-  "showOutlinks": false,
+  "dateDisplayFormat": "mmmm dd, yyyy",
+  "showBacklinks": true,
+  "showOutlinks": true,
   "showDates": true,
   "combineLinks": true,
   "updateDelay": 3000,
-  "lastVersion": "2.0.0"
+  "lastVersion": "2.0.1"
 }
