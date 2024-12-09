@@ -24,6 +24,8 @@ export const DEFAULT_SETTINGS = {
     showDates: true,
     combineLinks: false,
     updateDelay: 3000,
+    excludedParentSelectors: [],
+    frontmatterExclusionField: '',
 };
 
 // Helper function to convert HSL to Hex
@@ -157,6 +159,8 @@ export class RichFootSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
         super(app, plugin);
         this.plugin = plugin;
+        this.excludedParentSelectors = [];
+        this.frontmatterExclusionField = '';
     }
 
     display() {
@@ -164,66 +168,7 @@ export class RichFootSettingTab extends PluginSettingTab {
         containerEl.empty();
         containerEl.addClass('rich-foot-settings');
 
-        containerEl.createEl('h2', { text: 'Rich Foot Settings' });
         containerEl.createEl('div', { cls: 'rich-foot-info', text: '🦶 Rich Foot adds a footer to your notes with useful information such as backlinks, creation date, and last modified date. Use the settings below to customize the appearance.' });
-
-        // Excluded Folders Section
-        containerEl.createEl('h3', { text: 'Excluded Folders' });
-        containerEl.createEl('p', { 
-            text: 'Notes in excluded folders (and their subfolders) will not display the Rich Foot footer. This is useful for system folders or areas where you don\'t want footer information to appear.',
-            cls: 'setting-item-description'
-        });
-        
-        // Create container for excluded folders list
-        const excludedFoldersContainer = containerEl.createDiv('excluded-folders-container');
-        
-        // Display current excluded folders
-        if (this.plugin.settings?.excludedFolders) {
-            this.plugin.settings.excludedFolders.forEach((folder, index) => {
-                const folderDiv = excludedFoldersContainer.createDiv('excluded-folder-item');
-                folderDiv.createSpan({ text: folder });
-                
-                const deleteButton = folderDiv.createEl('button', {
-                    text: 'Delete',
-                    cls: 'excluded-folder-delete'
-                });
-                
-                deleteButton.addEventListener('click', async () => {
-                    this.plugin.settings.excludedFolders.splice(index, 1);
-                    await this.plugin.saveSettings();
-                    this.display();
-                });
-            });
-        }
-
-        // Add new folder section
-        const newFolderSetting = new Setting(containerEl)
-            .setName('Add excluded folder')
-            .setDesc('Enter a folder path or browse to select')
-            .addText(text => text
-                .setPlaceholder('folder/subfolder'))
-            .addButton(button => button
-                .setButtonText('Browse')
-                .onClick(async () => {
-                    const folder = await this.browseForFolder();
-                    if (folder) {
-                        const textComponent = newFolderSetting.components[0];
-                        textComponent.setValue(folder);
-                    }
-                }))
-            .addButton(button => button
-                .setButtonText('Add')
-                .onClick(async () => {
-                    const textComponent = newFolderSetting.components[0];
-                    const newFolder = textComponent.getValue().trim();
-                    
-                    if (newFolder && !this.plugin.settings.excludedFolders.includes(newFolder)) {
-                        this.plugin.settings.excludedFolders.push(newFolder);
-                        await this.plugin.saveSettings();
-                        textComponent.setValue('');
-                        this.display();
-                    }
-                }));
 
         // Visibility Settings
         containerEl.createEl('h3', { text: 'Visibility Settings' });
@@ -301,6 +246,8 @@ export class RichFootSettingTab extends PluginSettingTab {
                         this.plugin.debouncedUpdateRichFoot.callback = updateRichFootCallback;
                     }
                 }));
+
+        containerEl.createEl('hr');
 
         // Date Settings
         containerEl.createEl('h3', { text: 'Date Settings' });
@@ -393,6 +340,8 @@ export class RichFootSettingTab extends PluginSettingTab {
                     await this.plugin.updateRichFoot();
                     this.modifiedDateInput.setValue('');
                 }));
+
+        containerEl.createEl('hr');
 
         // Style Settings
         containerEl.createEl('h3', { text: 'Style Settings' });
@@ -728,6 +677,132 @@ export class RichFootSettingTab extends PluginSettingTab {
                     }
                 }));
 
+        containerEl.createEl('hr');
+        
+        // Exclusions
+        containerEl.createEl('h3', { text: 'Exclusion Rules' });
+
+        // Excluded Folders Section
+        containerEl.createEl('h4', { text: 'Excluded Folders' });
+        containerEl.createEl('p', { 
+            text: 'Notes in excluded folders (and their subfolders) will not display the Rich Foot footer. This is useful for system folders or areas where you don\'t want footer information to appear.',
+            cls: 'setting-item-description'
+        });
+        
+        // Create container for excluded folders list
+        const excludedFoldersContainer = containerEl.createDiv('excluded-folders-container');
+        
+        // Display current excluded folders
+        if (this.plugin.settings?.excludedFolders) {
+            this.plugin.settings.excludedFolders.forEach((folder, index) => {
+                const folderDiv = excludedFoldersContainer.createDiv('excluded-folder-item');
+                folderDiv.createSpan({ text: folder });
+                
+                const deleteButton = folderDiv.createEl('button', {
+                    text: 'Delete',
+                    cls: 'excluded-folder-delete'
+                });
+                
+                deleteButton.addEventListener('click', async () => {
+                    this.plugin.settings.excludedFolders.splice(index, 1);
+                    await this.plugin.saveSettings();
+                    this.display();
+                });
+            });
+        }
+
+        // Frontmatter Exclusion Field
+        containerEl.createEl('h4', { text: 'Exclude Rich Foot via Frontmatter' });
+        new Setting(containerEl)
+            .setName('Frontmatter Exclusion Field')
+            .setDesc('If this frontmatter field exists and has a truthy value (true, yes, 1, on), Rich Foot will not be shown on that note')
+            .addText(text => text
+                .setPlaceholder('e.g., exclude-rich-foot')
+                .setValue(this.plugin.settings.frontmatterExclusionField)
+                .onChange(async (value) => {
+                    this.plugin.settings.frontmatterExclusionField = value.trim();
+                    await this.plugin.saveSettings();
+                    await this.plugin.updateRichFoot();
+                }))
+            .addButton(button => button
+                .setButtonText('Reset')
+                .onClick(async () => {
+                    this.plugin.settings.frontmatterExclusionField = '';
+                    await this.plugin.saveSettings();
+                    await this.plugin.updateRichFoot();
+                    const textComponent = button.buttonEl.parentElement.parentElement.querySelector('input[type="text"]');
+                    if (textComponent) textComponent.value = '';
+                }));
+
+        // Excluded Parent Selectors Section
+        containerEl.createEl('h4', { text: 'Excluded Parent Selectors' });
+        containerEl.createEl('p', { 
+            text: 'Rich Foot will not be added to notes that have any of these parent selectors in their DOM hierarchy. Useful for compatibility with other plugins.',
+            cls: 'setting-item-description'
+        });
+        
+        // Create container for excluded selectors list
+        const excludedSelectorsContainer = containerEl.createDiv('excluded-selectors-container');
+        
+        // Display current excluded selectors
+        if (this.plugin.settings?.excludedParentSelectors) {
+            this.plugin.settings.excludedParentSelectors.forEach((selector, index) => {
+                const selectorDiv = excludedSelectorsContainer.createDiv('excluded-selector-item');
+                selectorDiv.createSpan({ text: selector });
+                
+                const deleteButton = selectorDiv.createEl('button', {
+                    text: 'Delete',
+                    cls: 'excluded-selector-delete'
+                });
+                
+                deleteButton.addEventListener('click', async () => {
+                    this.plugin.settings.excludedParentSelectors.splice(index, 1);
+                    await this.plugin.saveSettings();
+                    this.display();
+                });
+            });
+        }
+
+        // CSS selector section
+        const newSelectorSetting = new Setting(containerEl)
+            .setName('Add excluded parent selector')
+            .setDesc('Enter a CSS selector (e.g., .some-class, #some-id, [data-type="special"])')
+            .addText(text => text
+                .setPlaceholder('Enter selector')
+                .onChange(() => {
+                    // Validate selector when it changes
+                    try {
+                        document.querySelector(text.getValue());
+                        text.inputEl.style.color = '';
+                    } catch (e) {
+                        text.inputEl.style.color = 'var(--text-error)';
+                    }
+                }))
+            .addButton(button => button
+                .setButtonText('Add')
+                .onClick(async () => {
+                    const textComponent = newSelectorSetting.components[0];
+                    const newSelector = textComponent.getValue().trim();
+                    
+                    if (!newSelector) return;
+
+                    // Validate selector
+                    try {
+                        document.querySelector(newSelector);
+                    } catch (e) {
+                        new Notice('Invalid CSS selector');
+                        return;
+                    }
+                    
+                    if (!this.plugin.settings.excludedParentSelectors.includes(newSelector)) {
+                        this.plugin.settings.excludedParentSelectors.push(newSelector);
+                        await this.plugin.saveSettings();
+                        textComponent.setValue('');
+                        this.display();
+                    }
+                }));
+
+        
         // Example Screenshot
         containerEl.createEl('h3', { text: 'Example Screenshot', cls: 'rich-foot-example-title' });
         const exampleDiv = containerEl.createDiv({ cls: 'rich-foot-example' });

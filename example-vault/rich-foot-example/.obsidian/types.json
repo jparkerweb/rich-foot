@@ -5,6 +5,7 @@
     "tags": "tags",
     "links": "multitext",
     "created": "text",
-    "modified": "text"
+    "modified": "text",
+    "exclude": "number"
   }
 }

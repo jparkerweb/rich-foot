@@ -8,21 +8,32 @@
         "type": "tabs",
         "children": [
           {
-            "id": "5173ce34fa31fa9f",
+            "id": "00a195a1f4197982",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "🦶 Rich Foot.md",
+                "file": "releases/v1.10.0 - 🛑 Exclude Me Please.md",
                 "mode": "preview",
                 "backlinks": false,
-                "source": false
+                "source": true
               },
               "icon": "lucide-file",
-              "title": "🦶 Rich Foot"
+              "title": "v1.10.0 - 🛑 Exclude Me Please"
+            }
+          },
+          {
+            "id": "5f7fdb8dc8ceec49",
+            "type": "leaf",
+            "state": {
+              "type": "custom-frames-📄-release-notes",
+              "state": {},
+              "icon": "lucide-notebook-pen",
+              "title": "📄 release notes"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -3029,6 +3040,156 @@
             "id": "5ee8ef35ab61bc8c",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f517c57e077d78b3",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "3bac1f5429f0e1f4",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "ac9bfd65f2193b27",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "44f1c2620cbce592",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "6a7a70f747141d53",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9f3d8bec19673282",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "75bf16687c7c91bb",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4d063643ca0dc1d7",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "59fbd136ee5cbd0c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8cd6ad01906b75e6",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5715ce3c0c83d7f2",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "55dcde18f596c56e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d5ae2767fde20738",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c96dad4f3cd7ee60",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "71a25f05585b1422",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -3036,7 +3197,7 @@
             }
           }
         ],
-        "currentTab": 293
+        "currentTab": 308
       }
     ],
     "direction": "horizontal",
@@ -3052,23 +3213,27 @@
       "switcher:Open quick switcher": false,
       "templates:Insert template": true,
       "command-palette:Open command palette": false,
-      "canvas:Create new canvas": false
+      "canvas:Create new canvas": false,
+      "obsidian-memos:Thino": false
     }
   },
-  "active": "5173ce34fa31fa9f",
+  "active": "5f7fdb8dc8ceec49",
   "lastOpenFiles": [
-    "misc-notes/link test.md",
-    "misc-notes/three.md",
-    "misc-notes/link test 2.md",
+    "releases/v1.10.0 - 🛑 Exclude Me Please.md",
+    "pixel-banner-images/no-fee-allowed.png",
     "🦶 Rich Foot.md",
+    "misc-notes/link test.md",
+    "2024-12-07.md",
+    "exclude/no rich-feet here.md",
+    "exclude/me too/no rich-feet here either.md",
+    "misc-notes/two.md",
+    "misc-notes/one.md",
+    "misc-notes/link test 2.md",
+    "misc-notes/three.md",
     "test.md",
     "releases/v1.9.0 - 🥙 Stuffed Links.md",
     "releases/v1.8.0 - 🫣 Page Preview Support.md",
     "releases/v1.7.0 - 📆 Dates Your Way.md",
-    "misc-notes/two.md",
-    "misc-notes/one.md",
-    "exclude/no rich-feet here.md",
-    "exclude/me too/no rich-feet here either.md",
     "images/rich-feet-2.jpg",
     "pixel-banner-images/stuffed-links.png",
     "images/rich-feet-3.jpg",

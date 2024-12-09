@@ -2,6 +2,11 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.10.0] - 2024-12-08
+### ✨ Added
+- Exclusion rule via `frontmatter` field
+- Custom exclusions using specified DOM parent selectors for advanced control
+
 ## [1.9.2] - 2024-12-01
 ### 🐛 Fixed
 - dynamic `css` in `reading` mode disrupting document flow of floated elements (e.g. ITS callouts)
