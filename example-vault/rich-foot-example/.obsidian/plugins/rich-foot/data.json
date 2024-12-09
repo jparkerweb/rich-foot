@@ -22,5 +22,7 @@
   "showDates": true,
   "combineLinks": true,
   "updateDelay": 3000,
+  "excludedParentSelectors": [],
+  "frontmatterExclusionField": "",
   "lastVersion": "1.9.2"
 }

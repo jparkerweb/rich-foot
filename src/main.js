@@ -26,6 +26,8 @@ class RichFootSettings {
         this.dateDisplayFormat = DEFAULT_SETTINGS.dateDisplayFormat;
         this.combineLinks = DEFAULT_SETTINGS.combineLinks;
         this.updateDelay = DEFAULT_SETTINGS.updateDelay;
+        this.excludedParentSelectors = [];
+        this.frontmatterExclusionField = '';
     }
 }
 
@@ -329,7 +331,7 @@ class RichFootPlugin extends Plugin {
                 return;
             }
 
-            // Check if the current file is in an excluded folder
+            // Check if the current file is in an excluded folder or has excluded parent
             if (this.shouldExcludeFile(file.path)) {
                 const existingRichFoots = document.querySelectorAll('.rich-foot');
                 existingRichFoots.forEach(el => el.remove());
@@ -346,6 +348,24 @@ class RichFootPlugin extends Plugin {
             }
 
             if (!container) {
+                return;
+            }
+
+            // Additional check for excluded parent selectors directly on the container
+            if (this.settings?.excludedParentSelectors?.some(selector => {
+                try {
+                    const matchingElements = document.querySelectorAll(selector);
+                    return Array.from(matchingElements).some(el => 
+                        el === container || 
+                        el.contains(container)
+                    );
+                } catch (e) {
+                    console.error(`Invalid selector in Rich Foot settings: ${selector}`);
+                    return false;
+                }
+            })) {
+                const existingRichFoots = document.querySelectorAll('.rich-foot');
+                existingRichFoots.forEach(el => el.remove());
                 return;
             }
 
@@ -811,10 +831,40 @@ class RichFootPlugin extends Plugin {
 
     // check if a file should be excluded
     shouldExcludeFile(filePath) {
-        if (!this.settings?.excludedFolders) {
-            return false;
+        // Check excluded folders
+        if (this.settings?.excludedFolders?.some(folder => filePath.startsWith(folder))) {
+            return true;
         }
-        return this.settings.excludedFolders.some(folder => filePath.startsWith(folder));
+
+        // Check frontmatter exclusion field
+        const file = this.app.vault.getAbstractFileByPath(filePath);
+        if (file && this.settings.frontmatterExclusionField) {
+            const cache = this.app.metadataCache.getFileCache(file);
+            const frontmatterValue = cache?.frontmatter?.[this.settings.frontmatterExclusionField];
+            if (this.isTruthy(frontmatterValue)) {
+                return true;
+            }
+        }
+
+        // Check excluded parent selectors
+        const activeLeaf = this.app.workspace.activeLeaf;
+        if (activeLeaf?.view?.containerEl) {
+            return this.settings?.excludedParentSelectors?.some(selector => {
+                try {
+                    // Check if the container or any of its parents match the selector
+                    const matchingElements = document.querySelectorAll(selector);
+                    return Array.from(matchingElements).some(el => 
+                        el === activeLeaf.view.containerEl || 
+                        el.contains(activeLeaf.view.containerEl)
+                    );
+                } catch (e) {
+                    console.error(`Invalid selector in Rich Foot settings: ${selector}`);
+                    return false;
+                }
+            });
+        }
+
+        return false;
     }
 
     isEditMode() {
@@ -856,6 +906,12 @@ class RichFootPlugin extends Plugin {
                 readingView.style.setProperty('--rich-foot-margin-bottom', '20px');
             }
         }, 100);
+    }
+
+    isTruthy(value) {
+        if (!value) return false;
+        const truthyValues = ['true', 'yes', '1', 'on'];
+        return truthyValues.includes(String(value).toLowerCase());
     }
 }
 
