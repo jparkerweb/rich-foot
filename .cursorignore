@@ -2,4 +2,3 @@ example-vault
 node_modules
 package-lock.json
 ./main.js
-.aider*
