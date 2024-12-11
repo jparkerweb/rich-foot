@@ -2,6 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.10.2] - 2024-12-11
+### 🐛 Fixed
+- Missing `Excluded Folders` section in the settings
+
 ## [1.10.1] - 2024-12-10
 ### 🐛 Fixed
 - Extra padding on the bottom of the editor in Canvas / Kanban Cards

@@ -683,7 +683,7 @@ export class RichFootSettingTab extends PluginSettingTab {
         containerEl.createEl('h3', { text: 'Exclusion Rules' });
 
         // Excluded Folders Section
-        containerEl.createEl('h4', { text: 'Excluded Folders' });
+        containerEl.createEl('h3', { text: 'Excluded Folders' });
         containerEl.createEl('p', { 
             text: 'Notes in excluded folders (and their subfolders) will not display the Rich Foot footer. This is useful for system folders or areas where you don\'t want footer information to appear.',
             cls: 'setting-item-description'
@@ -710,6 +710,35 @@ export class RichFootSettingTab extends PluginSettingTab {
                 });
             });
         }
+        // Add new folder section
+        const newFolderSetting = new Setting(containerEl)
+            .setName('Add excluded folder')
+            .setDesc('Enter a folder path or browse to select')
+            .addText(text => text
+                .setPlaceholder('folder/subfolder'))
+            .addButton(button => button
+                .setButtonText('Browse')
+                .onClick(async () => {
+                    const folder = await this.browseForFolder();
+                    if (folder) {
+                        const textComponent = newFolderSetting.components[0];
+                        textComponent.setValue(folder);
+                    }
+                }))
+            .addButton(button => button
+                .setButtonText('Add')
+                .onClick(async () => {
+                    const textComponent = newFolderSetting.components[0];
+                    const newFolder = textComponent.getValue().trim();
+                    
+                    if (newFolder && !this.plugin.settings.excludedFolders.includes(newFolder)) {
+                        this.plugin.settings.excludedFolders.push(newFolder);
+                        await this.plugin.saveSettings();
+                        textComponent.setValue('');
+                        this.display();
+                    }
+                }));
+
 
         // Frontmatter Exclusion Field
         containerEl.createEl('h4', { text: 'Exclude Rich Foot via Frontmatter' });
