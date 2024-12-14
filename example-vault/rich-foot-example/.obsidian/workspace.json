@@ -3249,6 +3249,66 @@
             "id": "27f7e05636c07604",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8fe0e89fd7400747",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "270a09f1d0e40ed5",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "bb5fed5c313e1001",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "15e55b37b64c7a08",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f10409eafe229c82",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "3810900fdf31cef5",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -3256,7 +3316,7 @@
             }
           }
         ],
-        "currentTab": 315
+        "currentTab": 321
       }
     ],
     "direction": "horizontal",
@@ -3279,9 +3339,10 @@
   },
   "active": "bf09cc60e5809e92",
   "lastOpenFiles": [
+    "thino test.md",
+    "🦶 Rich Foot.md",
     "exclude/me too/no rich-feet here either.md",
     "exclude/no rich-feet here.md",
-    "🦶 Rich Foot.md",
     "releases/v1.10.0 - 🛑 Exclude Me Please.md",
     "2024-12-07.md",
     "Untitled Kanban.md",

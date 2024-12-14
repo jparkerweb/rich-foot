@@ -22,7 +22,9 @@
   "showDates": true,
   "combineLinks": true,
   "updateDelay": 3000,
-  "excludedParentSelectors": [],
+  "excludedParentSelectors": [
+    "[data-type=\"thino_view\"]"
+  ],
   "frontmatterExclusionField": "",
-  "lastVersion": "1.10.1"
+  "lastVersion": "1.10.2"
 }
