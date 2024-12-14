@@ -851,12 +851,19 @@ class RichFootPlugin extends Plugin {
         if (activeLeaf?.view?.containerEl) {
             return this.settings?.excludedParentSelectors?.some(selector => {
                 try {
-                    // Check if the container or any of its parents match the selector
-                    const matchingElements = document.querySelectorAll(selector);
-                    return Array.from(matchingElements).some(el => 
-                        el === activeLeaf.view.containerEl || 
-                        el.contains(activeLeaf.view.containerEl)
-                    );
+                    // Check if any parent element matches the selector
+                    let element = activeLeaf.view.containerEl;
+                    while (element) {
+                        if (element.matches?.(selector)) {
+                            return true;
+                        }
+                        // Also check if the current element contains any matching elements
+                        if (element.querySelector?.(selector)) {
+                            return true;
+                        }
+                        element = element.parentElement;
+                    }
+                    return false;
                 } catch (e) {
                     console.error(`Invalid selector in Rich Foot settings: ${selector}`);
                     return false;

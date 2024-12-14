@@ -2,6 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.10.3] - 2024-12-14
+### 🐛 Fixed
+- Improved parent selector matching to properly detect and exclude Rich Foot when specified selectors are present in the view or its parent elements
+
 ## [1.10.2] - 2024-12-11
 ### 🐛 Fixed
 - Missing `Excluded Folders` section in the settings
