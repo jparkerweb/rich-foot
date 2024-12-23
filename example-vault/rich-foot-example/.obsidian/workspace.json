@@ -15,8 +15,8 @@
               "state": {
                 "file": "🦶 Rich Foot.md",
                 "mode": "preview",
-                "backlinks": false,
-                "source": false
+                "source": false,
+                "backlinks": false
               },
               "icon": "lucide-file",
               "title": "🦶 Rich Foot"
@@ -3309,6 +3309,76 @@
             "id": "3810900fdf31cef5",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b854080e8f113bb2",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "88c742358a1f30f6",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "0e3689169b8996c0",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "bc1ef51ebc25029b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "2916e04a2ffff62e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "135c0ef85c999961",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5825c202c1412179",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -3316,7 +3386,7 @@
             }
           }
         ],
-        "currentTab": 321
+        "currentTab": 328
       }
     ],
     "direction": "horizontal",
@@ -3326,24 +3396,26 @@
   "left-ribbon": {
     "hiddenItems": {
       "obsidian-custom-frames:Open 📄 release notes": false,
-      "cmdr:Open Plugin Settings: Pixel Banner": false,
-      "cmdr:Open Plugin Settings: Rich Foot": false,
-      "cmdr:Reload app without saving": false,
       "switcher:Open quick switcher": false,
       "templates:Insert template": true,
       "command-palette:Open command palette": false,
       "canvas:Create new canvas": false,
-      "obsidian-memos:Thino": false,
-      "obsidian-kanban:Create new board": false
+      "obsidian-kanban:Create new board": false,
+      "cmdr:Reload app without saving": false,
+      "cmdr:Open Plugin Settings: Pixel Banner": false,
+      "cmdr:Open Plugin Settings: Rich Foot": false
     }
   },
   "active": "bf09cc60e5809e92",
   "lastOpenFiles": [
-    "thino test.md",
     "🦶 Rich Foot.md",
+    "releases/v1.7.0 - 📆 Dates Your Way.md",
+    "releases/v1.8.0 - 🫣 Page Preview Support.md",
+    "releases/v1.9.0 - 🥙 Stuffed Links.md",
+    "releases/v1.10.0 - 🛑 Exclude Me Please.md",
+    "thino test.md",
     "exclude/me too/no rich-feet here either.md",
     "exclude/no rich-feet here.md",
-    "releases/v1.10.0 - 🛑 Exclude Me Please.md",
     "2024-12-07.md",
     "Untitled Kanban.md",
     "Untitled.canvas",
@@ -3352,11 +3424,8 @@
     "misc-notes/three.md",
     "misc-notes/link test.md",
     "misc-notes/link test 2.md",
-    "releases/v1.9.0 - 🥙 Stuffed Links.md",
     "pixel-banner-images/no-fee-allowed.png",
     "test.md",
-    "releases/v1.8.0 - 🫣 Page Preview Support.md",
-    "releases/v1.7.0 - 📆 Dates Your Way.md",
     "images/rich-feet-2.jpg",
     "pixel-banner-images/stuffed-links.png",
     "images/rich-feet-3.jpg",

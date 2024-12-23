@@ -5,7 +5,8 @@ links:
 ---
 
 # 🦶 Rich Foot
-https://github.com/jparkerweb/rich-foot
+🐙 [GitHub](https://github.com/jparkerweb/rich-foot)
+📝 [Release Notes Generator](https://jparkerweb.github.io/release-notes/)
 
 ## Float me {.float-right}
 

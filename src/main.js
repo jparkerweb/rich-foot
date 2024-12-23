@@ -170,6 +170,11 @@ class RichFootPlugin extends Plugin {
         document.documentElement.style.setProperty('--rich-foot-border-radius', `${this.settings.borderRadius}px`);
         document.documentElement.style.setProperty('--rich-foot-dates-opacity', this.settings.datesOpacity);
         document.documentElement.style.setProperty('--rich-foot-links-opacity', this.settings.linksOpacity);
+        document.documentElement.style.setProperty('--rich-foot-date-color', this.settings.dateColor);
+        document.documentElement.style.setProperty('--rich-foot-border-color', this.settings.borderColor);
+        document.documentElement.style.setProperty('--rich-foot-link-color', this.settings.linkColor);
+        document.documentElement.style.setProperty('--rich-foot-link-background', this.settings.linkBackgroundColor);
+        document.documentElement.style.setProperty('--rich-foot-link-border-color', this.settings.linkBorderColor);
 
         // Check version and show release notes if needed
         await this.checkVersion();

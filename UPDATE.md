@@ -1,5 +1,8 @@
 ## 🛑 Exclude Me Please
 
+### [1.10.4] - 2024-12-23
+#### 🐛 Fixed
+- Fixed issue with Rich Foot not loading all user defined colors when Obsidian is restarted
 
 ### [1.10.3] - 2024-12-14
 #### 🐛 Fixed

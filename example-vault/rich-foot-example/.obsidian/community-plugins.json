@@ -9,5 +9,7 @@
   "css-editor",
   "obsidian-custom-frames",
   "markdown-attributes",
-  "obsidian-kanban"
+  "obsidian-kanban",
+  "quickadd",
+  "obsidian-plugin-update-tracker"
 ]

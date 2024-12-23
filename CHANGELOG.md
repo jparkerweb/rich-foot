@@ -2,6 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.10.4] - 2024-12-23
+### 🐛 Fixed
+- Fixed issue with Rich Foot not loading all user defined colors when Obsidian is restarted
+
 ## [1.10.3] - 2024-12-14
 ### 🐛 Fixed
 - Improved parent selector matching to properly detect and exclude Rich Foot when specified selectors are present in the view or its parent elements
