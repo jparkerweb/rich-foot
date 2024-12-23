@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.3] - 2024-12-14</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Improved parent selector matching to properly detect and exclude Rich Foot when specified selectors are present in the view or its parent elements</li>\n</ul>\n<h3>[1.10.2] - 2024-12-11</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Missing <code>Excluded Folders</code> section in the settings</li>\n</ul>\n<h3>[1.10.1] - 2024-12-10</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Extra padding on the bottom of the editor in Canvas / Kanban Cards</li>\n</ul>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.4] - 2024-12-23</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue with Rich Foot not loading all user defined colors when Obsidian is restarted</li>\n</ul>\n<h3>[1.10.3] - 2024-12-14</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Improved parent selector matching to properly detect and exclude Rich Foot when specified selectors are present in the view or its parent elements</li>\n</ul>\n<h3>[1.10.2] - 2024-12-11</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Missing <code>Excluded Folders</code> section in the settings</li>\n</ul>\n<h3>[1.10.1] - 2024-12-10</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Extra padding on the bottom of the editor in Canvas / Kanban Cards</li>\n</ul>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -691,6 +691,11 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     document.documentElement.style.setProperty("--rich-foot-border-radius", `${this.settings.borderRadius}px`);
     document.documentElement.style.setProperty("--rich-foot-dates-opacity", this.settings.datesOpacity);
     document.documentElement.style.setProperty("--rich-foot-links-opacity", this.settings.linksOpacity);
+    document.documentElement.style.setProperty("--rich-foot-date-color", this.settings.dateColor);
+    document.documentElement.style.setProperty("--rich-foot-border-color", this.settings.borderColor);
+    document.documentElement.style.setProperty("--rich-foot-link-color", this.settings.linkColor);
+    document.documentElement.style.setProperty("--rich-foot-link-background", this.settings.linkBackgroundColor);
+    document.documentElement.style.setProperty("--rich-foot-link-border-color", this.settings.linkBorderColor);
     await this.checkVersion();
     const updateRichFootCallback = async () => {
       const activeLeaf = this.app.workspace.activeLeaf;
