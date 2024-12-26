@@ -111,31 +111,8 @@ var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.4] - 2024-12
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
-var DEFAULT_SETTINGS = {
-  borderWidth: 1,
-  borderStyle: "dashed",
-  borderOpacity: 1,
-  borderRadius: 15,
-  datesOpacity: 1,
-  linksOpacity: 1,
-  showReleaseNotes: true,
-  excludedFolders: [],
-  dateColor: "var(--text-accent)",
-  borderColor: "var(--text-accent)",
-  linkColor: "var(--link-color)",
-  linkBackgroundColor: "var(--tag-background)",
-  linkBorderColor: "rgba(255, 255, 255, 0.204)",
-  customCreatedDateProp: "",
-  customModifiedDateProp: "",
-  dateDisplayFormat: "mmmm dd, yyyy",
-  showBacklinks: true,
-  showOutlinks: true,
-  showDates: true,
-  combineLinks: false,
-  updateDelay: 3e3,
-  excludedParentSelectors: [],
-  frontmatterExclusionField: ""
-};
+
+// src/utils.js
 function rgbToHex(color) {
   if (color.startsWith("hsl")) {
     const temp = document.createElement("div");
@@ -188,6 +165,33 @@ function formatDate(date, format) {
   });
   return result;
 }
+
+// src/settings.js
+var DEFAULT_SETTINGS = {
+  borderWidth: 1,
+  borderStyle: "dashed",
+  borderOpacity: 1,
+  borderRadius: 15,
+  datesOpacity: 1,
+  linksOpacity: 1,
+  showReleaseNotes: true,
+  excludedFolders: [],
+  dateColor: "var(--text-accent)",
+  borderColor: "var(--text-accent)",
+  linkColor: "var(--link-color)",
+  linkBackgroundColor: "var(--tag-background)",
+  linkBorderColor: "rgba(255, 255, 255, 0.204)",
+  customCreatedDateProp: "",
+  customModifiedDateProp: "",
+  dateDisplayFormat: "mmmm dd, yyyy",
+  showBacklinks: true,
+  showOutlinks: true,
+  showDates: true,
+  combineLinks: false,
+  updateDelay: 3e3,
+  excludedParentSelectors: [],
+  frontmatterExclusionField: ""
+};
 var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
@@ -646,42 +650,6 @@ var FolderSuggestModal = class extends import_obsidian2.FuzzySuggestModal {
 };
 
 // src/main.js
-function formatDate2(date, format) {
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = d.getMonth();
-  const day = d.getDate();
-  const weekday = d.getDay();
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const monthsShort = months.map((m) => m.slice(0, 3));
-  const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const weekdaysShort = weekdays.map((w) => w.slice(0, 3));
-  const pad = (num) => num.toString().padStart(2, "0");
-  const tokens = {
-    "dddd": weekdays[weekday],
-    "ddd": weekdaysShort[weekday],
-    "dd": pad(day),
-    "d": day.toString(),
-    "mmmm": months[month],
-    "mmm": monthsShort[month],
-    "mm": pad(month + 1),
-    "m": (month + 1).toString(),
-    "yyyy": year.toString(),
-    "yy": year.toString().slice(-2)
-  };
-  const sortedTokens = Object.keys(tokens).sort((a, b) => b.length - a.length);
-  let result = format;
-  const replacements = /* @__PURE__ */ new Map();
-  sortedTokens.forEach((token, index) => {
-    const placeholder = `__${index}__`;
-    replacements.set(placeholder, tokens[token]);
-    result = result.replace(new RegExp(token, "g"), placeholder);
-  });
-  replacements.forEach((value, placeholder) => {
-    result = result.replace(new RegExp(placeholder, "g"), value);
-  });
-  return result;
-}
 var RichFootPlugin = class extends import_obsidian3.Plugin {
   async onload() {
     await this.loadSettings();
@@ -916,7 +884,7 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
   }
   async createRichFoot(file) {
     const richFoot = createDiv({ cls: "rich-foot rich-foot--hidden" });
-    const richFootDashedLine = richFoot.createDiv({ cls: "rich-foot--dashed-line" });
+    richFoot.createDiv({ cls: "rich-foot--dashed-line" });
     const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
     const outlinks = await this.getOutlinks(file);
     if (this.settings.combineLinks) {
@@ -1032,16 +1000,17 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
           }
         }
         if (isValidDate) {
-          const datePart = tempDate.split("T")[0];
-          const dateStr = tempDate.includes("T") ? tempDate : `${datePart}T00:00:00`;
-          const dateObj = new Date(dateStr);
-          modifiedDate = formatDate2(dateObj, this.settings.dateDisplayFormat);
+          if (!tempDate.includes("T") && !tempDate.includes(" ")) {
+            tempDate = `${tempDate}T00:00:00`;
+          }
+          const dateObj = new Date(tempDate);
+          modifiedDate = formatDate(dateObj, this.settings.dateDisplayFormat);
         } else {
           modifiedDate = modifiedDate;
         }
       } else {
         modifiedDate = new Date(file.stat.mtime);
-        modifiedDate = formatDate2(modifiedDate, this.settings.dateDisplayFormat);
+        modifiedDate = formatDate(modifiedDate, this.settings.dateDisplayFormat);
       }
       datesWrapper.createDiv({
         cls: "rich-foot--modified-date",
@@ -1076,16 +1045,17 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
           }
         }
         if (isValidDate) {
-          const datePart = tempDate.split("T")[0];
-          const dateStr = tempDate.includes("T") ? tempDate : `${datePart}T00:00:00`;
-          const dateObj = new Date(dateStr);
-          createdDate = formatDate2(dateObj, this.settings.dateDisplayFormat);
+          if (!tempDate.includes("T") && !tempDate.includes(" ")) {
+            tempDate = `${tempDate}T00:00:00`;
+          }
+          const dateObj = new Date(tempDate);
+          createdDate = formatDate(dateObj, this.settings.dateDisplayFormat);
         } else {
           createdDate = createdDate;
         }
       } else {
         createdDate = new Date(file.stat.ctime);
-        createdDate = formatDate2(createdDate, this.settings.dateDisplayFormat);
+        createdDate = formatDate(createdDate, this.settings.dateDisplayFormat);
       }
       datesWrapper.createDiv({
         cls: "rich-foot--created-date",
