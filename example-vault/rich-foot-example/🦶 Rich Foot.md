@@ -1,5 +1,5 @@
 ---
-banner: images/rich-feet-3.jpg
+banner-shuffle: images
 links:
   - "[[link test]]"
 ---

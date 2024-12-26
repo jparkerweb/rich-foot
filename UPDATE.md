@@ -1,5 +1,9 @@
 ## 🛑 Exclude Me Please
 
+### [1.10.5] - 2024-12-26
+#### 📦 Updated
+- Support for more date formats in `frontmatter` created/modified fields (ISO, space-separated, and just date)
+
 ### [1.10.4] - 2024-12-23
 #### 🐛 Fixed
 - Fixed issue with Rich Foot not loading all user defined colors when Obsidian is restarted
