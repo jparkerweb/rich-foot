@@ -15,7 +15,7 @@
               "state": {
                 "file": "🦶 Rich Foot.md",
                 "mode": "preview",
-                "source": false,
+                "source": true,
                 "backlinks": false
               },
               "icon": "lucide-file",
@@ -3379,6 +3379,16 @@
             "id": "5825c202c1412179",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "58cbb175b1e021d0",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -3386,7 +3396,7 @@
             }
           }
         ],
-        "currentTab": 328
+        "currentTab": 329
       }
     ],
     "direction": "horizontal",
@@ -3408,7 +3418,13 @@
   },
   "active": "bf09cc60e5809e92",
   "lastOpenFiles": [
+    "images/rich-feet-3.jpg",
+    "images/rich-feet-2.jpg",
+    "images/rich-feet.jpg",
     "🦶 Rich Foot.md",
+    "pixel-banner-images/calendar-feet.png",
+    "pixel-banner-images/stuffed-links.png",
+    "pixel-banner-images/no-fee-allowed.png",
     "releases/v1.7.0 - 📆 Dates Your Way.md",
     "releases/v1.8.0 - 🫣 Page Preview Support.md",
     "releases/v1.9.0 - 🥙 Stuffed Links.md",
@@ -3424,17 +3440,11 @@
     "misc-notes/three.md",
     "misc-notes/link test.md",
     "misc-notes/link test 2.md",
-    "pixel-banner-images/no-fee-allowed.png",
     "test.md",
-    "images/rich-feet-2.jpg",
-    "pixel-banner-images/stuffed-links.png",
-    "images/rich-feet-3.jpg",
-    "pixel-banner-images/calendar-feet.png",
     "pixel-banner-images/feet-dreaming.png",
     "misc-notes",
     "Pasted image 20241129154754.png",
     "note with table.md",
-    "images/rich-feet.jpg",
     "images",
     "exclude/me too",
     "exclude",
