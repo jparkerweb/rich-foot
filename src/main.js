@@ -336,7 +336,7 @@ class RichFootPlugin extends Plugin {
     async createRichFoot(file) {
         // Remove the duplicate removal here since we're handling it in addRichFoot
         const richFoot = createDiv({ cls: 'rich-foot rich-foot--hidden' });
-        const richFootDashedLine = richFoot.createDiv({ cls: 'rich-foot--dashed-line' });
+        richFoot.createDiv({ cls: 'rich-foot--dashed-line' });
 
         // Get both backlinks and outlinks data
         const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
@@ -483,12 +483,11 @@ class RichFootPlugin extends Plugin {
                 }
 
                 if (isValidDate) {
-                    // Split on 'T' to handle timestamps
-                    const datePart = tempDate.split('T')[0];
-                    // If there's no time component, parse in local timezone by appending T00:00:00
-                    const dateStr = tempDate.includes('T') ? tempDate : `${datePart}T00:00:00`;
-                    // Create a Date object from the parts
-                    const dateObj = new Date(dateStr);
+                    // if tempDate doesn't have a time component, add it (using midnight in the current timezone)
+                    if (!tempDate.includes('T') && !tempDate.includes(' ')) {
+                        tempDate = `${tempDate}T00:00:00`;
+                    }
+                    const dateObj = new Date(tempDate);
                     modifiedDate = formatDate(dateObj, this.settings.dateDisplayFormat);
                 } else {
                     modifiedDate = modifiedDate;
@@ -537,12 +536,11 @@ class RichFootPlugin extends Plugin {
                 }
 
                 if (isValidDate) {
-                    // Split on 'T' to handle timestamps
-                    const datePart = tempDate.split('T')[0];
-                    // If there's no time component, parse in local timezone by appending T00:00:00
-                    const dateStr = tempDate.includes('T') ? tempDate : `${datePart}T00:00:00`;
-                    // Create a Date object from the parts
-                    const dateObj = new Date(dateStr);
+                    // if tempDate doesn't have a time component, add it (using midnight in the current timezone)
+                    if (!tempDate.includes('T') && !tempDate.includes(' ')) {
+                        tempDate = `${tempDate}T00:00:00`;
+                    }
+                    const dateObj = new Date(tempDate);
                     createdDate = formatDate(dateObj, this.settings.dateDisplayFormat);
                 } else {
                     createdDate = createdDate;
