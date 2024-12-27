@@ -4,18 +4,18 @@
     "type": "split",
     "children": [
       {
-        "id": "aeda690654931e5b",
+        "id": "fbb1972d09fe87dc",
         "type": "tabs",
         "children": [
           {
-            "id": "bf09cc60e5809e92",
+            "id": "946d262197156fcf",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
                 "file": "🦶 Rich Foot.md",
                 "mode": "preview",
-                "source": true,
+                "source": false,
                 "backlinks": false
               },
               "icon": "lucide-file",
@@ -3609,6 +3609,16 @@
             "id": "9ccbc65e7fda67bf",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c7e4e57395de26bb",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -3616,7 +3626,7 @@
             }
           }
         ],
-        "currentTab": 351
+        "currentTab": 352
       }
     ],
     "direction": "horizontal",
@@ -3636,13 +3646,14 @@
       "cmdr:Open Plugin Settings: Rich Foot": false
     }
   },
-  "active": "9ccbc65e7fda67bf",
+  "active": "946d262197156fcf",
   "lastOpenFiles": [
+    "misc-notes/three.md",
     "🦶 Rich Foot.md",
+    "pixel-banner-images/calendar-feet.png",
     "images/rich-feet-3.jpg",
     "images/rich-feet-2.jpg",
     "images/rich-feet.jpg",
-    "pixel-banner-images/calendar-feet.png",
     "pixel-banner-images/stuffed-links.png",
     "pixel-banner-images/no-fee-allowed.png",
     "releases/v1.7.0 - 📆 Dates Your Way.md",
@@ -3657,7 +3668,6 @@
     "Untitled.canvas",
     "misc-notes/two.md",
     "misc-notes/one.md",
-    "misc-notes/three.md",
     "misc-notes/link test.md",
     "misc-notes/link test 2.md",
     "test.md",

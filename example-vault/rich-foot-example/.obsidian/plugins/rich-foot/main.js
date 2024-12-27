@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.5] - 2024-12-26</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Support for more date formats in <code>frontmatter</code> created/modified fields (ISO, space-separated, and just date)</li>\n</ul>\n<h3>[1.10.4] - 2024-12-23</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue with Rich Foot not loading all user defined colors when Obsidian is restarted</li>\n</ul>\n<h3>[1.10.3] - 2024-12-14</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Improved parent selector matching to properly detect and exclude Rich Foot when specified selectors are present in the view or its parent elements</li>\n</ul>\n<h3>[1.10.2] - 2024-12-11</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Missing <code>Excluded Folders</code> section in the settings</li>\n</ul>\n<h3>[1.10.1] - 2024-12-10</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Extra padding on the bottom of the editor in Canvas / Kanban Cards</li>\n</ul>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.6] - 2024-12-26</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Rich-Foot duplicating when opeining a note in a &quot;new window&quot;</li>\n</ul>\n<h3>[1.10.5] - 2024-12-26</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Support for more date formats in <code>frontmatter</code> created/modified fields (ISO, space-separated, and just date)</li>\n</ul>\n<h3>[1.10.4] - 2024-12-23</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue with Rich Foot not loading all user defined colors when Obsidian is restarted</li>\n</ul>\n<h3>[1.10.3] - 2024-12-14</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Improved parent selector matching to properly detect and exclude Rich Foot when specified selectors are present in the view or its parent elements</li>\n</ul>\n<h3>[1.10.2] - 2024-12-11</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Missing <code>Excluded Folders</code> section in the settings</li>\n</ul>\n<h3>[1.10.1] - 2024-12-10</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Extra padding on the bottom of the editor in Canvas / Kanban Cards</li>\n</ul>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -831,28 +831,12 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     }
   }
   removeExistingRichFoot(container) {
-    var _a;
-    const existingRichFoot = container.querySelector(".rich-foot");
-    if (existingRichFoot) {
-      existingRichFoot.remove();
-    }
-    const cmEditor = container.closest(".cm-editor");
-    if (cmEditor) {
-      const cmSizer = cmEditor.querySelector(".cm-sizer");
-      if (cmSizer) {
-        const richFootInSizer = cmSizer.querySelector(".rich-foot");
-        if (richFootInSizer) {
-          richFootInSizer.remove();
-        }
+    document.querySelectorAll(".rich-foot").forEach((el) => el.remove());
+    document.querySelectorAll("*").forEach((el) => {
+      if (el.shadowRoot) {
+        el.shadowRoot.querySelectorAll(".rich-foot").forEach((foot) => foot.remove());
       }
-    }
-    const previewSection = (_a = container.closest(".markdown-reading-view")) == null ? void 0 : _a.querySelector(".markdown-preview-section");
-    if (previewSection) {
-      const richFootInPreview = previewSection.querySelector(".rich-foot");
-      if (richFootInPreview) {
-        richFootInPreview.remove();
-      }
-    }
+    });
   }
   disconnectObservers() {
     if (this.contentObserver) {
@@ -1105,7 +1089,7 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
       }
     }
     const fileContent = await this.app.vault.read(file);
-    const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)\]/g;
+    const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*)*)\]/g;
     const refFootnoteRegex = /\[\^[^\]]+\]:\s*((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)/g;
     let match;
     while ((match = inlineFootnoteRegex.exec(fileContent)) !== null) {

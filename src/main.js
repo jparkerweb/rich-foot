@@ -273,32 +273,15 @@ class RichFootPlugin extends Plugin {
     }
 
     removeExistingRichFoot(container) {
-        // Remove from the current container
-        const existingRichFoot = container.querySelector('.rich-foot');
-        if (existingRichFoot) {
-            existingRichFoot.remove();
-        }
-
-        // Also check in .cm-sizer for editing mode
-        const cmEditor = container.closest('.cm-editor');
-        if (cmEditor) {
-            const cmSizer = cmEditor.querySelector('.cm-sizer');
-            if (cmSizer) {
-                const richFootInSizer = cmSizer.querySelector('.rich-foot');
-                if (richFootInSizer) {
-                    richFootInSizer.remove();
-                }
+        // Remove ALL rich-foot elements from ALL windows
+        document.querySelectorAll('.rich-foot').forEach(el => el.remove());
+        
+        // Get all shadow roots and remove rich-foot elements from them too
+        document.querySelectorAll('*').forEach(el => {
+            if (el.shadowRoot) {
+                el.shadowRoot.querySelectorAll('.rich-foot').forEach(foot => foot.remove());
             }
-        }
-
-        // Check in preview mode container
-        const previewSection = container.closest('.markdown-reading-view')?.querySelector('.markdown-preview-section');
-        if (previewSection) {
-            const richFootInPreview = previewSection.querySelector('.rich-foot');
-            if (richFootInPreview) {
-                richFootInPreview.remove();
-            }
-        }
+        });
     }
 
     disconnectObservers() {
@@ -611,7 +594,7 @@ class RichFootPlugin extends Plugin {
         const fileContent = await this.app.vault.read(file);
         
         // Match inline footnotes (nested brackets)
-        const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)\]/g; // altering this will break link detection
+        const inlineFootnoteRegex = /\^\[((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*)*)\]/g; // altering this will break link detection
         const refFootnoteRegex = /\[\^[^\]]+\]:\s*((?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*)/g;
         
         let match;
