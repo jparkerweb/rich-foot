@@ -2,6 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.10.6] - 2025-01-10
+### 📦 Updated
+- Ajusted `css` padding values to be compatible with `Typewriter Scroll` plugin
+
 ## [1.10.5] - 2024-12-26
 ### 📦 Updated
 - Support for more date formats in `frontmatter` created/modified fields (ISO, space-separated, and just date)
