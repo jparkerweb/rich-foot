@@ -4,18 +4,18 @@
     "type": "split",
     "children": [
       {
-        "id": "aeda690654931e5b",
+        "id": "fbb1972d09fe87dc",
         "type": "tabs",
         "children": [
           {
-            "id": "bf09cc60e5809e92",
+            "id": "946d262197156fcf",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
                 "file": "🦶 Rich Foot.md",
                 "mode": "preview",
-                "source": true,
+                "source": false,
                 "backlinks": false
               },
               "icon": "lucide-file",
@@ -3609,6 +3609,156 @@
             "id": "9ccbc65e7fda67bf",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c7e4e57395de26bb",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e6ff088e14a36753",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4d9c6fcf8c9c27dd",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "588c041bc44e9497",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "dc5dc82b707ca0c0",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "668536efc322dbba",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b98c085c8d8cc30e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "11084cf54cac638e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "126590fd295c63ae",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a113cbd3a790b755",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1c315a1cf1280bfd",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "7261e0eabbc47724",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "18fa81775e86fccc",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "72a26d7cff64c5d0",
+            "type": "leaf",
+            "state": {
+              "type": "Saved Queries View",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "Plugin no longer active"
+            }
+          },
+          {
+            "id": "1a7e43e62a7e7034",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -3616,7 +3766,7 @@
             }
           }
         ],
-        "currentTab": 351
+        "currentTab": 366
       }
     ],
     "direction": "horizontal",
@@ -3625,43 +3775,44 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "obsidian-custom-frames:Open 📄 release notes": false,
       "switcher:Open quick switcher": false,
       "templates:Insert template": true,
       "command-palette:Open command palette": false,
       "canvas:Create new canvas": false,
-      "obsidian-kanban:Create new board": false,
       "cmdr:Reload app without saving": false,
       "cmdr:Open Plugin Settings: Pixel Banner": false,
-      "cmdr:Open Plugin Settings: Rich Foot": false
+      "cmdr:Open Plugin Settings: Rich Foot": false,
+      "obsidian-custom-frames:Open 📄 release notes": false,
+      "obsidian-kanban:Create new board": false
     }
   },
-  "active": "9ccbc65e7fda67bf",
+  "active": "946d262197156fcf",
   "lastOpenFiles": [
+    "misc-notes/two.md",
+    "misc-notes/three.md",
+    "misc-notes/one.md",
+    "misc-notes/link test 2.md",
+    "misc-notes/link test.md",
+    "exclude/no rich-feet here.md",
+    "exclude/me too/no rich-feet here either.md",
     "🦶 Rich Foot.md",
-    "images/rich-feet-3.jpg",
-    "images/rich-feet-2.jpg",
-    "images/rich-feet.jpg",
-    "pixel-banner-images/calendar-feet.png",
-    "pixel-banner-images/stuffed-links.png",
-    "pixel-banner-images/no-fee-allowed.png",
+    "Untitled.md",
     "releases/v1.7.0 - 📆 Dates Your Way.md",
+    "releases/v1.10.0 - 🛑 Exclude Me Please.md",
+    "pixel-banner-images/no-fee-allowed.png",
+    "pixel-banner-images/stuffed-links.png",
+    "pixel-banner-images/feet-dreaming.png",
+    "images/rich-feet.jpg",
+    "images/rich-feet-3.jpg",
+    "pixel-banner-images/calendar-feet.png",
+    "images/rich-feet-2.jpg",
     "releases/v1.8.0 - 🫣 Page Preview Support.md",
     "releases/v1.9.0 - 🥙 Stuffed Links.md",
-    "releases/v1.10.0 - 🛑 Exclude Me Please.md",
     "thino test.md",
-    "exclude/me too/no rich-feet here either.md",
-    "exclude/no rich-feet here.md",
     "2024-12-07.md",
     "Untitled Kanban.md",
     "Untitled.canvas",
-    "misc-notes/two.md",
-    "misc-notes/one.md",
-    "misc-notes/three.md",
-    "misc-notes/link test.md",
-    "misc-notes/link test 2.md",
     "test.md",
-    "pixel-banner-images/feet-dreaming.png",
     "misc-notes",
     "Pasted image 20241129154754.png",
     "note with table.md",
