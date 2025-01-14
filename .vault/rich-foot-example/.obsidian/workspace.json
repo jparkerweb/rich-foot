@@ -3749,14 +3749,44 @@
             "id": "72a26d7cff64c5d0",
             "type": "leaf",
             "state": {
-              "type": "Saved Queries View",
+              "type": "empty",
               "state": {},
               "icon": "lucide-file",
-              "title": "Plugin no longer active"
+              "title": "New tab"
             }
           },
           {
             "id": "1a7e43e62a7e7034",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c67910f6f51214ce",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "666a87d809007b3f",
+            "type": "leaf",
+            "state": {
+              "type": "Saved Queries View",
+              "state": {},
+              "icon": "feather-mouse-pointer",
+              "title": "Saved Queries"
+            }
+          },
+          {
+            "id": "5034dba5dc9e1688",
             "type": "leaf",
             "state": {
               "type": "Saved Queries View",
@@ -3766,7 +3796,7 @@
             }
           }
         ],
-        "currentTab": 366
+        "currentTab": 369
       }
     ],
     "direction": "horizontal",
@@ -3786,19 +3816,20 @@
       "obsidian-kanban:Create new board": false
     }
   },
-  "active": "946d262197156fcf",
+  "active": "5034dba5dc9e1688",
   "lastOpenFiles": [
+    "misc-notes/one.md",
     "misc-notes/two.md",
     "misc-notes/three.md",
-    "misc-notes/one.md",
     "misc-notes/link test 2.md",
+    "releases/v1.9.0 - 🥙 Stuffed Links.md",
+    "releases/v1.10.0 - 🛑 Exclude Me Please.md",
+    "releases/v1.7.0 - 📆 Dates Your Way.md",
+    "🦶 Rich Foot.md",
     "misc-notes/link test.md",
     "exclude/no rich-feet here.md",
     "exclude/me too/no rich-feet here either.md",
-    "🦶 Rich Foot.md",
     "Untitled.md",
-    "releases/v1.7.0 - 📆 Dates Your Way.md",
-    "releases/v1.10.0 - 🛑 Exclude Me Please.md",
     "pixel-banner-images/no-fee-allowed.png",
     "pixel-banner-images/stuffed-links.png",
     "pixel-banner-images/feet-dreaming.png",
@@ -3807,7 +3838,6 @@
     "pixel-banner-images/calendar-feet.png",
     "images/rich-feet-2.jpg",
     "releases/v1.8.0 - 🫣 Page Preview Support.md",
-    "releases/v1.9.0 - 🥙 Stuffed Links.md",
     "thino test.md",
     "2024-12-07.md",
     "Untitled Kanban.md",

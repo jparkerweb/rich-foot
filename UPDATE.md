@@ -1,5 +1,9 @@
 ## 🛑 Exclude Me Please
 
+### [1.10.7] - 2025-01-13
+#### 📦 Updated
+- Updated `css` variables to support the `Minimal` theme
+
 ### [1.10.6] - 2025-01-10
 #### 📦 Updated
 - Adjusted `css` padding values to be compatible with `Typewriter Scroll` plugin
