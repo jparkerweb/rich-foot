@@ -43,21 +43,56 @@
   "customBannerShuffleField": [
     "banner-shuffle"
   ],
+  "customBannerIconField": [
+    "icon"
+  ],
+  "customBannerIconSizeField": [
+    "icon-size"
+  ],
+  "customBannerIconXPositionField": [
+    "icon-x"
+  ],
+  "customBannerIconOpacityField": [
+    "icon-opacity"
+  ],
+  "customBannerIconColorField": [
+    "icon-color"
+  ],
+  "customBannerIconFontWeightField": [
+    "icon-font-weight"
+  ],
+  "customBannerIconBackgroundColorField": [
+    "icon-bg-color"
+  ],
+  "customBannerIconPaddingXField": [
+    "icon-padding-x"
+  ],
+  "customBannerIconPaddingYField": [
+    "icon-padding-y"
+  ],
+  "customBannerIconBorderRadiusField": [
+    "icon-border-radius"
+  ],
+  "customBannerIconVeritalOffsetField": [
+    "icon-y"
+  ],
   "folderImages": [],
   "contentStartPosition": 150,
   "imageDisplay": "cover",
   "imageRepeat": false,
   "bannerHeight": 350,
   "fade": -75,
+  "bannerFadeInAnimationDuration": 300,
   "borderRadius": 17,
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.19.2",
+  "lastVersion": "2.21.1",
   "showRefreshIcon": true,
   "showViewImageIcon": true,
-  "hidePixelBannerFields": true,
-  "hidePropertiesSectionIfOnlyBanner": true,
+  "showSetTargetXYPosition": true,
+  "hidePixelBannerFields": false,
+  "hidePropertiesSectionIfOnlyBanner": false,
   "titleColor": "var(--inline-title-color)",
   "enableImageShuffle": false,
   "hideEmbeddedNoteTitles": false,
@@ -65,5 +100,19 @@
   "showSelectImageIcon": true,
   "defaultSelectImagePath": "",
   "useShortPath": true,
-  "bannerGap": 12
+  "bannerGap": 12,
+  "bannerIconSize": 70,
+  "bannerIconXPosition": 25,
+  "bannerIconOpacity": 100,
+  "bannerIconColor": "",
+  "bannerIconFontWeight": "normal",
+  "bannerIconBackgroundColor": "",
+  "bannerIconPaddingX": "0",
+  "bannerIconPaddingY": "0",
+  "bannerIconBorderRadius": "17",
+  "bannerIconVeritalOffset": "0",
+  "customBannerIconPaddingField": [
+    "icon-padding"
+  ],
+  "bannerIconPadding": "0"
 }

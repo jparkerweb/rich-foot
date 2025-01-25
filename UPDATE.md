@@ -1,5 +1,12 @@
 ## 🛑 Exclude Me Please
 
+## [1.10.8] - 2025-01-25
+### ✨ Added
+- Outlink collections now include embedded notes
+
+### 🐛 Fixed
+- Fixed issue with Rich Foot not being applied in Reading Mode if the note has an embedded note
+
 ### [1.10.7] - 2025-01-13
 #### 📦 Updated
 - Updated `css` variables to support the `Minimal` theme

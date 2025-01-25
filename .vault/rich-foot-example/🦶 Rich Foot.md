@@ -15,3 +15,5 @@ Rich Foot is an Obsidian plugin that enhances the footer of your notes by adding
 
 
 [[no rich-feet here]]
+
+

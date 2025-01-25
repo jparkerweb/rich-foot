@@ -192,6 +192,18 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
     forceIframe: false,
     customCss: "",
     customJs: ""
+  },
+  "readwise-daily-review": {
+    "url": "https://readwise.io/dailyreview",
+    "displayName": "Readwise Daily Review",
+    "icon": "highlighter",
+    "hideOnMobile": true,
+    "addRibbonIcon": false,
+    "openInCenter": false,
+    "zoomLevel": 1,
+    "forceIframe": false,
+    "customCss": ".fixed-nav {\n    display: none !important;\n}",
+    "customJs": ""
   }
 };
 function getIcon(settings) {
@@ -214,6 +226,7 @@ var CustomFrame = class {
     if (import_obsidian.Platform.isDesktopApp && !this.data.forceIframe) {
       let frameDoc = parent.doc;
       this.frame = frameDoc.createElement("webview");
+      this.frame.partition = "persist:vault-" + app.appId;
       parent.appendChild(this.frame);
       this.frame.setAttribute("allowpopups", "");
       this.frame.addEventListener("dom-ready", () => {
@@ -237,13 +250,18 @@ var CustomFrame = class {
     this.frame.addClass("custom-frames-frame");
     this.frame.addClass(`custom-frames-${getId(this.data)}`);
     this.frame.setAttribute("style", style);
-    let src = this.data.url;
+    let src = new URL(this.data.url);
     if (urlSuffix) {
-      if (!urlSuffix.startsWith("/"))
-        src += "/";
-      src += urlSuffix;
+      let suffix = new URL(urlSuffix, src.origin);
+      suffix.searchParams.forEach((value, key) => {
+        src.searchParams.set(key, value);
+      });
+      if (suffix.pathname !== "/") {
+        src.pathname += suffix.pathname;
+      }
+      src.hash = suffix.hash || src.hash;
     }
-    this.frame.setAttribute("src", src);
+    this.frame.setAttribute("src", src.toString());
   }
   refresh() {
     if (this.frame instanceof HTMLIFrameElement) {
@@ -297,8 +315,8 @@ var CustomFrame = class {
 // src/settings-tab.ts
 var import_obsidian2 = __toModule(require("obsidian"));
 var CustomFramesSettingTab = class extends import_obsidian2.PluginSettingTab {
-  constructor(app, plugin) {
-    super(app, plugin);
+  constructor(app2, plugin) {
+    super(app2, plugin);
     this.plugin = plugin;
   }
   display() {
@@ -427,8 +445,8 @@ var CustomFramesSettingTab = class extends import_obsidian2.PluginSettingTab {
     let addDiv = this.containerEl.createDiv();
     let dropdown = new import_obsidian2.DropdownComponent(addDiv);
     dropdown.addOption("new", "Custom");
-    for (let key of Object.keys(presets))
-      dropdown.addOption(key, presets[key].displayName);
+    for (let [key, value] of Object.entries(presets).sort((a, b) => a[1].displayName.localeCompare(b[1].displayName)))
+      dropdown.addOption(key, value.displayName);
     new import_obsidian2.ButtonComponent(addDiv).setButtonText("Add Frame").setClass("custom-frames-add").onClick(() => __async(this, null, function* () {
       let option = dropdown.getValue();
       if (option == "new") {
@@ -459,9 +477,14 @@ var CustomFramesSettingTab = class extends import_obsidian2.PluginSettingTab {
     });
     disclaimer.createSpan({ text: "." });
     this.containerEl.createEl("hr");
+    this.containerEl.createEl("p", { text: "Need help using the plugin? Feel free to join the Discord server!" });
+    this.containerEl.createEl("a", { href: "https://link.ellpeck.de/discordweb" }).createEl("img", {
+      attr: { src: "https://ellpeck.de/res/discord-wide.png" },
+      cls: "custom-frames-support"
+    });
     this.containerEl.createEl("p", { text: "If you like this plugin and want to support its development, you can do so through my website by clicking this fancy image!" });
     this.containerEl.createEl("a", { href: "https://ellpeck.de/support" }).createEl("img", {
-      attr: { src: "https://ellpeck.de/res/generalsupport.png" },
+      attr: { src: "https://ellpeck.de/res/generalsupport-wide.png" },
       cls: "custom-frames-support"
     });
   }
@@ -535,14 +558,14 @@ CustomFrameView.actions = [
     action: (v) => v.frame.refresh()
   },
   {
-    name: "Go back",
-    icon: "arrow-left",
-    action: (v) => v.frame.goBack()
-  },
-  {
     name: "Go forward",
     icon: "arrow-right",
     action: (v) => v.frame.goForward()
+  },
+  {
+    name: "Go back",
+    icon: "arrow-left",
+    action: (v) => v.frame.goBack()
   }
 ];
 
@@ -630,6 +653,3 @@ var CustomFramesPlugin = class extends import_obsidian4.Plugin {
     });
   }
 };
-
-
-/* nosourcemap */
