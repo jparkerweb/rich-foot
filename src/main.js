@@ -211,7 +211,8 @@ class RichFootPlugin extends Plugin {
 
             // Check if the current file is in an excluded folder or has excluded parent
             if (this.shouldExcludeFile(file.path)) {
-                const existingRichFoots = document.querySelectorAll('.rich-foot');
+                // Only remove rich-foot elements within this view's container
+                const existingRichFoots = view.contentEl.querySelectorAll('.rich-foot');
                 existingRichFoots.forEach(el => el.remove());
                 return;
             }
@@ -240,7 +241,7 @@ class RichFootPlugin extends Plugin {
             // Additional check for excluded parent selectors directly on the container
             if (this.settings?.excludedParentSelectors?.some(selector => {
                 try {
-                    const matchingElements = document.querySelectorAll(selector);
+                    const matchingElements = content.querySelectorAll(selector);
                     return Array.from(matchingElements).some(el => 
                         el === container || 
                         el.contains(container)
@@ -250,13 +251,14 @@ class RichFootPlugin extends Plugin {
                     return false;
                 }
             })) {
-                const existingRichFoots = document.querySelectorAll('.rich-foot');
+                // Only remove rich-foot elements within this view's container
+                const existingRichFoots = view.contentEl.querySelectorAll('.rich-foot');
                 existingRichFoots.forEach(el => el.remove());
                 return;
             }
 
-            // Remove ALL existing Rich Foot elements from the document BEFORE creating new one
-            const existingRichFoots = document.querySelectorAll('.rich-foot');
+            // Remove existing Rich Foot elements only from this view's container
+            const existingRichFoots = view.contentEl.querySelectorAll('.rich-foot');
             existingRichFoots.forEach(el => el.remove());
 
             // Disconnect observers
@@ -266,7 +268,8 @@ class RichFootPlugin extends Plugin {
             const richFoot = await this.createRichFoot(file);
             
             // Double check no rich-foot was added while we were creating this one
-            const newCheck = document.querySelectorAll('.rich-foot');
+            // Only check within this view's container
+            const newCheck = view.contentEl.querySelectorAll('.rich-foot');
             if (newCheck.length > 0) {
                 newCheck.forEach(el => el.remove());
             }

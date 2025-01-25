@@ -2,6 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.10.9] - 2025-01-25
+### 🐛 Fixed
+- Addressed issue with Rich Foot being duplicated when a note was opened in a "new window"
+
 ## [1.10.8] - 2025-01-25
 ### ✨ Added
 - Outlink collections now include embedded notes
