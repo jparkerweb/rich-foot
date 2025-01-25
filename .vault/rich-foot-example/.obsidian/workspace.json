@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "fbb1972d09fe87dc",
+        "id": "a294327416f762c9",
         "type": "tabs",
         "children": [
           {
-            "id": "946d262197156fcf",
+            "id": "934f926a39fbc7ea",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -3920,10 +3920,10 @@
             "id": "0d004a3f9d44c37f",
             "type": "leaf",
             "state": {
-              "type": "Saved Queries View",
+              "type": "empty",
               "state": {},
-              "icon": "feather-mouse-pointer",
-              "title": "Saved Queries"
+              "icon": "lucide-file",
+              "title": "New tab"
             }
           },
           {
@@ -3935,9 +3935,19 @@
               "icon": "feather-mouse-pointer",
               "title": "Saved Queries"
             }
+          },
+          {
+            "id": "d4cd6a1735ae60c9",
+            "type": "leaf",
+            "state": {
+              "type": "Saved Queries View",
+              "state": {},
+              "icon": "feather-mouse-pointer",
+              "title": "Saved Queries"
+            }
           }
         ],
-        "currentTab": 383
+        "currentTab": 384
       }
     ],
     "direction": "horizontal",
@@ -3957,20 +3967,20 @@
       "obsidian-kanban:Create new board": false
     }
   },
-  "active": "0a9c94949116cd24",
+  "active": "934f926a39fbc7ea",
   "lastOpenFiles": [
-    "Untitled.md",
-    "🦶 Rich Foot.md",
-    "misc-notes/link test.md",
-    "exclude/no rich-feet here.md",
-    "releases/v1.10.0 - 🛑 Exclude Me Please.md",
     "misc-notes/link test 2.md",
-    "misc-notes/two.md",
-    "misc-notes/three.md",
     "misc-notes/one.md",
+    "releases/v1.7.0 - 📆 Dates Your Way.md",
     "releases/v1.8.0 - 🫣 Page Preview Support.md",
     "releases/v1.9.0 - 🥙 Stuffed Links.md",
-    "releases/v1.7.0 - 📆 Dates Your Way.md",
+    "releases/v1.10.0 - 🛑 Exclude Me Please.md",
+    "🦶 Rich Foot.md",
+    "Untitled.md",
+    "misc-notes/link test.md",
+    "exclude/no rich-feet here.md",
+    "misc-notes/two.md",
+    "misc-notes/three.md",
     "images/rich-feet-3.jpg",
     "images/rich-feet-2.jpg",
     "images/rich-feet.jpg",
