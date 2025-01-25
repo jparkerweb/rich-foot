@@ -3,5 +3,7 @@
 
 # Other common ignores
 node_modules
-*.log
-.DS_Store
+
+# AI Rules
+/.cursorrules
+/.windsurfrules
