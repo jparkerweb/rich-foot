@@ -220,7 +220,15 @@ class RichFootPlugin extends Plugin {
             let container;
 
             if ((view.getMode?.() ?? view.mode) === 'preview') {
-                container = content.querySelector('.markdown-preview-section');
+                // Find the main preview section that isn't part of an embedded note
+                const previewSections = content.querySelectorAll('.markdown-preview-section');
+                for (const section of previewSections) {
+                    // Skip if this section is inside an embedded note
+                    if (!section.closest('.internal-embed')) {
+                        container = section;
+                        break;
+                    }
+                }
             } else if ((view.getMode?.() ?? view.mode) === 'source' || (view.getMode?.() ?? view.mode) === 'live') {
                 container = content.querySelector('.cm-sizer');
             }
@@ -571,6 +579,17 @@ class RichFootPlugin extends Plugin {
         if (cache?.links) {
             for (const link of cache.links) {
                 const linkPath = link.link.split('#')[0];
+                const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
+                if (targetFile && targetFile.extension === 'md') {
+                    links.add(targetFile.path);
+                }
+            }
+        }
+
+        // Add embedded notes
+        if (cache?.embeds) {
+            for (const embed of cache.embeds) {
+                const linkPath = embed.link.split('#')[0];
                 const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
                 if (targetFile && targetFile.extension === 'md') {
                     links.add(targetFile.path);

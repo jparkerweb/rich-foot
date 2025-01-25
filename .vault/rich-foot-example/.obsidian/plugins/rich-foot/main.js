@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.7] - 2025-01-13</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Updated <code>css</code> variables to support the <code>Minimal</code> theme</li>\n</ul>\n<h3>[1.10.6] - 2025-01-10</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Adjusted <code>css</code> padding values to be compatible with <code>Typewriter Scroll</code> plugin</li>\n</ul>\n<h3>[1.10.5] - 2024-12-26</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Support for more date formats in <code>frontmatter</code> created/modified fields (ISO, space-separated, and just date)</li>\n</ul>\n<h3>[1.10.4] - 2024-12-23</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue with Rich Foot not loading all user defined colors when Obsidian is restarted</li>\n</ul>\n<h3>[1.10.3] - 2024-12-14</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Improved parent selector matching to properly detect and exclude Rich Foot when specified selectors are present in the view or its parent elements</li>\n</ul>\n<h3>[1.10.2] - 2024-12-11</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Missing <code>Excluded Folders</code> section in the settings</li>\n</ul>\n<h3>[1.10.1] - 2024-12-10</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Extra padding on the bottom of the editor in Canvas / Kanban Cards</li>\n</ul>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h2>[1.10.8] - 2025-01-25</h2>\n<h3>\u2728 Added</h3>\n<ul>\n<li>Outlink collections now include embedded notes</li>\n</ul>\n<h3>\u{1F41B} Fixed</h3>\n<ul>\n<li>Fixed issue with Rich Foot not being applied in Reading Mode if the note has an embedded note</li>\n</ul>\n<h3>[1.10.7] - 2025-01-13</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Updated <code>css</code> variables to support the <code>Minimal</code> theme</li>\n</ul>\n<h3>[1.10.6] - 2025-01-10</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Adjusted <code>css</code> padding values to be compatible with <code>Typewriter Scroll</code> plugin</li>\n</ul>\n<h3>[1.10.5] - 2024-12-26</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Support for more date formats in <code>frontmatter</code> created/modified fields (ISO, space-separated, and just date)</li>\n</ul>\n<h3>[1.10.4] - 2024-12-23</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue with Rich Foot not loading all user defined colors when Obsidian is restarted</li>\n</ul>\n<h3>[1.10.3] - 2024-12-14</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Improved parent selector matching to properly detect and exclude Rich Foot when specified selectors are present in the view or its parent elements</li>\n</ul>\n<h3>[1.10.2] - 2024-12-11</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Missing <code>Excluded Folders</code> section in the settings</li>\n</ul>\n<h3>[1.10.1] - 2024-12-10</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Extra padding on the bottom of the editor in Canvas / Kanban Cards</li>\n</ul>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -794,7 +794,13 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
       const content = view.contentEl;
       let container;
       if (((_b = (_a = view.getMode) == null ? void 0 : _a.call(view)) != null ? _b : view.mode) === "preview") {
-        container = content.querySelector(".markdown-preview-section");
+        const previewSections = content.querySelectorAll(".markdown-preview-section");
+        for (const section of previewSections) {
+          if (!section.closest(".internal-embed")) {
+            container = section;
+            break;
+          }
+        }
       } else if (((_d = (_c = view.getMode) == null ? void 0 : _c.call(view)) != null ? _d : view.mode) === "source" || ((_f = (_e = view.getMode) == null ? void 0 : _e.call(view)) != null ? _f : view.mode) === "live") {
         container = content.querySelector(".cm-sizer");
       }
@@ -1073,6 +1079,15 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     if (cache == null ? void 0 : cache.links) {
       for (const link of cache.links) {
         const linkPath = link.link.split("#")[0];
+        const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
+        if (targetFile && targetFile.extension === "md") {
+          links.add(targetFile.path);
+        }
+      }
+    }
+    if (cache == null ? void 0 : cache.embeds) {
+      for (const embed of cache.embeds) {
+        const linkPath = embed.link.split("#")[0];
         const targetFile = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
         if (targetFile && targetFile.extension === "md") {
           links.add(targetFile.path);

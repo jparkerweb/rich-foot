@@ -1,30 +1,36 @@
-/* ------------------------------------------------------------------ */
-/* -- configure default: move banner image to top, fade/size, etc. -- */
-/* ------------------------------------------------------------------ */
-@keyframes pixel-banner-image--fade-in {
+/* ============================ */
+/* == 🚩 Pixel Banner Styles == */
+/* ============================ */
+@keyframes pixel-banner--fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
 .pixel-banner-image {
 	position: absolute;
 	top: 0;
 	left: var(--pixel-banner-banner-gap, 0);
 	right: var(--pixel-banner-banner-gap, 0);
 	background-size: cover; 
-	background-position: var(--pixel-banner-x-position, 50%) var(--pixel-banner-y-position, 50%);
+	background-position: var(--pixel-banner-x-position, 50%) var(--pixel-banner-y-position, 50%) !important;
 	overflow: hidden;  
 	mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
 	-webkit-mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
 	height: var(--pixel-banner-height, 350px);
     border-radius: var(--pixel-banner-radius, 17px) !important;
 	pointer-events: none;
-	animation: pixel-banner-image--fade-in 0.3s ease-in-out;
+	animation: pixel-banner--fade-in var(--pixel-banner-fade-in-animation-duration, 300ms) ease-in-out;
 	will-change: opacity;
 	transform: translateZ(0);
 	background-repeat: no-repeat;
     z-index: -1;
+    width: unset !important;
+    max-width: unset !important;
 }
 
+.markdown-embed-content .markdown-preview-view {
+    min-height: var(--pixel-banner-embed-min-height, unset) !important;
+}
 .markdown-embed-content .pixel-banner-image {
     position: absolute !important;
 	left: 0 !important;
@@ -33,6 +39,9 @@
 .markdown-embed-content .pixel-banner-image ~ div {
     position: relative;
     z-index: 1;
+}
+.markdown-embed-content .pixel-banner-image ~ .banner-icon-overlay {
+    transform: translateY(-25%);
 }
 
 /* collapse scrollbar gutter when no scrollbar is present */
@@ -43,7 +52,7 @@
 
 /* Apply title color to both reading and editing mode */
 .pixel-banner div.inline-title,
-.markdown-source-view div.inline-title {
+.pixel-banner .markdown-source-view div.inline-title {
     color: var(--pixel-banner-title-color, var(--inline-title-color));
 }
 
@@ -74,21 +83,6 @@
     display: none !important;
 }
 
-/* pin / refresh / view image icons */
-.pin-icon,
-.refresh-icon,
-.view-image-icon {
-    z-index: var(--layer-modal);
-    opacity: 0.2;
-    transition: all 0.3s ease-in-out;
-}
-.pin-icon:hover,
-.refresh-icon:hover,
-.view-image-icon:hover {
-    opacity: 1;
-    cursor: pointer;
-    transform: scale(1.2);
-}
 
 /* ----------------------------------------------------- */
 /* -- content start (push frontmatter container down) -- */
@@ -107,6 +101,7 @@
 .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type > .pixel-banner-image + .markdown-preview-pusher {
     height: var(--pixel-banner-content-start, 0.1px) !important;
 }
+
 
 /* -------------------------- */
 /* -- Settings Page Styles -- */
@@ -381,7 +376,10 @@
   position: relative;
 }
 
-/* Release Notes Modal */
+
+/* ------------------------- */
+/* -- Release Notes Modal -- */
+/* ------------------------- */
 .release-notes-container {
     max-height: 400px;
     overflow-y: auto;
@@ -583,16 +581,38 @@
     border-radius: 2px;
 }
 
-.select-image-icon {
+/* --------------------------- */
+/* -- top left icon buttons -- */
+/* --------------------------- */
+@keyframes pixel-banner--icon-fade-in {
+    from { opacity: 0; }
+    to { opacity: 0.2; }
+}
+
+
+.select-image-icon,
+.set-banner-icon-button,
+.target-btn,
+.pin-icon,
+.refresh-icon,
+.view-image-icon {
     z-index: var(--layer-modal);
     opacity: 0.2;
-    transition: all 0.3s ease-in-out;
+    transition: all 0.4s ease-in-out;
+    animation: pixel-banner--icon-fade-in 0.4s ease-in-out;
+    width: unset !important;
 }
-.select-image-icon:hover {
+.select-image-icon:hover,
+.set-banner-icon-button:hover,
+.target-btn:hover,
+.pin-icon:hover,
+.refresh-icon:hover,
+.view-image-icon:hover {
     opacity: 1;
     cursor: pointer;
     transform: scale(1.2);
 }
+
 
 /* mobile layout */
 @media screen and (max-width: 775px) {
@@ -618,4 +638,234 @@
   .pixel-banner-search-container input[type="text"] {
     flex: 1;
   }
+}
+
+
+/* ------------------------- */
+/* -- banner icon overlay -- */
+/* ------------------------- */
+.banner-icon-overlay {
+    position: absolute;
+    left: var(--pixel-banner-icon-x, 25%);
+    transform: translate(-50%, -15%);
+    pointer-events: none;
+    font-size: var(--pixel-banner-icon-size, 70px);
+    top: var(--pixel-banner-icon-start);
+    line-height: normal;
+    opacity: var(--pixel-banner-icon-opacity, 100%);
+    white-space: nowrap;
+    color: var(--pixel-banner-icon-color, var(--text-normal));
+    font-weight: var(--pixel-banner-icon-font-weight, normal);
+    background: var(--pixel-banner-icon-background-color, unset);
+    padding-top: var(--pixel-banner-icon-padding-y, 0) !important;
+    padding-right: var(--pixel-banner-icon-padding-x, 0) !important;
+    padding-bottom: var(--pixel-banner-icon-padding-y, 0) !important;
+    padding-left: var(--pixel-banner-icon-padding-x, 0) !important;
+    border-radius: var(--pixel-banner-icon-border-radius, 17px);
+    margin-top: var(--pixel-banner-icon-vertical-offset, 0);
+    width: unset !important;
+    max-width: unset !important;
+}
+
+
+/* --------------------------- */
+/* -- Target Position Modal -- */
+/* --------------------------- */
+.target-position-modal {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.target-position-modal .target-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
+    min-width: 300px;
+}
+
+.target-position-modal .target-area {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 4px;
+}
+
+.target-position-modal .position-indicator {
+    padding: 4px;
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+}
+
+.target-position-modal .crosshair-line {
+    position: absolute;
+    background-color: var(--text-accent);
+    pointer-events: none;
+}
+
+.target-position-modal .vertical {
+    width: 1px;
+    height: 100%;
+}
+
+.target-position-modal .horizontal {
+    width: 100%;
+    height: 1px;
+}
+
+.target-position-modal .control-panel {
+    background-color: var(--background-secondary);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.target-position-modal .display-mode-select {
+    width: 100%;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.target-position-modal .zoom-container {
+    position: relative;
+}
+
+.target-position-modal .zoom-slider {
+    width: 15px;
+    background-color: var(--background-primary);
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px auto;
+    appearance: none;
+}
+
+.target-position-modal .zoom-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 200px;
+    background: var(--background-modifier-border);
+    border-radius: 5px;
+    border: none;
+}
+
+.target-position-modal .zoom-slider::-moz-range-track {
+    width: 100%;
+    height: 200px;
+    background: var(--background-modifier-border);
+    border-radius: 5px;
+    border: none;
+}
+
+.target-position-modal .zoom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--text-accent);
+    cursor: pointer;
+    border: none;
+    margin-top: 90px;
+    position: relative;
+    left: -2px;
+}
+
+.target-position-modal .zoom-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--text-accent);
+    cursor: pointer;
+    border: none;
+}
+
+.target-position-modal .zoom-value {
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.target-position-modal .height-slider {
+    width: 15px;
+    background-color: var(--background-primary);
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px auto;
+    appearance: none;
+}
+
+.target-position-modal .height-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 200px;
+    background: var(--background-modifier-border);
+    border-radius: 5px;
+    border: none;
+}
+
+.target-position-modal .height-slider::-moz-range-track {
+    width: 100%;
+    height: 200px;
+    background: var(--background-modifier-border);
+    border-radius: 5px;
+    border: none;
+}
+
+.target-position-modal .height-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--text-accent);
+    cursor: pointer;
+    border: none;
+    margin-top: 90px;
+    position: relative;
+    left: -2px;
+}
+
+.target-position-modal .height-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--text-accent);
+    cursor: pointer;
+    border: none;
+}
+
+.target-position-modal .height-value {
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.target-position-modal .height-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+    background-color: var(--background-secondary);
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.target-position-modal .height-label {
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+.target-position-modal .height-value {
+    font-family: var(--font-monospace);
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+.target-position-modal .reset-button {
+    margin-top: 20px;
+    padding: 8px;
+    width: 100%;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.target-position-modal .reset-button:hover {
+    background-color: var(--interactive-accent-hover);
 }
