@@ -1250,26 +1250,53 @@ var RichFootViewManager = class {
    */
   setupObserver(container, view) {
     this.disconnectObserver(container);
+    let timeoutId = null;
     let rafId = null;
     const observerCallback = () => {
-      if (rafId) return;
-      rafId = requestAnimationFrame(async () => {
-        rafId = null;
-        const footer = container.querySelector(".rich-foot[data-rich-foot]");
-        if (!footer) {
-          try {
-            await this.attachToView(view);
-          } catch (error) {
-            console.error("Rich Foot observer re-attach error:", error);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      timeoutId = setTimeout(() => {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(async () => {
+          rafId = null;
+          timeoutId = null;
+          if (!container.isConnected) {
+            return;
           }
-        }
-      });
+          const footer = container.querySelector(".rich-foot[data-rich-foot]");
+          if (!footer) {
+            setTimeout(() => {
+              const footerRecheck = container.querySelector(".rich-foot[data-rich-foot]");
+              if (!footerRecheck && container.isConnected) {
+                try {
+                  this.attachToView(view);
+                } catch (error) {
+                  console.error("Rich Foot observer re-attach error:", error);
+                }
+              }
+            }, 100);
+          }
+        });
+      }, 150);
     };
     const observer = new MutationObserver((mutations) => {
-      const hasRemoval = mutations.some(
-        (mutation) => mutation.type === "childList" && mutation.removedNodes.length > 0
-      );
-      if (hasRemoval) {
+      const footerRemoved = mutations.some((mutation) => {
+        var _a, _b;
+        if (mutation.type !== "childList" || mutation.removedNodes.length === 0) {
+          return false;
+        }
+        for (const node of mutation.removedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            if (((_a = node.classList) == null ? void 0 : _a.contains("rich-foot")) || ((_b = node.querySelector) == null ? void 0 : _b.call(node, ".rich-foot[data-rich-foot]"))) {
+              return true;
+            }
+          }
+        }
+        return false;
+      });
+      if (footerRemoved) {
         observerCallback();
       }
     });
@@ -1278,16 +1305,27 @@ var RichFootViewManager = class {
       subtree: false
       // Only watch direct children for better performance
     });
-    this.observers.set(container, observer);
+    this.observers.set(container, {
+      observer,
+      cleanup: () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        if (rafId) cancelAnimationFrame(rafId);
+      }
+    });
   }
   /**
    * Disconnect observer for a container
    * @param {HTMLElement} container - The container
    */
   disconnectObserver(container) {
-    const observer = this.observers.get(container);
-    if (observer) {
-      observer.disconnect();
+    const observerData = this.observers.get(container);
+    if (observerData) {
+      if (observerData.cleanup) {
+        observerData.cleanup();
+      }
+      if (observerData.observer) {
+        observerData.observer.disconnect();
+      }
       this.observers.delete(container);
     }
     this.cancelPendingUpdate(container);
@@ -1296,8 +1334,13 @@ var RichFootViewManager = class {
    * Disconnect all observers
    */
   disconnectAllObservers() {
-    this.observers.forEach((observer, container) => {
-      observer.disconnect();
+    this.observers.forEach((observerData, container) => {
+      if (observerData.cleanup) {
+        observerData.cleanup();
+      }
+      if (observerData.observer) {
+        observerData.observer.disconnect();
+      }
       this.cancelPendingUpdate(container);
     });
     this.observers.clear();

@@ -272,34 +272,72 @@ export class RichFootViewManager {
         // Disconnect existing observer if any
         this.disconnectObserver(container);
 
-        // Create RAF-debounced observer callback
+        // Track pending timeout for debounced re-attach
+        let timeoutId = null;
         let rafId = null;
+
         const observerCallback = () => {
-            if (rafId) return;
+            // Clear any existing timeout
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
 
-            rafId = requestAnimationFrame(async () => {
-                rafId = null;
+            // Debounce with longer delay to avoid conflicts with other plugins
+            timeoutId = setTimeout(() => {
+                if (rafId) cancelAnimationFrame(rafId);
 
-                const footer = container.querySelector('.rich-foot[data-rich-foot]');
-                if (!footer) {
-                    // Footer was removed, re-attach
-                    try {
-                        await this.attachToView(view);
-                    } catch (error) {
-                        console.error('Rich Foot observer re-attach error:', error);
+                rafId = requestAnimationFrame(async () => {
+                    rafId = null;
+                    timeoutId = null;
+
+                    // Verify container is still in the document
+                    if (!container.isConnected) {
+                        return;
                     }
-                }
-            });
+
+                    // Check if footer exists
+                    const footer = container.querySelector('.rich-foot[data-rich-foot]');
+                    if (!footer) {
+                        // Double-check after a small delay to avoid race conditions
+                        // with other plugins (like Hover Editor)
+                        setTimeout(() => {
+                            const footerRecheck = container.querySelector('.rich-foot[data-rich-foot]');
+                            if (!footerRecheck && container.isConnected) {
+                                // Footer is truly missing, re-attach
+                                try {
+                                    this.attachToView(view);
+                                } catch (error) {
+                                    console.error('Rich Foot observer re-attach error:', error);
+                                }
+                            }
+                        }, 100);
+                    }
+                });
+            }, 150); // Longer debounce delay to let other plugins settle
         };
 
         // Create observer with optimized configuration
         const observer = new MutationObserver((mutations) => {
-            // Check if any mutation removed the footer
-            const hasRemoval = mutations.some(mutation =>
-                mutation.type === 'childList' && mutation.removedNodes.length > 0
-            );
+            // Only react to mutations that actually removed our footer
+            const footerRemoved = mutations.some(mutation => {
+                if (mutation.type !== 'childList' || mutation.removedNodes.length === 0) {
+                    return false;
+                }
 
-            if (hasRemoval) {
+                // Check if any removed node is or contains our footer
+                for (const node of mutation.removedNodes) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        if (node.classList?.contains('rich-foot') ||
+                            node.querySelector?.('.rich-foot[data-rich-foot]')) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            });
+
+            if (footerRemoved) {
                 observerCallback();
             }
         });
@@ -310,7 +348,14 @@ export class RichFootViewManager {
             subtree: false // Only watch direct children for better performance
         });
 
-        this.observers.set(container, observer);
+        // Store observer with cleanup function
+        this.observers.set(container, {
+            observer,
+            cleanup: () => {
+                if (timeoutId) clearTimeout(timeoutId);
+                if (rafId) cancelAnimationFrame(rafId);
+            }
+        });
     }
 
     /**
@@ -318,9 +363,16 @@ export class RichFootViewManager {
      * @param {HTMLElement} container - The container
      */
     disconnectObserver(container) {
-        const observer = this.observers.get(container);
-        if (observer) {
-            observer.disconnect();
+        const observerData = this.observers.get(container);
+        if (observerData) {
+            // Call cleanup function to clear timeouts/RAF
+            if (observerData.cleanup) {
+                observerData.cleanup();
+            }
+            // Disconnect the observer
+            if (observerData.observer) {
+                observerData.observer.disconnect();
+            }
             this.observers.delete(container);
         }
 
@@ -333,8 +385,15 @@ export class RichFootViewManager {
      */
     disconnectAllObservers() {
         // Disconnect all observers
-        this.observers.forEach((observer, container) => {
-            observer.disconnect();
+        this.observers.forEach((observerData, container) => {
+            // Call cleanup function to clear timeouts/RAF
+            if (observerData.cleanup) {
+                observerData.cleanup();
+            }
+            // Disconnect the observer
+            if (observerData.observer) {
+                observerData.observer.disconnect();
+            }
             this.cancelPendingUpdate(container);
         });
 
