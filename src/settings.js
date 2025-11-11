@@ -1,6 +1,6 @@
-import { PluginSettingTab, Setting, debounce, FuzzySuggestModal } from 'obsidian';
+import { PluginSettingTab, Setting, FuzzySuggestModal } from 'obsidian';
 import { ReleaseNotesModal } from './modals';
-import { rgbToHex, formatDate } from './utils';
+import { rgbToHex } from './utils';
 
 export const DEFAULT_SETTINGS = {
     borderWidth: 1,
@@ -160,7 +160,7 @@ export class RichFootSettingTab extends PluginSettingTab {
                 ];
                 
                 formats.forEach(format => {
-                    const example = formatDate(today, format);
+                    const example = this.plugin.dataManager.formatDate(today, format);
                     dropdown.addOption(format, `${format} (${example})`);
                 });
                 
