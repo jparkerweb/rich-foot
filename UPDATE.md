@@ -1,5 +1,9 @@
 ## 🚀 Code Refactoring
 
+### v1.11.1
+#### 📦 Update
+- Optimized CSS for rending `rich foot` element at the bottom of notes
+
 ### v1.11.0
 This release represents a complete architectural overhaul of the Rich Foot plugin, implementing modern best practices and significant performance improvements.
 

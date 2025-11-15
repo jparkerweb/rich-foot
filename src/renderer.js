@@ -222,36 +222,6 @@ export class RichFootRenderer {
     }
 
     /**
-     * Adjust footer padding in reading mode for optimal positioning
-     * @param {HTMLElement} view - The markdown view
-     */
-    adjustFooterPadding(view) {
-        requestAnimationFrame(() => {
-            const readingView = view.contentEl.querySelector('.markdown-reading-view');
-            if (!readingView) return;
-
-            const preview = readingView.querySelector('.markdown-preview-view');
-            const previewSizer = readingView.querySelector('.markdown-preview-sizer');
-            const footer = previewSizer?.querySelector('.rich-foot[data-rich-foot]');
-
-            if (!preview || !previewSizer || !footer) return;
-
-            // Calculate available space
-            const contentHeight = previewSizer.offsetHeight - footer.offsetHeight;
-            const availableSpace = preview.offsetHeight - contentHeight - footer.offsetHeight - 85;
-
-            // Apply padding based on available space
-            if (availableSpace > 20) {
-                readingView.style.setProperty('--rich-foot-top-padding', `${availableSpace}px`);
-                readingView.style.setProperty('--rich-foot-margin-bottom', '0');
-            } else {
-                readingView.style.setProperty('--rich-foot-top-padding', '10px');
-                readingView.style.setProperty('--rich-foot-margin-bottom', '20px');
-            }
-        });
-    }
-
-    /**
      * Check if current view is in edit mode
      * @private
      */

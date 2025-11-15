@@ -2,6 +2,10 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.11.1] - 2025-11-15
+### 📦 Update
+- Optimized CSS for rending `rich foot` element at the bottom of notes
+
 ## [1.11.0] - 2025-11-15
 ### 🚀 Code Refactoring
 This release represents a complete architectural overhaul of the Rich Foot plugin, implementing modern best practices and significant performance improvements.
