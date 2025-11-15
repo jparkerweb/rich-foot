@@ -1,10 +1,12 @@
 {
   "scripts": {
     "test-build": "node scripts/esbuild.config.mjs production && node scripts/copy-build.mjs",
-    "build": "npm run test-build && zip -r example-vault.zip .vault",
+    "build": "npm run test-build && npm run zip",
+    "zip": "bestzip example-vault.zip .vault",
     "clean": "npx rimraf node_modules package-lock.json && npm install"
   },
   "devDependencies": {
+    "bestzip": "^2.2.1",
     "builtin-modules": "4.0.0",
     "esbuild": "0.24.2",
     "fs-extra": "^11.3.2",
