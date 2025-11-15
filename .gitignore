@@ -4,6 +4,5 @@
 # Other common ignores
 node_modules
 
-# AI Rules
-/.cursorrules
-/.windsurfrules
+# Vault
+.vault
