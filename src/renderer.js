@@ -4,6 +4,8 @@
  * Creates and manages the footer elements with optimal performance.
  */
 
+import { MarkdownView } from 'obsidian';
+
 export class RichFootRenderer {
     constructor(plugin) {
         this.plugin = plugin;
@@ -254,7 +256,6 @@ export class RichFootRenderer {
      * @private
      */
     isEditMode() {
-        const { MarkdownView } = require('obsidian');
         const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!activeView) return false;
         const mode = activeView.getMode?.() ?? activeView.mode;
