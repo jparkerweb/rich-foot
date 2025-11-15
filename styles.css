@@ -6,15 +6,25 @@
 /* -- General Rich Foot Styles -- */
 /* ------------------------------ */
 .rich-foot {
+    /* Layout optimization */
+    contain: layout style;
+    min-height: 0;
+
+    /* Spacing */
     margin-top: 30px !important;
     margin-bottom: 20px !important;
     padding-top: 10px !important;
+
+    /* Animation setup */
     opacity: 1;
-    transition: opacity 600ms ease-in-out; /* fade in rich-foot */
+    transform: translateY(0);
+    will-change: opacity, transform;
+    transition: opacity 600ms ease-in-out, transform 600ms ease-in-out;
 }
 
 .rich-foot--hidden {
     opacity: 0;
+    transform: translateY(-2px);
 }
 
 /* ---------------------- */
@@ -60,6 +70,7 @@
 .rich-foot--backlinks ul li a,
 .rich-foot--outlinks ul li a,
 .rich-foot--links ul li a {
+    /* Appearance */
     filter: brightness(120%);
     text-decoration: none !important;
     font-size: 12px;
@@ -69,11 +80,16 @@
     display: inline-block;
     margin: 0 4px;
     cursor: pointer;
+
+    /* Styling */
     border-radius: var(--rich-foot-border-radius, 15px);
     border: 1px solid var(--rich-foot-link-border-color, rgba(255, 255, 255, 0.204));
-    transition: 150ms ease-in-out all;
     color: var(--rich-foot-link-color, var(--link-color));
     background-color: var(--rich-foot-link-background, var(--tag-background));
+
+    /* Performance optimization */
+    will-change: filter, border-color;
+    transition: 150ms ease-in-out all;
 }
 
 .rich-foot--backlinks ul li a::before,
@@ -208,7 +224,7 @@ body.theme-light .rich-foot--backlinks ul li a {
 /* fix note embed height scroll in canvas */
 .canvas-node-content.markdown-embed div.cm-sizer,
 .canvas-node-content.markdown-embed div.markdown-preview-sizer {
-	min-height: unset !important;
+    min-height: unset !important;
 }
 
 .rich-foot > .rich-foot--dashed-line {
@@ -315,13 +331,13 @@ body.theme-light .rich-foot--backlinks ul li a {
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
+    transition: background-color 150ms ease, color 150ms ease;
 }
 
 .excluded-folder-delete:hover {
     background-color: var(--text-error);
     color: var(--text-on-accent);
 }
-
 
 /* Release Notes Modal */
 .release-notes-container {
@@ -373,8 +389,6 @@ body.theme-light .rich-foot--backlinks ul li a {
     margin: 10px 0;
 }
 
-/* Add these styles at the end of the file */
-
 /* Color Swatches Grid */
 .color-swatches-container {
     margin: 12px 0;
@@ -423,9 +437,10 @@ body.theme-light .rich-foot--backlinks ul li a {
     font-size: 12px;
     padding: 4px 8px;
     margin-left: 8px;
+    transition: opacity 150ms ease;
 }
 
-/* Add these styles */
+/* Excluded selectors */
 .excluded-selectors-container {
     margin-bottom: 24px;
 }
@@ -450,6 +465,7 @@ body.theme-light .rich-foot--backlinks ul li a {
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
+    transition: background-color 150ms ease, color 150ms ease;
 }
 
 .excluded-selector-delete:hover {
