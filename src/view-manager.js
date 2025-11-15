@@ -82,12 +82,6 @@ export class RichFootViewManager {
 
                 // Setup observer to detect removal
                 this.setupObserver(container, view);
-
-                // Adjust padding if in reading mode
-                const mode = view.getMode?.() ?? view.mode;
-                if (mode === 'preview') {
-                    this.plugin.renderer.adjustFooterPadding(view);
-                }
             } catch (error) {
                 console.error('Rich Foot render error:', error);
             }

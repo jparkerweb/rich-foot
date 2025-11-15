@@ -208,13 +208,18 @@ body.theme-light .rich-foot--backlinks ul li a {
 
 .markdown-reading-view .markdown-preview-sizer {
     width: 100%;
+    /* Use flexbox to push footer to bottom */
+    display: flex;
+    flex-direction: column;
+    min-height: 100% !important;
 }
 
-/* Update the rich foot positioning */
+/* Push footer to bottom of visible area */
 .markdown-reading-view .markdown-preview-sizer > .rich-foot {
-    padding-top: var(--rich-foot-top-padding, 10px) !important;
+    margin-top: auto !important;
+    padding-top: 20px !important;
     padding-bottom: 0 !important;
-    margin-bottom: var(--rich-foot-margin-bottom, 0) !important;
+    margin-bottom: 20px !important;
 }
 
 /* ----------- */
