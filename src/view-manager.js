@@ -1,3 +1,5 @@
+import { TIMING } from './constants.js';
+
 /**
  * RichFootViewManager
  * Manages view lifecycle, DOM attachment, and observers.
@@ -16,35 +18,39 @@ export class RichFootViewManager {
      * @param {MarkdownView} view - The view to attach to
      */
     async attachToView(view) {
-        if (!view || !view.file) return;
+        try {
+            if (!view || !view.file) return;
 
-        const file = view.file;
+            const file = view.file;
 
-        // Check exclusions first
-        if (this.shouldExclude(view, file)) {
-            this.detachFromView(view);
-            return;
+            // Check exclusions first
+            if (this.shouldExclude(view, file)) {
+                this.detachFromView(view);
+                return;
+            }
+
+            // Get target container
+            const container = this.getTargetContainer(view);
+            if (!container) {
+                return;
+            }
+
+            // Check if we need to update
+            if (!this.shouldUpdate(container, file)) {
+                return;
+            }
+
+            // Cancel any pending updates for this container
+            this.cancelPendingUpdate(container);
+
+            // Fetch data
+            const data = await this.fetchData(file);
+
+            // Render footer
+            await this.renderFooter(view, container, file, data);
+        } catch (error) {
+            console.log('Rich Foot: Error in attachToView:', error.message);
         }
-
-        // Get target container
-        const container = this.getTargetContainer(view);
-        if (!container) {
-            return;
-        }
-
-        // Check if we need to update
-        if (!this.shouldUpdate(container, file)) {
-            return;
-        }
-
-        // Cancel any pending updates for this container
-        this.cancelPendingUpdate(container);
-
-        // Fetch data
-        const data = await this.fetchData(file);
-
-        // Render footer
-        await this.renderFooter(view, container, file, data);
     }
 
     /**
@@ -83,7 +89,7 @@ export class RichFootViewManager {
                 // Setup observer to detect removal
                 this.setupObserver(container, view);
             } catch (error) {
-                console.error('Rich Foot render error:', error);
+                console.log('Rich Foot: Error in renderFooter:', error.message);
             }
 
             // Clear from pending
@@ -98,6 +104,10 @@ export class RichFootViewManager {
      * @private
      */
     shouldUpdate(container, file) {
+        if (!container || !file) {
+            return false;
+        }
+
         const existingFooter = container.querySelector('.rich-foot[data-rich-foot]');
         if (!existingFooter) return true;
 
@@ -184,30 +194,35 @@ export class RichFootViewManager {
      * @returns {boolean} True if should exclude
      */
     shouldExclude(view, file) {
-        const { settings } = this.plugin;
+        try {
+            const { settings } = this.plugin;
 
-        // Check excluded folders
-        if (settings.excludedFolders?.some(folder => file.path.startsWith(folder))) {
-            return true;
-        }
-
-        // Check frontmatter exclusion field
-        if (settings.frontmatterExclusionField) {
-            const cache = this.plugin.app.metadataCache.getFileCache(file);
-            const frontmatterValue = cache?.frontmatter?.[settings.frontmatterExclusionField];
-            if (this.isTruthy(frontmatterValue)) {
+            // Check excluded folders
+            if (settings.excludedFolders?.some(folder => file.path.startsWith(folder))) {
                 return true;
             }
-        }
 
-        // Check excluded parent selectors
-        if (settings.excludedParentSelectors?.length > 0) {
-            if (this.hasExcludedParent(view)) {
-                return true;
+            // Check frontmatter exclusion field
+            if (settings.frontmatterExclusionField) {
+                const cache = this.plugin.app.metadataCache.getFileCache(file);
+                const frontmatterValue = cache?.frontmatter?.[settings.frontmatterExclusionField];
+                if (this.isTruthy(frontmatterValue)) {
+                    return true;
+                }
             }
-        }
 
-        return false;
+            // Check excluded parent selectors
+            if (settings.excludedParentSelectors?.length > 0) {
+                if (this.hasExcludedParent(view)) {
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (error) {
+            console.log('Rich Foot: Error in shouldExclude:', error.message);
+            return false;
+        }
     }
 
     /**
@@ -231,7 +246,7 @@ export class RichFootViewManager {
                 }
                 return false;
             } catch (e) {
-                console.error(`Invalid selector in Rich Foot settings: ${selector}`);
+                console.log(`Rich Foot: Invalid selector in settings: ${selector}`);
                 return false;
             }
         });
@@ -242,9 +257,13 @@ export class RichFootViewManager {
      * @private
      */
     isTruthy(value) {
-        if (!value) return false;
-        const truthyValues = ['true', 'yes', '1', 'on'];
-        return truthyValues.includes(String(value).toLowerCase());
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            return value.toLowerCase() === 'true';
+        }
+        return Boolean(value);
     }
 
     /**
@@ -263,93 +282,93 @@ export class RichFootViewManager {
      * @private
      */
     setupObserver(container, view) {
-        // Disconnect existing observer if any
-        this.disconnectObserver(container);
+        try {
+            // Disconnect existing observer if any
+            this.disconnectObserver(container);
 
-        // Track pending timeout for debounced re-attach
-        let timeoutId = null;
-        let rafId = null;
+            // Track pending timeout for debounced re-attach
+            let timeoutId = null;
+            let rafId = null;
 
-        const observerCallback = () => {
-            // Clear any existing timeout
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-                timeoutId = null;
-            }
-
-            // Debounce with longer delay to avoid conflicts with other plugins
-            timeoutId = setTimeout(() => {
-                if (rafId) cancelAnimationFrame(rafId);
-
-                rafId = requestAnimationFrame(async () => {
-                    rafId = null;
+            const observerCallback = () => {
+                // Clear any existing timeout
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
                     timeoutId = null;
-
-                    // Verify container is still in the document
-                    if (!container.isConnected) {
-                        return;
-                    }
-
-                    // Check if footer exists
-                    const footer = container.querySelector('.rich-foot[data-rich-foot]');
-                    if (!footer) {
-                        // Double-check after a small delay to avoid race conditions
-                        // with other plugins (like Hover Editor)
-                        setTimeout(() => {
-                            const footerRecheck = container.querySelector('.rich-foot[data-rich-foot]');
-                            if (!footerRecheck && container.isConnected) {
-                                // Footer is truly missing, re-attach
-                                try {
-                                    this.attachToView(view);
-                                } catch (error) {
-                                    console.error('Rich Foot observer re-attach error:', error);
-                                }
-                            }
-                        }, 100);
-                    }
-                });
-            }, 150); // Longer debounce delay to let other plugins settle
-        };
-
-        // Create observer with optimized configuration
-        const observer = new MutationObserver((mutations) => {
-            // Only react to mutations that actually removed our footer
-            const footerRemoved = mutations.some(mutation => {
-                if (mutation.type !== 'childList' || mutation.removedNodes.length === 0) {
-                    return false;
                 }
 
-                // Check if any removed node is or contains our footer
-                for (const node of mutation.removedNodes) {
-                    if (node.nodeType === Node.ELEMENT_NODE) {
-                        if (node.classList?.contains('rich-foot') ||
-                            node.querySelector?.('.rich-foot[data-rich-foot]')) {
-                            return true;
+                // Debounce with longer delay to avoid conflicts with other plugins
+                timeoutId = setTimeout(() => {
+                    if (rafId) cancelAnimationFrame(rafId);
+
+                    rafId = requestAnimationFrame(async () => {
+                        rafId = null;
+                        timeoutId = null;
+
+                        // Verify container is still in the document
+                        if (!container.isConnected) {
+                            return;
+                        }
+
+                        // Check if footer exists
+                        const footer = container.querySelector('.rich-foot[data-rich-foot]');
+                        if (!footer) {
+                            // Double-check after a small delay to avoid race conditions
+                            // with other plugins (like Hover Editor)
+                            setTimeout(() => {
+                                const footerRecheck = container.querySelector('.rich-foot[data-rich-foot]');
+                                if (!footerRecheck && container.isConnected) {
+                                    // Footer is truly missing, re-attach
+                                    this.attachToView(view);
+                                }
+                            }, TIMING.FOOTER_RECHECK_DELAY_MS);
+                        }
+                    });
+                }, TIMING.OBSERVER_DEBOUNCE_MS); // Longer debounce delay to let other plugins settle
+            };
+
+            // Create observer with optimized configuration
+            const observer = new MutationObserver((mutations) => {
+                // Only react to mutations that actually removed our footer
+                const footerRemoved = mutations.some(mutation => {
+                    if (mutation.type !== 'childList' || mutation.removedNodes.length === 0) {
+                        return false;
+                    }
+
+                    // Check if any removed node is or contains our footer
+                    for (const node of mutation.removedNodes) {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            if (node.classList?.contains('rich-foot') ||
+                                node.querySelector?.('.rich-foot[data-rich-foot]')) {
+                                return true;
+                            }
                         }
                     }
+                    return false;
+                });
+
+                if (footerRemoved) {
+                    observerCallback();
                 }
-                return false;
             });
 
-            if (footerRemoved) {
-                observerCallback();
-            }
-        });
+            // Observe only direct children changes
+            observer.observe(container, {
+                childList: true,
+                subtree: false // Only watch direct children for better performance
+            });
 
-        // Observe only direct children changes
-        observer.observe(container, {
-            childList: true,
-            subtree: false // Only watch direct children for better performance
-        });
-
-        // Store observer with cleanup function
-        this.observers.set(container, {
-            observer,
-            cleanup: () => {
-                if (timeoutId) clearTimeout(timeoutId);
-                if (rafId) cancelAnimationFrame(rafId);
-            }
-        });
+            // Store observer with cleanup function
+            this.observers.set(container, {
+                observer,
+                cleanup: () => {
+                    if (timeoutId) clearTimeout(timeoutId);
+                    if (rafId) cancelAnimationFrame(rafId);
+                }
+            });
+        } catch (error) {
+            console.log('Rich Foot: Error in setupObserver:', error.message);
+        }
     }
 
     /**

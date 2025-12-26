@@ -1,3 +1,19 @@
+## 🐛 Bug Fixes & Improvements
+
+### v1.11.2
+#### 🐛 Fixed
+- Fixed missing `Notice` import causing runtime errors
+- Fixed broken debounce logic in update delay setting
+- Replaced internal Obsidian API with public `workspace.trigger('hover-link')` for hover previews
+
+#### 📦 Updated
+- Added centralized constants module for timing values and CSS variables
+- Added `debounce()` and `resolveCssColor()` utilities
+- Improved null safety and error handling across all modules
+- Replaced fragile DOM queries with stored component references in settings
+
+---
+
 ## 🚀 Code Refactoring
 
 ### v1.11.1

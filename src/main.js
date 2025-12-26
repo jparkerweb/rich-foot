@@ -5,6 +5,7 @@ import { RichFootSettingTab, DEFAULT_SETTINGS } from './settings';
 import { RichFootDataManager } from './data-manager';
 import { RichFootRenderer } from './renderer';
 import { RichFootViewManager } from './view-manager';
+import { debounce } from './utils.js';
 
 /**
  * Main Rich Foot Plugin
@@ -30,8 +31,13 @@ class RichFootPlugin extends Plugin {
         this.addSettingTab(new RichFootSettingTab(this.app, this));
 
         // Initialize update tracking
-        this.debounceTimer = null;
         this.updateRafId = null;
+
+        // Create debounced update function
+        this.debouncedUpdateRichFoot = debounce(
+            () => this.updateRichFoot(),
+            this.settings.updateDelay ?? 3000
+        );
 
         // Wait for layout ready before registering events
         this.app.workspace.onLayoutReady(() => {
@@ -68,17 +74,10 @@ class RichFootPlugin extends Plugin {
             })
         );
 
-        // Mode change (immediate)
+        // Editor changes (debounced for performance)
         this.registerEvent(
             this.app.workspace.on('editor-change', () => {
-                // Debounce in edit mode for performance
-                if (this.debounceTimer) {
-                    clearTimeout(this.debounceTimer);
-                }
-
-                this.debounceTimer = setTimeout(() => {
-                    this.updateActiveView();
-                }, this.settings.updateDelay);
+                this.debouncedUpdateRichFoot();
             })
         );
 
@@ -185,6 +184,24 @@ class RichFootPlugin extends Plugin {
     }
 
     /**
+     * Recreate the debounced update function with a new delay.
+     * Called when the user changes the update delay setting.
+     * @param {number} newDelay - New delay in milliseconds
+     */
+    recreateDebounce(newDelay) {
+        // Cancel any pending debounced call
+        if (this.debouncedUpdateRichFoot?.cancel) {
+            this.debouncedUpdateRichFoot.cancel();
+        }
+
+        // Create new debounced function with updated delay
+        this.debouncedUpdateRichFoot = debounce(
+            () => this.updateRichFoot(),
+            newDelay
+        );
+    }
+
+    /**
      * Load plugin settings
      */
     async loadSettings() {
@@ -245,10 +262,9 @@ class RichFootPlugin extends Plugin {
             this.viewManager.disconnectAllObservers();
         }
 
-        // Clear any pending timeouts
-        if (this.debounceTimer) {
-            clearTimeout(this.debounceTimer);
-            this.debounceTimer = null;
+        // Cancel any pending debounced update
+        if (this.debouncedUpdateRichFoot?.cancel) {
+            this.debouncedUpdateRichFoot.cancel();
         }
 
         // Clear any pending RAF updates

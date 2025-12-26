@@ -37,34 +37,38 @@ To test changes:
 ## Code Architecture
 
 ### Modular Class Structure
-The codebase is organized into four main modules plus settings:
+The codebase is organized into five main modules plus settings:
 
-1. **RichFootPlugin** (`src/main.js`) - Main plugin entry point
+1. **Constants** (`src/constants.js`) - Centralized configuration
+   - `TIMING` - Timing values (debounce delays, recheck intervals)
+   - `CSS_VARS` - CSS variable names for theme colors
+
+2. **RichFootPlugin** (`src/main.js`) - Main plugin entry point
    - Manages plugin lifecycle (onload/onunload)
    - Registers workspace events using Obsidian's registration methods
    - Coordinates between data, rendering, and view management
    - Uses requestAnimationFrame for smooth updates
 
-2. **RichFootDataManager** (`src/data-manager.js`) - Data fetching and parsing
+3. **RichFootDataManager** (`src/data-manager.js`) - Data fetching and parsing
    - `getBacklinks(file)` - Fetches backlinks from metadata cache
    - `getOutlinks(file)` - Extracts all outlinks (links, embeds, frontmatter, footnotes)
    - `getDates(file, settings)` - Parses creation/modification dates
    - Handles footnote link detection with special regex patterns
 
-3. **RichFootRenderer** (`src/renderer.js`) - DOM rendering
+4. **RichFootRenderer** (`src/renderer.js`) - DOM rendering
    - `createFooter(file, data)` - Creates complete footer element
    - `createLinksSection()` / `createCombinedLinksSection()` - Link rendering
    - `createLinkElement()` - Individual link elements with hover support
    - `attachToContainer()` - RAF-based DOM attachment with fade-in
 
-4. **RichFootViewManager** (`src/view-manager.js`) - View lifecycle
+5. **RichFootViewManager** (`src/view-manager.js`) - View lifecycle
    - `attachToView(view)` - Attaches footer to markdown views
    - `shouldExclude(view, file)` - Checks exclusion rules (folders, frontmatter, selectors)
    - `setupObserver()` - Creates MutationObservers for DOM changes
    - `disconnectAllObservers()` - Cleanup on unload
    - Manages edit vs reading mode differences
 
-5. **RichFootSettingTab** (`src/settings.js`) - Settings UI and management
+6. **RichFootSettingTab** (`src/settings.js`) - Settings UI and management
 
 ### Critical Patterns
 
@@ -137,7 +141,7 @@ const mode = view.getMode?.() ?? view.mode;
 3. CSS parent selector matching (`.markdown-source-view.mod-cm6 .cm-sizer`)
 
 **Hover Preview Integration:**
-Uses Obsidian's built-in hover mechanism by setting `data-href` and `data-type="file"` attributes on link elements.
+Uses Obsidian's public `workspace.trigger('hover-link')` API for hover previews. Works in both edit and reading modes.
 
 ## Common Tasks
 

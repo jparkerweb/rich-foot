@@ -6,3 +6,7 @@ node_modules
 
 # Vault
 .vault
+
+# specs
+specs/
+specs--completed/

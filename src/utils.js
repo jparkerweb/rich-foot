@@ -93,3 +93,69 @@ export function blendRgbaWithBackground(rgba, backgroundRgb) {
 
     return `rgb(${r}, ${g}, ${b})`;
 }
+
+/**
+ * Creates a debounced function that delays invoking func until after wait
+ * milliseconds have elapsed since the last time the debounced function was invoked.
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Delay in milliseconds
+ * @param {boolean} [immediate=false] - Execute on leading edge instead of trailing
+ * @returns {Function} Debounced function with .cancel() method
+ */
+export function debounce(func, wait, immediate = false) {
+    let timeout;
+
+    function debounced(...args) {
+        const callNow = immediate && !timeout;
+
+        clearTimeout(timeout);
+
+        timeout = setTimeout(() => {
+            timeout = null;
+            if (!immediate) {
+                func.apply(this, args);
+            }
+        }, wait);
+
+        if (callNow) {
+            func.apply(this, args);
+        }
+    }
+
+    debounced.cancel = function() {
+        clearTimeout(timeout);
+        timeout = null;
+    };
+
+    return debounced;
+}
+
+/**
+ * Resolve a CSS variable to its computed hex color value.
+ * Creates a temporary element to compute the resolved color.
+ * @param {string} cssVar - CSS variable string (e.g., 'var(--text-accent)')
+ * @param {string} [property='color'] - CSS property to use for computation
+ * @returns {string} Hex color value (e.g., '#ff0000'), defaults to '#000000' on failure
+ */
+export function resolveCssColor(cssVar, property = 'color') {
+    const tempDiv = document.createElement('div');
+    tempDiv.style[property] = cssVar;
+    document.body.appendChild(tempDiv);
+
+    const computedColor = getComputedStyle(tempDiv)[property];
+    document.body.removeChild(tempDiv);
+
+    // Convert RGB/RGBA to hex
+    if (computedColor.startsWith('rgb')) {
+        const match = computedColor.match(/\d+/g);
+        if (match && match.length >= 3) {
+            const r = parseInt(match[0]).toString(16).padStart(2, '0');
+            const g = parseInt(match[1]).toString(16).padStart(2, '0');
+            const b = parseInt(match[2]).toString(16).padStart(2, '0');
+            return `#${r}${g}${b}`;
+        }
+    }
+
+    // Return as-is if already hex, or fallback
+    return computedColor.startsWith('#') ? computedColor : '#000000';
+}

@@ -2,6 +2,18 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.11.2] - 2025-12-25
+### 🐛 Fixed
+- Fixed missing `Notice` import causing runtime errors
+- Fixed broken debounce logic in update delay setting
+- Replaced internal Obsidian API with public `workspace.trigger('hover-link')` for hover previews
+
+### 📦 Updated
+- Added centralized constants module for timing values and CSS variables
+- Added `debounce()` and `resolveCssColor()` utilities
+- Improved null safety and error handling across all modules
+- Replaced fragile DOM queries with stored component references in settings
+
 ## [1.11.1] - 2025-11-15
 ### 📦 Update
 - Optimized CSS for rending `rich foot` element at the bottom of notes

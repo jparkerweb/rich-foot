@@ -25,6 +25,10 @@ export class RichFootDataManager {
      * @returns {Promise<Set>} Set of outlink paths
      */
     async getOutlinks(file) {
+        if (!file) {
+            return new Set();
+        }
+
         const cache = this.app.metadataCache.getFileCache(file);
         const links = new Set();
 
@@ -59,7 +63,13 @@ export class RichFootDataManager {
         }
 
         // Process inline footnotes from file content
-        const fileContent = await this.app.vault.read(file);
+        let fileContent = '';
+        try {
+            fileContent = await this.app.vault.cachedRead(file);
+        } catch (error) {
+            console.log('Rich Foot: Error reading file content:', error.message);
+            fileContent = '';
+        }
         this.processFootnotes(fileContent, file, links);
 
         return links;
@@ -171,7 +181,9 @@ export class RichFootDataManager {
      * @returns {Date|null} Parsed date or null if invalid
      */
     parseDate(value) {
-        if (!value) return null;
+        if (value == null) {
+            return null;
+        }
 
         let tempDate = String(value);
 

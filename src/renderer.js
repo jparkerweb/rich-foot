@@ -72,7 +72,8 @@ export class RichFootRenderer {
             };
 
             const li = linksUl.createEl('li');
-            this.createLinkElement(li, file, linkPath, metadata);
+            const link = this.createLinkElement(li, file, linkPath, metadata);
+            if (!link) li.remove();
         }
 
         // Process remaining outlinks
@@ -85,7 +86,8 @@ export class RichFootRenderer {
             };
 
             const li = linksUl.createEl('li');
-            this.createLinkElement(li, file, linkPath, metadata);
+            const link = this.createLinkElement(li, file, linkPath, metadata);
+            if (!link) li.remove();
         }
 
         // Remove if empty
@@ -115,7 +117,8 @@ export class RichFootRenderer {
                 isBacklink: type === 'backlinks',
                 isOutlink: type === 'outlinks'
             };
-            this.createLinkElement(li, file, linkPath, metadata);
+            const link = this.createLinkElement(li, file, linkPath, metadata);
+            if (!link) li.remove();
         }
 
         if (linksUl.childElementCount === 0) {
@@ -128,6 +131,10 @@ export class RichFootRenderer {
      * @private
      */
     createLinkElement(container, file, linkPath, metadata) {
+        if (!linkPath || !file || !container) {
+            return null;
+        }
+
         const displayName = linkPath.split('/').pop().slice(0, -3);
         const isEditMode = this.isEditMode();
 
@@ -160,28 +167,25 @@ export class RichFootRenderer {
             this.plugin.app.workspace.openLinkText(linkPath, file.path);
         });
 
-        // Hover preview handlers (only in edit mode)
-        if (this.isEditMode()) {
-            this.setupHoverPreview(link, linkPath, file);
-        }
+        // Hover preview handlers (works in both edit and reading mode)
+        this.setupHoverPreview(link, linkPath, file);
     }
 
     /**
-     * Setup hover preview for a link
+     * Setup hover preview for a link using public workspace API
      * @private
      */
     setupHoverPreview(link, linkPath, file) {
-        const pagePreviewPlugin = this.plugin.app.internalPlugins.plugins['page-preview'];
-        if (!pagePreviewPlugin?.enabled) return;
-
-        link.addEventListener('mouseover', (mouseEvent) => {
-            const previewPlugin = pagePreviewPlugin.instance;
-            if (previewPlugin?.onLinkHover) {
-                previewPlugin.onLinkHover(mouseEvent, link, linkPath, file.path);
-            }
+        link.addEventListener('mouseover', (event) => {
+            this.plugin.app.workspace.trigger('hover-link', {
+                event,
+                source: 'rich-foot',
+                hoverParent: link,
+                targetEl: link,
+                linktext: linkPath,
+                sourcePath: file.path
+            });
         });
-
-        // Hover leave is handled by Obsidian's preview system
     }
 
     /**
