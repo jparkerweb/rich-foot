@@ -22,7 +22,7 @@ Rich Foot is an Obsidian plugin that enhances the footer of your notes by adding
 - Highly customizable appearance with opacity and border controls
 - Option to exclude folder(s) from displaying 🦶 Rich Foot
 
-![example](rich-foot.jpg)
+![example](example.jpg)
 
 ## Installation
 
