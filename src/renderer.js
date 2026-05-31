@@ -91,7 +91,11 @@ export class RichFootRenderer {
         // Remove if empty
         if (linksUl.childElementCount === 0) {
             linksDiv.remove();
+            return;
         }
+
+        // Apply "Show More" limit if enabled
+        this.applyLinkLimit(linksUl);
     }
 
     /**
@@ -120,7 +124,54 @@ export class RichFootRenderer {
 
         if (linksUl.childElementCount === 0) {
             linksDiv.remove();
+            return;
         }
+
+        // Apply "Show More" limit if enabled
+        this.applyLinkLimit(linksUl);
+    }
+
+    /**
+     * Limit the number of visible links, hiding the surplus behind a
+     * toggleable "Show More (X)" button.
+     * @private
+     * @param {HTMLElement} linksUl - The <ul> containing link <li> elements
+     */
+    applyLinkLimit(linksUl) {
+        const { settings } = this.plugin;
+        if (!settings.limitLinks) return;
+
+        const limit = Math.floor(Number(settings.linksLimit));
+        if (!Number.isFinite(limit) || limit < 1) return;
+
+        const items = Array.from(linksUl.children);
+        if (items.length <= limit) return;
+
+        const surplus = items.length - limit;
+
+        // Hide the surplus items initially
+        for (let i = limit; i < items.length; i++) {
+            items[i].addClass('rich-foot--link-hidden');
+        }
+
+        // Create the toggle button
+        const toggleLi = linksUl.createEl('li', { cls: 'rich-foot--show-more-li' });
+        const toggleBtn = toggleLi.createEl('a', {
+            cls: 'rich-foot--show-more',
+            text: `Show More (${surplus})`
+        });
+        toggleBtn.setAttribute('role', 'button');
+
+        let expanded = false;
+        toggleBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            expanded = !expanded;
+            for (let i = limit; i < items.length; i++) {
+                items[i].toggleClass('rich-foot--link-hidden', !expanded);
+            }
+            toggleBtn.setText(expanded ? 'Show Less' : `Show More (${surplus})`);
+        });
     }
 
     /**

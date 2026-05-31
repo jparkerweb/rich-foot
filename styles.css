@@ -112,6 +112,28 @@
     text-decoration: none;
 }
 
+/* ----------------------------- */
+/* -- Show More / Limit Links -- */
+/* ----------------------------- */
+.rich-foot--backlinks ul li.rich-foot--link-hidden,
+.rich-foot--outlinks ul li.rich-foot--link-hidden,
+.rich-foot--links ul li.rich-foot--link-hidden {
+    display: none !important;
+}
+
+.rich-foot--backlinks ul li a.rich-foot--show-more,
+.rich-foot--outlinks ul li a.rich-foot--show-more,
+.rich-foot--links ul li a.rich-foot--show-more {
+    text-transform: uppercase;
+    font-weight: bold;
+    opacity: 0.85;
+}
+
+.rich-foot--show-more::before,
+.rich-foot--show-more::after {
+    content: none !important;
+}
+
 /* ----------------- */
 /* -- Date Styles -- */
 /* ----------------- */

@@ -1,3 +1,12 @@
+## 🚀 New Feature
+
+### v1.12.0
+#### ✨ Limit Links Shown
+- Added an option to limit the number of backlinks/outlinks shown in the footer
+- Surplus links are hidden behind a **Show More (X)** button that expands them on click (and collapses again with **Show Less**)
+- Helpful for notes with a large number of links that previously caused flickering and scroll-reset issues
+- Configure via Settings → **Limit Links Shown** (toggle) and **Links Limit** (default 10)
+
 ## 🚀 Code Refactoring
 
 ### v1.11.1
