@@ -158,9 +158,11 @@ export class RichFootRenderer {
         const toggleLi = linksUl.createEl('li', { cls: 'rich-foot--show-more-li' });
         const toggleBtn = toggleLi.createEl('a', {
             cls: 'rich-foot--show-more',
-            text: `Show More (${surplus})`
+            text: `Show More (${surplus})`,
+            href: '#'
         });
         toggleBtn.setAttribute('role', 'button');
+        toggleBtn.setAttribute('aria-expanded', 'false');
 
         let expanded = false;
         toggleBtn.addEventListener('click', (event) => {
@@ -171,6 +173,7 @@ export class RichFootRenderer {
                 items[i].toggleClass('rich-foot--link-hidden', !expanded);
             }
             toggleBtn.setText(expanded ? 'Show Less' : `Show More (${surplus})`);
+            toggleBtn.setAttribute('aria-expanded', String(expanded));
         });
     }
 

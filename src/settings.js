@@ -95,28 +95,32 @@ export class RichFootSettingTab extends PluginSettingTab {
                     await this.plugin.updateRichFoot();
                 }));
 
+        let linksLimitInput;
         new Setting(containerEl)
             .setName('Links Limit')
             .setDesc('Maximum number of links to show before the "Show More" button (only applies when "Limit Links Shown" is enabled)')
-            .addText(text => text
-                .setPlaceholder('10')
-                .setValue(String(this.plugin.settings.linksLimit))
-                .onChange(async (value) => {
-                    const numValue = Math.floor(Number(value));
-                    if (!isNaN(numValue) && numValue > 0) {
-                        this.plugin.settings.linksLimit = numValue;
-                        await this.plugin.saveSettings();
-                        await this.plugin.updateRichFoot();
-                    }
-                }))
+            .addText(text => {
+                linksLimitInput = text;
+                text.setPlaceholder('10')
+                    .setValue(String(this.plugin.settings.linksLimit))
+                    .onChange(async (value) => {
+                        const numValue = Math.floor(Number(value));
+                        if (!isNaN(numValue) && numValue > 0) {
+                            this.plugin.settings.linksLimit = numValue;
+                            await this.plugin.saveSettings();
+                            await this.plugin.updateRichFoot();
+                        }
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.linksLimit = DEFAULT_SETTINGS.linksLimit;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const textComponent = button.buttonEl.parentElement.parentElement.querySelector('input[type="text"]');
-                    if (textComponent) textComponent.value = String(DEFAULT_SETTINGS.linksLimit);
+                    if (linksLimitInput) {
+                        linksLimitInput.setValue(String(DEFAULT_SETTINGS.linksLimit));
+                    }
                 }));
 
         new Setting(containerEl)
