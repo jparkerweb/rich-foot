@@ -22,10 +22,7 @@ export class ReleaseNotesModal extends Modal {
         });
 
         // Promotional links
-        const promotionalLinks = contentEl.createEl('div');
-        promotionalLinks.style.display = 'flex';
-        promotionalLinks.style.flexDirection = 'row';
-        promotionalLinks.style.justifyContent = 'space-around';
+        const promotionalLinks = contentEl.createEl('div', { cls: 'release-notes-promotional-links' });
 
         const equilllabsLink = promotionalLinks.createEl('a', {
             href: 'https://www.equilllabs.com',
@@ -69,16 +66,16 @@ export class ReleaseNotesModal extends Modal {
 
         // Release notes content
         const notesContainer = contentEl.createDiv('release-notes-container');
-        await MarkdownRenderer.renderMarkdown(
+        await MarkdownRenderer.render(
+            this.app,
             this.releaseNotes,
             notesContainer,
             '',
-            this.plugin,
             this
         );
 
         // Add some spacing
-        contentEl.createEl('div', { cls: 'release-notes-spacer' }).style.height = '20px';
+        contentEl.createEl('div', { cls: 'release-notes-spacer' });
 
         // Close button
         new Setting(contentEl)

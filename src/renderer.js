@@ -6,6 +6,10 @@
 
 import { MarkdownView } from 'obsidian';
 
+// Monotonic counter used to give each "Show More" toggle a unique target id
+// for aria-controls (multiple footers can be on-screen across panes/notes).
+let showMoreIdCounter = 0;
+
 export class RichFootRenderer {
     constructor(plugin) {
         this.plugin = plugin;
@@ -149,20 +153,27 @@ export class RichFootRenderer {
 
         const surplus = items.length - limit;
 
+        // Give the list a unique id so the toggle can reference it via aria-controls
+        const listId = `rich-foot-links-${++showMoreIdCounter}`;
+        linksUl.id = listId;
+
         // Hide the surplus items initially
         for (let i = limit; i < items.length; i++) {
             items[i].addClass('rich-foot--link-hidden');
         }
 
-        // Create the toggle button
+        // Create the toggle button — a native <button> is keyboard-accessible and
+        // announced correctly by screen readers without a role override.
         const toggleLi = linksUl.createEl('li', { cls: 'rich-foot--show-more-li' });
-        const toggleBtn = toggleLi.createEl('a', {
+        const toggleBtn = toggleLi.createEl('button', {
             cls: 'rich-foot--show-more',
             text: `Show More (${surplus})`,
-            href: '#'
+            attr: {
+                type: 'button',
+                'aria-expanded': 'false',
+                'aria-controls': listId
+            }
         });
-        toggleBtn.setAttribute('role', 'button');
-        toggleBtn.setAttribute('aria-expanded', 'false');
 
         let expanded = false;
         toggleBtn.addEventListener('click', (event) => {

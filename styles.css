@@ -121,12 +121,21 @@
     display: none !important;
 }
 
-.rich-foot--backlinks ul li a.rich-foot--show-more,
-.rich-foot--outlinks ul li a.rich-foot--show-more,
-.rich-foot--links ul li a.rich-foot--show-more {
+.rich-foot--backlinks ul li .rich-foot--show-more,
+.rich-foot--outlinks ul li .rich-foot--show-more,
+.rich-foot--links ul li .rich-foot--show-more {
     text-transform: uppercase;
     font-weight: bold;
     opacity: 0.85;
+    /* Reset native <button> chrome so it matches the surrounding link styling */
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    cursor: pointer;
 }
 
 .rich-foot--show-more::before,
@@ -414,6 +423,18 @@ body.theme-light .rich-foot--backlinks ul li a {
 
 .release-notes-spacer {
     margin: 10px 0;
+    height: 20px;
+}
+
+.release-notes-promotional-links {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+/* Inline error feedback for invalid CSS selector input in settings */
+.rich-foot-input-error {
+    color: var(--text-error);
 }
 
 /* Color Swatches Grid */

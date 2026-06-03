@@ -7,6 +7,25 @@ import { RichFootRenderer } from './renderer';
 import { RichFootViewManager } from './view-manager';
 
 /**
+ * The `--rich-foot-*` CSS custom properties Rich Foot writes to the document root.
+ * Shared between updateCSSProperties() (where they are set) and onunload() (where
+ * they are removed) so the two never drift out of sync.
+ */
+const RICH_FOOT_CSS_VARS = [
+    '--rich-foot-border-width',
+    '--rich-foot-border-style',
+    '--rich-foot-border-opacity',
+    '--rich-foot-border-radius',
+    '--rich-foot-dates-opacity',
+    '--rich-foot-links-opacity',
+    '--rich-foot-date-color',
+    '--rich-foot-border-color',
+    '--rich-foot-link-color',
+    '--rich-foot-link-background',
+    '--rich-foot-link-border-color'
+];
+
+/**
  * Main Rich Foot Plugin
  * Adds intelligent footers to notes with backlinks, outlinks, and dates
  */
@@ -105,13 +124,22 @@ class RichFootPlugin extends Plugin {
         }
 
         const performUpdate = async () => {
-            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-            if (!view) return;
+            // Update every visible markdown view, not just the focused one, so
+            // footers in split panes / other windows stay in sync. attachToView
+            // already short-circuits when the footer is already current.
+            const views = [];
+            this.app.workspace.iterateAllLeaves(leaf => {
+                if (leaf.view instanceof MarkdownView && leaf.view.file) {
+                    views.push(leaf.view);
+                }
+            });
 
-            try {
-                await this.viewManager.attachToView(view);
-            } catch (error) {
-                console.error('Rich Foot update error:', error);
+            for (const view of views) {
+                try {
+                    await this.viewManager.attachToView(view);
+                } catch (error) {
+                    console.error('Rich Foot update error:', error);
+                }
             }
         };
 
@@ -259,6 +287,12 @@ class RichFootPlugin extends Plugin {
 
         // Remove all rich foot elements
         document.querySelectorAll('[data-rich-foot]').forEach(el => el.remove());
+
+        // Remove the CSS custom properties we wrote to the document root so they
+        // don't linger (and affect other plugins/snippets) after we're disabled
+        RICH_FOOT_CSS_VARS.forEach(property => {
+            document.documentElement.style.removeProperty(property);
+        });
 
         // Events are automatically cleaned up via registerEvent
     }

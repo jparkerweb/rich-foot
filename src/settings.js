@@ -1,6 +1,6 @@
-import { PluginSettingTab, Setting, FuzzySuggestModal } from 'obsidian';
+import { PluginSettingTab, Setting, FuzzySuggestModal, Notice } from 'obsidian';
 import { ReleaseNotesModal } from './modals';
-import { rgbToHex } from './utils';
+import { resolveCssVar } from './utils';
 
 export const DEFAULT_SETTINGS = {
     borderWidth: 1,
@@ -123,44 +123,31 @@ export class RichFootSettingTab extends PluginSettingTab {
                     }
                 }));
 
+        let updateDelayInput;
         new Setting(containerEl)
             .setName('Rich-foot update delay')
             .setDesc('Delay in milliseconds before updating the rich-foot in edit mode (lower values may impact performance)')
-            .addText(text => text
-                .setPlaceholder('3000')
-                .setValue(String(this.plugin.settings.updateDelay))
-                .onChange(async (value) => {
-                    const numValue = Math.floor(Number(value));
-                    if (!isNaN(numValue) && numValue > 0) {
-                        this.plugin.settings.updateDelay = numValue;
-                        await this.plugin.saveSettings();
-                        
-                        // Update the debounce timing
-                        const updateRichFootCallback = this.plugin.debouncedUpdateRichFoot.callback;
-                        if (updateRichFootCallback) {
-                            this.plugin.debouncedUpdateRichFoot = debounce(updateRichFootCallback, numValue, true);
-                            this.plugin.debouncedUpdateRichFoot.callback = updateRichFootCallback;
+            .addText(text => {
+                updateDelayInput = text;
+                text.setPlaceholder('3000')
+                    .setValue(String(this.plugin.settings.updateDelay))
+                    .onChange(async (value) => {
+                        const numValue = Math.floor(Number(value));
+                        if (!isNaN(numValue) && numValue > 0) {
+                            // The edit-mode debounce in main.js reads settings.updateDelay
+                            // live on each editor-change, so saving is all that's needed.
+                            this.plugin.settings.updateDelay = numValue;
+                            await this.plugin.saveSettings();
                         }
-                    }
-                }))
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
-                    const defaultDelay = DEFAULT_SETTINGS.updateDelay;
-                    this.plugin.settings.updateDelay = defaultDelay;
+                    this.plugin.settings.updateDelay = DEFAULT_SETTINGS.updateDelay;
                     await this.plugin.saveSettings();
-                    
-                    // Update the text field
-                    const textComponent = containerEl.querySelector('.setting-item:last-child input[type="text"]');
-                    if (textComponent) {
-                        textComponent.value = String(defaultDelay);
-                    }
-                    
-                    // Update the debounce timing
-                    const updateRichFootCallback = this.plugin.debouncedUpdateRichFoot.callback;
-                    if (updateRichFootCallback) {
-                        this.plugin.debouncedUpdateRichFoot = debounce(updateRichFootCallback, defaultDelay, true);
-                        this.plugin.debouncedUpdateRichFoot.callback = updateRichFootCallback;
+                    if (updateDelayInput) {
+                        updateDelayInput.setValue(String(DEFAULT_SETTINGS.updateDelay));
                     }
                 }));
 
@@ -264,34 +251,38 @@ export class RichFootSettingTab extends PluginSettingTab {
         containerEl.createEl('h3', { text: 'Style Settings' });
 
         // Border Width
+        let borderWidthSlider;
         new Setting(containerEl)
             .setName('Border Width')
             .setDesc('Adjust the width of the footer border (1-10px)')
-            .addSlider(slider => slider
-                .setLimits(1, 10, 1)
-                .setValue(this.plugin.settings.borderWidth)
-                .setDynamicTooltip()
-                .onChange(async (value) => {
-                    this.plugin.settings.borderWidth = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addSlider(slider => {
+                borderWidthSlider = slider;
+                slider.setLimits(1, 10, 1)
+                    .setValue(this.plugin.settings.borderWidth)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.borderWidth = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.borderWidth = DEFAULT_SETTINGS.borderWidth;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const slider = this.containerEl.querySelector('input[type="range"]');
-                    if (slider) slider.value = DEFAULT_SETTINGS.borderWidth;
+                    borderWidthSlider.setValue(DEFAULT_SETTINGS.borderWidth);
                 }));
 
         // Border Style
+        let borderStyleDropdown;
         new Setting(containerEl)
             .setName('Border Style')
             .setDesc('Choose the style of the footer border')
-            .addDropdown(dropdown => dropdown
-                .addOptions({
+            .addDropdown(dropdown => {
+                borderStyleDropdown = dropdown;
+                dropdown.addOptions({
                     'solid': 'Solid',
                     'dashed': 'Dashed',
                     'dotted': 'Dotted',
@@ -306,292 +297,240 @@ export class RichFootSettingTab extends PluginSettingTab {
                     this.plugin.settings.borderStyle = value;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                }))
+                });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.borderStyle = DEFAULT_SETTINGS.borderStyle;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const dropdown = this.containerEl.querySelector('select');
-                    if (dropdown) dropdown.value = DEFAULT_SETTINGS.borderStyle;
+                    borderStyleDropdown.setValue(DEFAULT_SETTINGS.borderStyle);
                 }));
 
         // Border Opacity
+        let borderOpacitySlider;
         new Setting(containerEl)
             .setName('Border Opacity')
             .setDesc('Adjust the opacity of the footer border (0-1)')
-            .addSlider(slider => slider
-                .setLimits(0, 1, 0.1)
-                .setValue(this.plugin.settings.borderOpacity)
-                .setDynamicTooltip()
-                .onChange(async (value) => {
-                    this.plugin.settings.borderOpacity = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addSlider(slider => {
+                borderOpacitySlider = slider;
+                slider.setLimits(0, 1, 0.1)
+                    .setValue(this.plugin.settings.borderOpacity)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.borderOpacity = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.borderOpacity = DEFAULT_SETTINGS.borderOpacity;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
-                    if (slider) slider.value = DEFAULT_SETTINGS.borderOpacity;
+                    borderOpacitySlider.setValue(DEFAULT_SETTINGS.borderOpacity);
                 }));
 
         // Border Color
+        let borderColorPicker;
         new Setting(containerEl)
             .setName('Border Color')
             .setDesc('Choose the color for the footer border')
-            .addColorPicker(color => color
-                .setValue(this.plugin.settings.borderColor.startsWith('var(--') ? 
-                    (() => {
-                        const temp = document.createElement('div');
-                        temp.style.borderColor = 'var(--text-accent)';
-                        document.body.appendChild(temp);
-                        const color = getComputedStyle(temp).borderColor;
-                        document.body.removeChild(temp);
-                        return rgbToHex(color);
-                    })() : 
-                    this.plugin.settings.borderColor)
-                .onChange(async (value) => {
-                    this.plugin.settings.borderColor = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addColorPicker(color => {
+                borderColorPicker = color;
+                color.setValue(this.plugin.settings.borderColor.startsWith('var(--')
+                        ? resolveCssVar('var(--text-accent)', 'borderColor')
+                        : this.plugin.settings.borderColor)
+                    .onChange(async (value) => {
+                        this.plugin.settings.borderColor = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.borderColor = DEFAULT_SETTINGS.borderColor;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
-                    if (colorPicker) {
-                        const temp = document.createElement('div');
-                        temp.style.borderColor = 'var(--text-accent)';
-                        document.body.appendChild(temp);
-                        const color = getComputedStyle(temp).borderColor;
-                        document.body.removeChild(temp);
-                        colorPicker.value = rgbToHex(color);
-                    }
+                    borderColorPicker.setValue(resolveCssVar('var(--text-accent)', 'borderColor'));
                 }));
 
         // Link Border Radius
+        let borderRadiusSlider;
         new Setting(containerEl)
             .setName('Link Border Radius')
             .setDesc('Adjust the border radius of Backlinks and Outlinks (0-15px)')
-            .addSlider(slider => slider
-                .setLimits(0, 15, 1)
-                .setValue(this.plugin.settings.borderRadius)
-                .setDynamicTooltip()
-                .onChange(async (value) => {
-                    this.plugin.settings.borderRadius = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addSlider(slider => {
+                borderRadiusSlider = slider;
+                slider.setLimits(0, 15, 1)
+                    .setValue(this.plugin.settings.borderRadius)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.borderRadius = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
-                    if (slider) slider.value = DEFAULT_SETTINGS.borderRadius;
+                    borderRadiusSlider.setValue(DEFAULT_SETTINGS.borderRadius);
                 }));
 
         // Links Opacity
+        let linksOpacitySlider;
         new Setting(containerEl)
             .setName('Links Opacity')
             .setDesc('Adjust the opacity of Backlinks and Outlinks (0-1)')
-            .addSlider(slider => slider
-                .setLimits(0, 1, 0.1)
-                .setValue(this.plugin.settings.linksOpacity)
-                .setDynamicTooltip()
-                .onChange(async (value) => {
-                    this.plugin.settings.linksOpacity = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addSlider(slider => {
+                linksOpacitySlider = slider;
+                slider.setLimits(0, 1, 0.1)
+                    .setValue(this.plugin.settings.linksOpacity)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.linksOpacity = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.linksOpacity = DEFAULT_SETTINGS.linksOpacity;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
-                    if (slider) slider.value = DEFAULT_SETTINGS.linksOpacity;
+                    linksOpacitySlider.setValue(DEFAULT_SETTINGS.linksOpacity);
                 }));
 
         // Link Text Color
+        let linkColorPicker;
         new Setting(containerEl)
             .setName('Link Text Color')
             .setDesc('Choose the color for link text')
-            .addColorPicker(color => color
-                .setValue(this.plugin.settings.linkColor.startsWith('var(--') ? 
-                    (() => {
-                        const temp = document.createElement('div');
-                        temp.style.color = 'var(--link-color)';
-                        document.body.appendChild(temp);
-                        const color = getComputedStyle(temp).color;
-                        document.body.removeChild(temp);
-                        return rgbToHex(color);
-                    })() : 
-                    this.plugin.settings.linkColor)
-                .onChange(async (value) => {
-                    this.plugin.settings.linkColor = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addColorPicker(color => {
+                linkColorPicker = color;
+                color.setValue(this.plugin.settings.linkColor.startsWith('var(--')
+                        ? resolveCssVar('var(--link-color)', 'color')
+                        : this.plugin.settings.linkColor)
+                    .onChange(async (value) => {
+                        this.plugin.settings.linkColor = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.linkColor = DEFAULT_SETTINGS.linkColor;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
-                    if (colorPicker) {
-                        const temp = document.createElement('div');
-                        temp.style.color = 'var(--link-color)';
-                        document.body.appendChild(temp);
-                        const color = getComputedStyle(temp).color;
-                        document.body.removeChild(temp);
-                        colorPicker.value = rgbToHex(color);
-                    }
+                    linkColorPicker.setValue(resolveCssVar('var(--link-color)', 'color'));
                 }));
 
         // Link Background Color
+        let linkBackgroundColorPicker;
         new Setting(containerEl)
             .setName('Link Background Color')
             .setDesc('Choose the background color for links')
-            .addColorPicker(color => color
-                .setValue(this.plugin.settings.linkBackgroundColor.startsWith('var(--') ? 
-                    (() => {
-                        const temp = document.createElement('div');
-                        temp.style.backgroundColor = 'var(--tag-background)';
-                        document.body.appendChild(temp);
-                        const color = getComputedStyle(temp).backgroundColor;
-                        document.body.removeChild(temp);
-                        return rgbToHex(color);
-                    })() : 
-                    this.plugin.settings.linkBackgroundColor)
-                .onChange(async (value) => {
-                    this.plugin.settings.linkBackgroundColor = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addColorPicker(color => {
+                linkBackgroundColorPicker = color;
+                color.setValue(this.plugin.settings.linkBackgroundColor.startsWith('var(--')
+                        ? resolveCssVar('var(--tag-background)', 'backgroundColor')
+                        : this.plugin.settings.linkBackgroundColor)
+                    .onChange(async (value) => {
+                        this.plugin.settings.linkBackgroundColor = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.linkBackgroundColor = DEFAULT_SETTINGS.linkBackgroundColor;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
-                    if (colorPicker) {
-                        const temp = document.createElement('div');
-                        temp.style.backgroundColor = 'var(--tag-background)';
-                        document.body.appendChild(temp);
-                        const color = getComputedStyle(temp).backgroundColor;
-                        document.body.removeChild(temp);
-                        colorPicker.value = rgbToHex(color);
-                    }
+                    linkBackgroundColorPicker.setValue(resolveCssVar('var(--tag-background)', 'backgroundColor'));
                 }));
 
         // Link Border Color
+        let linkBorderColorPicker;
         new Setting(containerEl)
             .setName('Link Border Color')
             .setDesc('Choose the border color for links')
-            .addColorPicker(color => color
-                .setValue(this.plugin.settings.linkBorderColor.startsWith('rgba(') ? 
-                    (() => {
-                        const temp = document.createElement('div');
-                        temp.style.borderColor = this.plugin.settings.linkBorderColor;
-                        document.body.appendChild(temp);
-                        const color = getComputedStyle(temp).borderColor;
-                        document.body.removeChild(temp);
-                        return rgbToHex(color);
-                    })() : 
-                    this.plugin.settings.linkBorderColor)
-                .onChange(async (value) => {
-                    this.plugin.settings.linkBorderColor = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addColorPicker(color => {
+                linkBorderColorPicker = color;
+                color.setValue(this.plugin.settings.linkBorderColor.startsWith('rgba(')
+                        ? resolveCssVar(this.plugin.settings.linkBorderColor, 'borderColor')
+                        : this.plugin.settings.linkBorderColor)
+                    .onChange(async (value) => {
+                        this.plugin.settings.linkBorderColor = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.linkBorderColor = DEFAULT_SETTINGS.linkBorderColor;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
-                    if (colorPicker) {
-                        const temp = document.createElement('div');
-                        temp.style.borderColor = DEFAULT_SETTINGS.linkBorderColor;
-                        document.body.appendChild(temp);
-                        const color = getComputedStyle(temp).borderColor;
-                        document.body.removeChild(temp);
-                        colorPicker.value = rgbToHex(color);
-                    }
+                    linkBorderColorPicker.setValue(resolveCssVar(DEFAULT_SETTINGS.linkBorderColor, 'borderColor'));
                 }));
 
         // Dates Opacity
+        let datesOpacitySlider;
         new Setting(containerEl)
             .setName('Dates Opacity')
             .setDesc('Adjust the opacity of the Created / Modified Dates (0-1)')
-            .addSlider(slider => slider
-                .setLimits(0, 1, 0.1)
-                .setValue(this.plugin.settings.datesOpacity)
-                .setDynamicTooltip()
-                .onChange(async (value) => {
-                    this.plugin.settings.datesOpacity = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addSlider(slider => {
+                datesOpacitySlider = slider;
+                slider.setLimits(0, 1, 0.1)
+                    .setValue(this.plugin.settings.datesOpacity)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.datesOpacity = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.datesOpacity = DEFAULT_SETTINGS.datesOpacity;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const slider = button.buttonEl.parentElement.parentElement.querySelector('input[type="range"]');
-                    if (slider) slider.value = DEFAULT_SETTINGS.datesOpacity;
+                    datesOpacitySlider.setValue(DEFAULT_SETTINGS.datesOpacity);
                 }));
 
         // Date Color
+        let dateColorPicker;
         new Setting(containerEl)
             .setName('Date Color')
             .setDesc('Choose the color for Created / Modified Dates')
-            .addColorPicker(color => color
-                .setValue(this.plugin.settings.dateColor.startsWith('var(--') ? 
-                    (() => {
-                        const temp = document.createElement('div');
-                        temp.style.color = 'var(--text-accent)';
-                        document.body.appendChild(temp);
-                        const color = getComputedStyle(temp).color;
-                        document.body.removeChild(temp);
-                        return rgbToHex(color);
-                    })() : 
-                    this.plugin.settings.dateColor)
-                .onChange(async (value) => {
-                    this.plugin.settings.dateColor = value;
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addColorPicker(color => {
+                dateColorPicker = color;
+                color.setValue(this.plugin.settings.dateColor.startsWith('var(--')
+                        ? resolveCssVar('var(--text-accent)', 'color')
+                        : this.plugin.settings.dateColor)
+                    .onChange(async (value) => {
+                        this.plugin.settings.dateColor = value;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.dateColor = DEFAULT_SETTINGS.dateColor;
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const colorPicker = button.buttonEl.parentElement.parentElement.querySelector('input[type="color"]');
-                    if (colorPicker) {
-                        const temp = document.createElement('div');
-                        temp.style.color = 'var(--text-accent)';
-                        document.body.appendChild(temp);
-                        const color = getComputedStyle(temp).color;
-                        document.body.removeChild(temp);
-                        colorPicker.value = rgbToHex(color);
-                    }
+                    dateColorPicker.setValue(resolveCssVar('var(--text-accent)', 'color'));
                 }));
 
         containerEl.createEl('hr');
@@ -659,25 +598,29 @@ export class RichFootSettingTab extends PluginSettingTab {
 
         // Frontmatter Exclusion Field
         containerEl.createEl('h4', { text: 'Exclude Rich Foot via Frontmatter' });
+        let frontmatterExclusionInput;
         new Setting(containerEl)
             .setName('Frontmatter Exclusion Field')
             .setDesc('If this frontmatter field exists and has a truthy value (true, yes, 1, on), Rich Foot will not be shown on that note')
-            .addText(text => text
-                .setPlaceholder('e.g., exclude-rich-foot')
-                .setValue(this.plugin.settings.frontmatterExclusionField)
-                .onChange(async (value) => {
-                    this.plugin.settings.frontmatterExclusionField = value.trim();
-                    await this.plugin.saveSettings();
-                    await this.plugin.updateRichFoot();
-                }))
+            .addText(text => {
+                frontmatterExclusionInput = text;
+                text.setPlaceholder('e.g., exclude-rich-foot')
+                    .setValue(this.plugin.settings.frontmatterExclusionField)
+                    .onChange(async (value) => {
+                        this.plugin.settings.frontmatterExclusionField = value.trim();
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                    });
+            })
             .addButton(button => button
                 .setButtonText('Reset')
                 .onClick(async () => {
                     this.plugin.settings.frontmatterExclusionField = '';
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
-                    const textComponent = button.buttonEl.parentElement.parentElement.querySelector('input[type="text"]');
-                    if (textComponent) textComponent.value = '';
+                    if (frontmatterExclusionInput) {
+                        frontmatterExclusionInput.setValue('');
+                    }
                 }));
 
         // Excluded Parent Selectors Section
@@ -719,9 +662,9 @@ export class RichFootSettingTab extends PluginSettingTab {
                     // Validate selector when it changes
                     try {
                         document.querySelector(text.getValue());
-                        text.inputEl.style.color = '';
+                        text.inputEl.removeClass('rich-foot-input-error');
                     } catch (e) {
-                        text.inputEl.style.color = 'var(--text-error)';
+                        text.inputEl.addClass('rich-foot-input-error');
                     }
                 }))
             .addButton(button => button

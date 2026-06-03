@@ -269,6 +269,7 @@ export class RichFootViewManager {
         // Track pending timeout for debounced re-attach
         let timeoutId = null;
         let rafId = null;
+        let recheckTimeoutId = null;
 
         const observerCallback = () => {
             // Clear any existing timeout
@@ -294,8 +295,10 @@ export class RichFootViewManager {
                     const footer = container.querySelector('.rich-foot[data-rich-foot]');
                     if (!footer) {
                         // Double-check after a small delay to avoid race conditions
-                        // with other plugins (like Hover Editor)
-                        setTimeout(() => {
+                        // with other plugins (like Hover Editor). Track the id so
+                        // cleanup can cancel it if the observer is torn down first.
+                        recheckTimeoutId = setTimeout(() => {
+                            recheckTimeoutId = null;
                             const footerRecheck = container.querySelector('.rich-foot[data-rich-foot]');
                             if (!footerRecheck && container.isConnected) {
                                 // Footer is truly missing, re-attach
@@ -348,6 +351,7 @@ export class RichFootViewManager {
             cleanup: () => {
                 if (timeoutId) clearTimeout(timeoutId);
                 if (rafId) cancelAnimationFrame(rafId);
+                if (recheckTimeoutId) clearTimeout(recheckTimeoutId);
             }
         });
     }

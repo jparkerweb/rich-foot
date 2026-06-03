@@ -67,6 +67,22 @@ export function rgbToHex(color) {
 }
 
 /**
+ * Resolve a CSS value (e.g. a `var(--x)` reference or rgba string) to a hex color
+ * by probing it through a detached element's computed style.
+ * @param {string} cssValue - The CSS value to resolve (e.g. 'var(--text-accent)')
+ * @param {string} [property='color'] - The style property to probe through ('color', 'borderColor', 'backgroundColor')
+ * @returns {string} Hex color string
+ */
+export function resolveCssVar(cssValue, property = 'color') {
+    const temp = document.createElement('div');
+    temp.style[property] = cssValue;
+    document.body.appendChild(temp);
+    const computed = getComputedStyle(temp)[property];
+    document.body.removeChild(temp);
+    return rgbToHex(computed);
+}
+
+/**
  * Blend RGBA color with background RGB
  * @param {string} rgba - RGBA color string
  * @param {string} backgroundRgb - RGB color string
