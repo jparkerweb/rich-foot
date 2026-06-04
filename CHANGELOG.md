@@ -2,6 +2,13 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.12.0] - 2026-05-31
+### ✨ New Feature
+- Added a **Limit Links Shown** option to cap the number of backlinks/outlinks displayed in the footer
+- Surplus links are hidden behind a **Show More (X)** button that expands them on click (and collapses again with **Show Less**)
+- Helpful for notes with a large number of links that previously caused flickering and scroll-reset issues
+- New settings: **Limit Links Shown** (toggle) and **Links Limit** (default 10)
+
 ## [1.11.1] - 2025-11-15
 ### 📦 Update
 - Optimized CSS for rending `rich foot` element at the bottom of notes

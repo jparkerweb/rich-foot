@@ -15,8 +15,19 @@ export class RichFootDataManager {
      * @returns {Map} Map of backlink paths to their data
      */
     getBacklinks(file) {
-        const backlinksData = this.app.metadataCache.getBacklinksForFile(file);
-        return backlinksData?.data || new Map();
+        // Derive backlinks from the public resolvedLinks graph (source -> { target: count })
+        // rather than the private getBacklinksForFile().data internal Map.
+        const resolvedLinks = this.app.metadataCache.resolvedLinks;
+        const backlinks = new Map();
+
+        for (const sourcePath in resolvedLinks) {
+            const targets = resolvedLinks[sourcePath];
+            if (targets[file.path]) {
+                backlinks.set(sourcePath, targets[file.path]);
+            }
+        }
+
+        return backlinks;
     }
 
     /**
@@ -58,8 +69,10 @@ export class RichFootDataManager {
             }
         }
 
-        // Process inline footnotes from file content
-        const fileContent = await this.app.vault.read(file);
+        // Process inline footnotes from file content. Use cachedRead (Obsidian's
+        // recommended API when parsing for display) so we don't hit disk on every
+        // footer refresh — important on mobile, where the plugin is also supported.
+        const fileContent = await this.app.vault.cachedRead(file);
         this.processFootnotes(fileContent, file, links);
 
         return links;

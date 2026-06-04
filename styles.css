@@ -69,7 +69,10 @@
 
 .rich-foot--backlinks ul li a,
 .rich-foot--outlinks ul li a,
-.rich-foot--links ul li a {
+.rich-foot--links ul li a,
+.rich-foot--backlinks ul li .rich-foot--show-more,
+.rich-foot--outlinks ul li .rich-foot--show-more,
+.rich-foot--links ul li .rich-foot--show-more {
     /* Appearance */
     filter: brightness(120%);
     text-decoration: none !important;
@@ -106,10 +109,52 @@
 
 .rich-foot--backlinks ul li a:hover,
 .rich-foot--outlinks ul li a:hover,
-.rich-foot--links ul li a:hover {
+.rich-foot--links ul li a:hover,
+.rich-foot--backlinks ul li .rich-foot--show-more:hover,
+.rich-foot--outlinks ul li .rich-foot--show-more:hover,
+.rich-foot--links ul li .rich-foot--show-more:hover {
     filter: brightness(170%);
     border: 1px solid transparent !important;
     text-decoration: none;
+}
+
+/* ----------------------------- */
+/* -- Show More / Limit Links -- */
+/* ----------------------------- */
+.rich-foot--backlinks ul li.rich-foot--link-hidden,
+.rich-foot--outlinks ul li.rich-foot--link-hidden,
+.rich-foot--links ul li.rich-foot--link-hidden {
+    display: none !important;
+}
+
+.rich-foot--backlinks ul li .rich-foot--show-more,
+.rich-foot--outlinks ul li .rich-foot--show-more,
+.rich-foot--links ul li .rich-foot--show-more {
+    /* The shared pill rule above provides all rich-foot user-setting styling
+       (link color, background, border color, radius, padding, font-size) via the
+       --rich-foot-* variables, so this control automatically tracks the user's
+       visual settings. These declarations only neutralize the native <button>
+       chrome so it renders identically to the <a> link pills. */
+    font-family: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+    vertical-align: baseline;
+    box-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
+    /* Obsidian's app stylesheet gives <button> an intrinsic height/vertical
+       padding that an <a> doesn't have; collapse it so the pill height matches
+       the link pills exactly. */
+    height: auto;
+    min-height: 0;
+    padding: 0 8px;
+}
+
+.rich-foot--show-more::before,
+.rich-foot--show-more::after {
+    content: none !important;
 }
 
 /* ----------------- */
@@ -392,6 +437,18 @@ body.theme-light .rich-foot--backlinks ul li a {
 
 .release-notes-spacer {
     margin: 10px 0;
+    height: 20px;
+}
+
+.release-notes-promotional-links {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+/* Inline error feedback for invalid CSS selector input in settings */
+.rich-foot-input-error {
+    color: var(--text-error);
 }
 
 /* Color Swatches Grid */
