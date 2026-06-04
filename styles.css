@@ -69,7 +69,10 @@
 
 .rich-foot--backlinks ul li a,
 .rich-foot--outlinks ul li a,
-.rich-foot--links ul li a {
+.rich-foot--links ul li a,
+.rich-foot--backlinks ul li .rich-foot--show-more,
+.rich-foot--outlinks ul li .rich-foot--show-more,
+.rich-foot--links ul li .rich-foot--show-more {
     /* Appearance */
     filter: brightness(120%);
     text-decoration: none !important;
@@ -106,7 +109,10 @@
 
 .rich-foot--backlinks ul li a:hover,
 .rich-foot--outlinks ul li a:hover,
-.rich-foot--links ul li a:hover {
+.rich-foot--links ul li a:hover,
+.rich-foot--backlinks ul li .rich-foot--show-more:hover,
+.rich-foot--outlinks ul li .rich-foot--show-more:hover,
+.rich-foot--links ul li .rich-foot--show-more:hover {
     filter: brightness(170%);
     border: 1px solid transparent !important;
     text-decoration: none;
@@ -124,18 +130,26 @@
 .rich-foot--backlinks ul li .rich-foot--show-more,
 .rich-foot--outlinks ul li .rich-foot--show-more,
 .rich-foot--links ul li .rich-foot--show-more {
-    text-transform: uppercase;
-    font-weight: bold;
-    opacity: 0.85;
-    /* Reset native <button> chrome so it matches the surrounding link styling */
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
+    /* The shared pill rule above provides all rich-foot user-setting styling
+       (link color, background, border color, radius, padding, font-size) via the
+       --rich-foot-* variables, so this control automatically tracks the user's
+       visual settings. These declarations only neutralize the native <button>
+       chrome so it renders identically to the <a> link pills. */
     font-family: inherit;
-    font-size: inherit;
-    color: inherit;
-    cursor: pointer;
+    font-weight: inherit;
+    font-style: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+    vertical-align: baseline;
+    box-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
+    /* Obsidian's app stylesheet gives <button> an intrinsic height/vertical
+       padding that an <a> doesn't have; collapse it so the pill height matches
+       the link pills exactly. */
+    height: auto;
+    min-height: 0;
+    padding: 0 8px;
 }
 
 .rich-foot--show-more::before,
