@@ -22,7 +22,8 @@ const RICH_FOOT_CSS_VARS = [
     '--rich-foot-border-color',
     '--rich-foot-link-color',
     '--rich-foot-link-background',
-    '--rich-foot-link-border-color'
+    '--rich-foot-link-border-color',
+    '--rich-foot-content-max-width'
 ];
 
 /**
@@ -196,12 +197,18 @@ class RichFootPlugin extends Plugin {
             '--rich-foot-border-color': this.settings.borderColor,
             '--rich-foot-link-color': this.settings.linkColor,
             '--rich-foot-link-background': this.settings.linkBackgroundColor,
-            '--rich-foot-link-border-color': this.settings.linkBorderColor
+            '--rich-foot-link-border-color': this.settings.linkBorderColor,
+            '--rich-foot-content-max-width': `${this.settings.footerMaxWidth}px`
         };
 
         Object.entries(properties).forEach(([property, value]) => {
             document.documentElement.style.setProperty(property, value);
         });
+
+        // Reflect the chosen footer-width mode on <body> so the stylesheet can
+        // constrain the footer (Readable line length / custom px) without breaking
+        // Obsidian's own Readable Line Length setting.
+        document.body.setAttribute('data-rich-foot-width', this.settings.footerWidth);
     }
 
     /**
@@ -293,6 +300,9 @@ class RichFootPlugin extends Plugin {
         RICH_FOOT_CSS_VARS.forEach(property => {
             document.documentElement.style.removeProperty(property);
         });
+
+        // Remove the footer-width mode marker we wrote to <body>
+        document.body.removeAttribute('data-rich-foot-width');
 
         // Events are automatically cleaned up via registerEvent
     }

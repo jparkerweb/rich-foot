@@ -25,6 +25,8 @@ export const DEFAULT_SETTINGS = {
     combineLinks: false,
     limitLinks: false,
     linksLimit: 10,
+    footerWidth: 'default',
+    footerMaxWidth: 700,
     updateDelay: 3000,
     excludedParentSelectors: [],
     frontmatterExclusionField: '',
@@ -249,6 +251,53 @@ export class RichFootSettingTab extends PluginSettingTab {
 
         // Style Settings
         containerEl.createEl('h3', { text: 'Style Settings' });
+
+        // Footer Width
+        new Setting(containerEl)
+            .setName('Footer Width')
+            .setDesc('Control how wide the footer is. "Readable line length" locks the footer to Obsidian\'s readable line width (recommended when your notes use Readable Line Length), and "Custom" lets you set a maximum width in pixels. The footer never grows wider than the note, so it won\'t cause horizontal scrolling on narrow screens.')
+            .addDropdown(dropdown => {
+                dropdown.addOptions({
+                    'default': 'Default (match content width)',
+                    'readable': 'Readable line length',
+                    'custom': 'Custom width (px)'
+                })
+                .setValue(this.plugin.settings.footerWidth)
+                .onChange(async (value) => {
+                    this.plugin.settings.footerWidth = value;
+                    await this.plugin.saveSettings();
+                    await this.plugin.updateRichFoot();
+                    // Re-render so the custom width control shows/hides to match
+                    this.display();
+                });
+            });
+
+        // Custom Footer Width (only relevant when "Custom width" is selected)
+        if (this.plugin.settings.footerWidth === 'custom') {
+            let footerMaxWidthSlider;
+            new Setting(containerEl)
+                .setName('Custom Footer Width')
+                .setDesc('Maximum width of the footer in pixels (200-1200px)')
+                .addSlider(slider => {
+                    footerMaxWidthSlider = slider;
+                    slider.setLimits(200, 1200, 10)
+                        .setValue(this.plugin.settings.footerMaxWidth)
+                        .setDynamicTooltip()
+                        .onChange(async (value) => {
+                            this.plugin.settings.footerMaxWidth = value;
+                            await this.plugin.saveSettings();
+                            await this.plugin.updateRichFoot();
+                        });
+                })
+                .addButton(button => button
+                    .setButtonText('Reset')
+                    .onClick(async () => {
+                        this.plugin.settings.footerMaxWidth = DEFAULT_SETTINGS.footerMaxWidth;
+                        await this.plugin.saveSettings();
+                        await this.plugin.updateRichFoot();
+                        footerMaxWidthSlider.setValue(DEFAULT_SETTINGS.footerMaxWidth);
+                    }));
+        }
 
         // Border Width
         let borderWidthSlider;

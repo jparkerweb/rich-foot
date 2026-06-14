@@ -214,7 +214,9 @@ body.theme-light .rich-foot--backlinks ul li a {
 .cm-sizer > .rich-foot {
     margin-top: 15px !important;
     max-width: var(--max-width);
-    width: var(--line-width);
+    /* Cap at the container width so the footer can never grow wider than the
+       editor and force horizontal scrolling on narrow screens (e.g. mobile). */
+    width: min(var(--line-width, 100%), 100%);
     margin-inline: var(--content-margin) !important;
 }
 
@@ -265,6 +267,34 @@ body.theme-light .rich-foot--backlinks ul li a {
     padding-top: 20px !important;
     padding-bottom: 0 !important;
     margin-bottom: 20px !important;
+}
+
+/* ----------------------------------- */
+/* -- Footer Width (Readable Length) -- */
+/* ----------------------------------- */
+/*
+ * Issue #78: let users lock the footer to Obsidian's "Readable line length" or
+ * to a custom max width, and keep it centered. In every mode the footer is
+ * capped at 100% of its container, so it can never grow wider than the note and
+ * introduce horizontal scrolling on narrow screens (e.g. mobile).
+ *
+ * The active mode is set on <body data-rich-foot-width="..."> by the plugin.
+ */
+
+/* Readable line length — reading & edit modes */
+body[data-rich-foot-width="readable"] .markdown-preview-sizer > .rich-foot,
+body[data-rich-foot-width="readable"] .cm-sizer > .rich-foot {
+    max-width: min(var(--file-line-width, var(--max-width, 100%)), 100%);
+    width: 100%;
+    margin-inline: auto !important;
+}
+
+/* Custom max width (px) — reading & edit modes */
+body[data-rich-foot-width="custom"] .markdown-preview-sizer > .rich-foot,
+body[data-rich-foot-width="custom"] .cm-sizer > .rich-foot {
+    max-width: min(var(--rich-foot-content-max-width, 700px), 100%);
+    width: 100%;
+    margin-inline: auto !important;
 }
 
 /* ----------- */

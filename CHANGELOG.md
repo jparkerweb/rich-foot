@@ -2,6 +2,13 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.13.0] - 2026-06-14
+### ✨ New Feature
+- Added a **Footer Width** setting to control how wide the footer is
+- Choose **Readable line length** to lock the footer to Obsidian's readable line width, or **Custom width** to set a maximum width in pixels (200-1200px)
+- The footer now always caps at the width of the note, fixing horizontal scrolling that could appear on narrow screens (notably on mobile) when Readable Line Length was in use
+- New settings: **Footer Width** (Default / Readable line length / Custom) and **Custom Footer Width**
+
 ## [1.12.0] - 2026-05-31
 ### ✨ New Feature
 - Added a **Limit Links Shown** option to cap the number of backlinks/outlinks displayed in the footer
