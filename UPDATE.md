@@ -1,5 +1,12 @@
 ## 🚀 New Feature
 
+### v1.13.0
+#### ✨ Adjustable Footer Width
+- Added a **Footer Width** setting to control how wide the footer is
+- Choose **Readable line length** to lock the footer to Obsidian's readable line width, or **Custom width** to set a maximum width in pixels
+- The footer now always caps at the width of the note, so it no longer causes horizontal scrolling on narrow screens (notably on mobile)
+- Configure via Settings → Style Settings → **Footer Width**
+
 ### v1.12.0
 #### ✨ Limit Links Shown
 - Added an option to limit the number of backlinks/outlinks shown in the footer
