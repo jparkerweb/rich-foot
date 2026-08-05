@@ -23,6 +23,10 @@ export const DEFAULT_SETTINGS = {
     showOutlinks: true,
     showDates: true,
     combineLinks: false,
+    groupBacklinks: false,
+    groupBacklinksBy: 'folder',
+    groupByProperty: '',
+    groupFallbackLabel: 'Property Not Set',
     limitLinks: false,
     linksLimit: 10,
     footerWidth: 'default',
@@ -85,6 +89,76 @@ export class RichFootSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                     await this.plugin.updateRichFoot();
                 }));
+
+        new Setting(containerEl)
+            .setName('Group Backlinks')
+            .setDesc('Group backlinks in the footer, either by the folder the linking note lives in, or by a frontmatter property set on the linking note')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.groupBacklinks)
+                .onChange(async (value) => {
+                    this.plugin.settings.groupBacklinks = value;
+                    await this.plugin.saveSettings();
+                    await this.plugin.updateRichFoot();
+                    this.display();
+                }));
+
+        if (this.plugin.settings.groupBacklinks) {
+            new Setting(containerEl)
+                .setName('Group Backlinks By')
+                .setDesc('Choose whether backlinks are grouped by their folder or by a frontmatter property')
+                .addDropdown(dropdown => {
+                    dropdown
+                        .addOption('folder', 'Folder')
+                        .addOption('property', 'Frontmatter Property')
+                        .setValue(this.plugin.settings.groupBacklinksBy)
+                        .onChange(async (value) => {
+                            this.plugin.settings.groupBacklinksBy = value;
+                            await this.plugin.saveSettings();
+                            await this.plugin.updateRichFoot();
+                            this.display();
+                        });
+                });
+
+            if (this.plugin.settings.groupBacklinksBy === 'property') {
+                let groupByPropertyInput;
+                new Setting(containerEl)
+                    .setName('Group By Property Name')
+                    .setDesc('Frontmatter property (on the linking note) to group backlinks by. If a note has a list for this property, it will appear in each of those groups.')
+                    .addText(text => {
+                        groupByPropertyInput = text;
+                        text.setPlaceholder('e.g. category')
+                            .setValue(this.plugin.settings.groupByProperty)
+                            .onChange(async (value) => {
+                                this.plugin.settings.groupByProperty = value;
+                                await this.plugin.saveSettings();
+                                await this.plugin.updateRichFoot();
+                            });
+                    })
+                    .addButton(button => button
+                        .setButtonText('Browse')
+                        .onClick(async () => {
+                            const property = await this.browseForProperty();
+                            if (property) {
+                                groupByPropertyInput.setValue(property);
+                                this.plugin.settings.groupByProperty = property;
+                                await this.plugin.saveSettings();
+                                await this.plugin.updateRichFoot();
+                            }
+                        }));
+
+                new Setting(containerEl)
+                    .setName('Fallback Group Label')
+                    .setDesc('Group label used for backlinks whose note does not have the property above set')
+                    .addText(text => text
+                        .setPlaceholder(DEFAULT_SETTINGS.groupFallbackLabel)
+                        .setValue(this.plugin.settings.groupFallbackLabel)
+                        .onChange(async (value) => {
+                            this.plugin.settings.groupFallbackLabel = value || DEFAULT_SETTINGS.groupFallbackLabel;
+                            await this.plugin.saveSettings();
+                            await this.plugin.updateRichFoot();
+                        }));
+            }
+        }
 
         new Setting(containerEl)
             .setName('Limit Links Shown')
@@ -803,6 +877,35 @@ export class RichFootSettingTab extends PluginSettingTab {
             modal.open();
         });
     }
+
+    async browseForProperty() {
+        // Collect every frontmatter property name actually in use across the
+        // vault, so the list always reflects real properties rather than a
+        // hardcoded list.
+        const propertyNames = new Set();
+        for (const file of this.app.vault.getMarkdownFiles()) {
+            const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+            if (!frontmatter) continue;
+            for (const key of Object.keys(frontmatter)) {
+                if (key === 'position') continue; // internal cache key, not a real property
+                propertyNames.add(key);
+            }
+        }
+
+        const properties = Array.from(propertyNames).sort((a, b) => a.localeCompare(b));
+
+        if (properties.length === 0) {
+            new Notice('No frontmatter properties found in this vault yet');
+            return null;
+        }
+
+        return new Promise(resolve => {
+            const modal = new PropertySuggestModal(this.app, properties, (result) => {
+                resolve(result);
+            });
+            modal.open();
+        });
+    }
 }
 
 export class FolderSuggestModal extends FuzzySuggestModal {
@@ -814,6 +917,27 @@ export class FolderSuggestModal extends FuzzySuggestModal {
 
     getItems() {
         return this.folders;
+    }
+
+    getItemText(item) {
+        return item;
+    }
+
+    onChooseItem(item, evt) {
+        this.onChoose(item);
+    }
+}
+
+export class PropertySuggestModal extends FuzzySuggestModal {
+    constructor(app, properties, onChoose) {
+        super(app);
+        this.properties = properties;
+        this.onChoose = onChoose;
+        this.setPlaceholder('Find a frontmatter property...');
+    }
+
+    getItems() {
+        return this.properties;
     }
 
     getItemText(item) {

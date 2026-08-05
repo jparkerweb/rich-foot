@@ -50,6 +50,29 @@
     color: var(--rich-foot-link-color, var(--text-accent));
 }
 
+/* ------------------------------- */
+/* -- Grouped Backlinks Styles -- */
+/* ------------------------------- */
+.rich-foot--group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.rich-foot--group-title {
+    width: 100%;
+    text-transform: uppercase;
+    filter: brightness(130%);
+    font-size: 0.65em;
+    opacity: 0.7;
+    margin: 6px 0 2px 20px;
+    color: var(--rich-foot-link-color, var(--text-accent));
+}
+
+.rich-foot--group:first-child .rich-foot--group-title {
+    margin-top: 2px;
+}
+
 .rich-foot--backlinks ul,
 .rich-foot--outlinks ul,
 .rich-foot--links ul {

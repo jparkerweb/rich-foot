@@ -128,6 +128,100 @@ export class RichFootDataManager {
     }
 
     /**
+     * Group a list of items (each with a linkPath pointing at a backlinked note)
+     * into named groups, either by the folder the linking note lives in or by
+     * a frontmatter property set on the linking note.
+     * @param {Array<Object>} items - Items with a `linkPath` property
+     * @param {Object} settings - Plugin settings
+     * @returns {Array<[string, Array<Object>]>} Sorted [groupName, items] entries,
+     *   with the fallback group (if present) always sorted last
+     */
+    groupItemsByPath(items, settings) {
+        const groupsMap = new Map();
+
+        for (const item of items) {
+            const groupNames = this.getGroupNamesForPath(item.linkPath, settings);
+            for (const groupName of groupNames) {
+                if (!groupsMap.has(groupName)) {
+                    groupsMap.set(groupName, []);
+                }
+                groupsMap.get(groupName).push(item);
+            }
+        }
+
+        return this.sortGroups(groupsMap, settings);
+    }
+
+    /**
+     * Determine which group(s) a linked note belongs to
+     * @private
+     * @returns {Array<string>} One or more group names (more than one only
+     *   when grouping by a property that holds a list)
+     */
+    getGroupNamesForPath(filePath, settings) {
+        if (settings.groupBacklinksBy === 'property') {
+            return this.getPropertyGroupNames(filePath, settings);
+        }
+        return [this.getFolderGroupName(filePath)];
+    }
+
+    /**
+     * Get the folder group name for a file path
+     * @private
+     */
+    getFolderGroupName(filePath) {
+        const lastSlash = filePath.lastIndexOf('/');
+        return lastSlash === -1 ? '/' : filePath.substring(0, lastSlash);
+    }
+
+    /**
+     * Get the property-based group name(s) for a file, falling back to the
+     * configured fallback label when the property isn't set
+     * @private
+     */
+    getPropertyGroupNames(filePath, settings) {
+        const fallback = settings.groupFallbackLabel || 'Property Not Set';
+        const propName = settings.groupByProperty;
+        if (!propName) return [fallback];
+
+        const file = this.app.vault.getAbstractFileByPath(filePath);
+        if (!file) return [fallback];
+
+        const cache = this.app.metadataCache.getFileCache(file);
+        const value = cache?.frontmatter?.[propName];
+
+        if (value === undefined || value === null || value === '') {
+            return [fallback];
+        }
+
+        if (Array.isArray(value)) {
+            const names = value
+                .filter(v => v !== undefined && v !== null && v !== '')
+                .map(v => String(v));
+            return names.length ? names : [fallback];
+        }
+
+        return [String(value)];
+    }
+
+    /**
+     * Sort group entries alphabetically, always placing the fallback group last
+     * @private
+     */
+    sortGroups(groupsMap, settings) {
+        const fallback = settings.groupFallbackLabel || 'Property Not Set';
+        const entries = Array.from(groupsMap.entries());
+
+        entries.sort(([nameA], [nameB]) => {
+            if (nameA === fallback && nameB !== fallback) return 1;
+            if (nameB === fallback && nameA !== fallback) return -1;
+            return nameA.localeCompare(nameB);
+        });
+
+        return entries;
+    }
+
+    /**
      * Get dates for a file (created and modified)
      * @param {TFile} file - The file to get dates for
      * @param {Object} settings - Plugin settings
