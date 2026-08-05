@@ -2,6 +2,18 @@
 
 All notable changes to Rich Foot will be documented in this file.
 
+## [1.14.1] - 2026-08-05
+### ✨ Improvement
+- The **Group By Property Name** setting now has a **Browse** button that opens a fuzzy-searchable list of every frontmatter property already in use across your vault, instead of requiring free-text entry
+
+## [1.14.0] - 2026-08-03
+### ✨ New Feature
+- Added a **Group Backlinks** option to organize the backlinks footer into labeled sub-groups
+- Group by **Folder** (the folder the linking note lives in) or by a **Frontmatter Property** value on the linking note
+- Notes missing the chosen property fall into a configurable **Fallback Group Label** (default: "Property Not Set")
+- Notes where the property holds a list appear in each of those groups, similar to tags
+- New settings: **Group Backlinks** (toggle), **Group Backlinks By** (Folder / Frontmatter Property), **Group By Property Name**, and **Fallback Group Label**
+
 ## [1.13.0] - 2026-06-14
 ### ✨ New Feature
 - Added a **Footer Width** setting to control how wide the footer is

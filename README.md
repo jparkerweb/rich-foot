@@ -63,6 +63,12 @@ You can toggle the visibility of each section:
 - Show/Hide Outlinks (disabled by default)
 - Show/Hide Dates
 
+#### Grouping Backlinks
+
+Backlinks can optionally be grouped into labeled sub-lists:
+- **Group by Folder** – groups backlinks by the folder the linking note lives in
+- **Group by Frontmatter Property** – groups backlinks by the value of a frontmatter property on the linking note (e.g. `category`). Notes missing that property fall into a configurable fallback group (default: "Property Not Set"). Notes where the property is a list appear in each of those groups.
+
 ### Style Settings
 
 Customize the appearance of your Rich Foot:

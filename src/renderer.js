@@ -61,45 +61,55 @@ export class RichFootRenderer {
         if (backlinks.size === 0 && outlinks.size === 0) return;
 
         const linksDiv = container.createDiv({ cls: 'rich-foot--links' });
-        const linksUl = linksDiv.createEl('ul');
-
         const processedLinks = new Set();
+        const backlinkItems = [];
+        const outlinkOnlyItems = [];
 
         // Process backlinks first
         for (const [linkPath] of backlinks) {
             if (!linkPath.endsWith('.md')) continue;
             processedLinks.add(linkPath);
-
-            const metadata = {
+            backlinkItems.push({
+                linkPath,
                 isBacklink: true,
                 isOutlink: outlinks.has(linkPath)
-            };
-
-            const li = linksUl.createEl('li');
-            this.createLinkElement(li, file, linkPath, metadata);
+            });
         }
 
         // Process remaining outlinks
         for (const linkPath of outlinks) {
             if (processedLinks.has(linkPath)) continue;
-
-            const metadata = {
+            outlinkOnlyItems.push({
+                linkPath,
                 isBacklink: false,
                 isOutlink: true
-            };
-
-            const li = linksUl.createEl('li');
-            this.createLinkElement(li, file, linkPath, metadata);
+            });
         }
 
-        // Remove if empty
-        if (linksUl.childElementCount === 0) {
+        if (backlinkItems.length === 0 && outlinkOnlyItems.length === 0) {
             linksDiv.remove();
             return;
         }
 
-        // Apply "Show More" limit if enabled
-        this.applyLinkLimit(linksUl);
+        if (this.plugin.settings.groupBacklinks) {
+            // Group the backlink-sourced items; outlink-only items don't have
+            // a "linking note" to group by, so they get their own trailing group.
+            const groupEntries = this.plugin.dataManager.groupItemsByPath(
+                backlinkItems,
+                this.plugin.settings
+            );
+            if (outlinkOnlyItems.length > 0) {
+                groupEntries.push(['Outlinks', outlinkOnlyItems]);
+            }
+            this.renderGroupedLinks(linksDiv, file, groupEntries);
+        } else {
+            this.renderFlatLinks(linksDiv, file, [...backlinkItems, ...outlinkOnlyItems]);
+        }
+
+        // Remove if nothing ended up rendering (e.g. all groups empty)
+        if (linksDiv.childElementCount === 0) {
+            linksDiv.remove();
+        }
     }
 
     /**
@@ -115,24 +125,78 @@ export class RichFootRenderer {
 
         const className = `rich-foot--${type}`;
         const linksDiv = container.createDiv({ cls: className });
-        const linksUl = linksDiv.createEl('ul');
 
-        for (const linkPath of linksArray) {
+        const items = linksArray.map(linkPath => ({
+            linkPath,
+            isBacklink: type === 'backlinks',
+            isOutlink: type === 'outlinks'
+        }));
+
+        if (type === 'backlinks' && this.plugin.settings.groupBacklinks) {
+            const groupEntries = this.plugin.dataManager.groupItemsByPath(items, this.plugin.settings);
+            this.renderGroupedLinks(linksDiv, file, groupEntries);
+        } else {
+            this.renderFlatLinks(linksDiv, file, items);
+        }
+
+        if (linksDiv.childElementCount === 0) {
+            linksDiv.remove();
+        }
+    }
+
+    /**
+     * Render a flat (ungrouped) list of link items into a single <ul>
+     * @private
+     * @param {HTMLElement} container - Element to render the <ul> into
+     * @param {TFile} file - The note the footer belongs to
+     * @param {Array<Object>} items - Items with linkPath/isBacklink/isOutlink
+     */
+    renderFlatLinks(container, file, items) {
+        if (items.length === 0) return;
+
+        const linksUl = container.createEl('ul');
+        for (const item of items) {
             const li = linksUl.createEl('li');
-            const metadata = {
-                isBacklink: type === 'backlinks',
-                isOutlink: type === 'outlinks'
-            };
-            this.createLinkElement(li, file, linkPath, metadata);
+            this.createLinkElement(li, file, item.linkPath, item);
         }
 
         if (linksUl.childElementCount === 0) {
-            linksDiv.remove();
+            linksUl.remove();
             return;
         }
 
         // Apply "Show More" limit if enabled
         this.applyLinkLimit(linksUl);
+    }
+
+    /**
+     * Render grouped link items, each group as its own labeled sub-list
+     * @private
+     * @param {HTMLElement} container - Element to render groups into
+     * @param {TFile} file - The note the footer belongs to
+     * @param {Array<[string, Array<Object>]>} groupEntries - [groupName, items] pairs
+     */
+    renderGroupedLinks(container, file, groupEntries) {
+        for (const [groupName, groupItems] of groupEntries) {
+            if (!groupItems || groupItems.length === 0) continue;
+
+            const groupDiv = container.createDiv({ cls: 'rich-foot--group' });
+            groupDiv.createDiv({ cls: 'rich-foot--group-title', text: groupName });
+
+            const linksUl = groupDiv.createEl('ul');
+            for (const item of groupItems) {
+                const li = linksUl.createEl('li');
+                this.createLinkElement(li, file, item.linkPath, item);
+            }
+
+            if (linksUl.childElementCount === 0) {
+                groupDiv.remove();
+                continue;
+            }
+
+            // Apply "Show More" limit per-group if enabled
+            this.applyLinkLimit(linksUl);
+        }
     }
 
     /**
